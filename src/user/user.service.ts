@@ -36,7 +36,7 @@ export class UserService {
         return new UserInfoDto(user.userId, user.name, user.lastname, user.email, user.phonenumber);
     }
 
-    async addUser(data: UserAddDto): Promise<UserInfoDto | ApiResponse>{
+    async addUser(data: UserAddDto): Promise<UserInfoDto | ApiResponse | ConflictException>{
         const user = new Users();
 
         const saltRound = 10;
@@ -54,7 +54,7 @@ export class UserService {
             const saveUser = await this.userEntitets.save(user);
             return await this.getUserById(saveUser.userId);
         }catch(error){
-            if(error.code === 1062 || error.code === 23505){
+            if(error.errno === 1062 || error.code === "ER_DUP_ENTRY" || error.errno === 23505){
                 throw new ConflictException("User that this email or phone number alredy existe");
             }
             throw error;

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, ConflictException, Controller, Get, Param, Post } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { Users } from 'entitets/entities/Users';
@@ -11,7 +11,7 @@ export class UserController {
 
     @Get("/all")
     async getAll(): Promise<UserInfoDto[] | ApiResponse>{
-        return this.userServices.getAllUsers();
+        return await this.userServices.getAllUsers();
     }
 
     @Get(":id")
@@ -21,7 +21,7 @@ export class UserController {
 
 
     @Post("/add")
-    async addUser(@Body() data: UserAddDto): Promise<UserInfoDto | ApiResponse>{
+    async addUser(@Body() data: UserAddDto): Promise<UserInfoDto | ApiResponse | ConflictException>{
         return this.userServices.addUser(data);
     }
 }
