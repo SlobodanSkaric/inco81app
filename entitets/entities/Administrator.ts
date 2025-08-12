@@ -29,6 +29,14 @@ export class Administrator {
   email: string;
 
   @Column("varchar", {
+    name: "password",
+    unique: false,
+    length: 256,
+    default: () => "'0'",
+  })
+  password: string;
+
+  @Column("varchar", {
     name: "phonenumber",
     unique: true,
     length: 128,
