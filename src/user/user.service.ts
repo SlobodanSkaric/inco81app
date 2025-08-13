@@ -36,7 +36,17 @@ export class UserService {
         return new UserInfoDto(user.userId, user.name, user.lastname, user.email, user.phonenumber);
     }
 
-    async addUser(data: UserAddDto): Promise<UserInfoDto | ApiResponse | ConflictException>{
+    async getByEmail(email: string): Promise<Users | null>{
+            const user = await this.userEntitets.findOne({ where : { email: email } });
+    
+            if(!user){
+                return null;
+            }
+    
+            return user;
+        }
+
+    async addUser(data: UserAddDto): Promise<UserInfoDto | ApiResponse>{
         const user = new Users();
 
         const saltRound = 10;
