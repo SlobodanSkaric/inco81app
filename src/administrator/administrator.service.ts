@@ -9,10 +9,10 @@ import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class AdministratorService {
-    constructor(@InjectRepository(Administrator) private readonly administratorServices: Repository<Administrator>){}
+    constructor(@InjectRepository(Administrator) private readonly administratorEntitets: Repository<Administrator>){}
 
     async getAllAdmin(): Promise<AdministratorInfoDto[] | ApiResponse>{
-        const getAdmin = await this.administratorServices.find();
+        const getAdmin = await this.administratorEntitets.find();
 
         if(getAdmin.length === 0){
             return new ApiResponse("error", -1006, "No Administrator");
@@ -28,9 +28,19 @@ export class AdministratorService {
         return admin;
     }
 
+    async getByEmail(email: string): Promise<Administrator | null>{
+        const admins = await this.administratorEntitets.findOne({ where : { email: email } });
+
+        if(!admins){
+            return null;
+        }
+
+        return admins;
+    }
+
 
     async getById(id: number): Promise<AdministratorInfoDto | ApiResponse>{
-        const getAdmin = await this.administratorServices.findOne({ where: { adminId: id } });
+        const getAdmin = await this.administratorEntitets.findOne({ where: { adminId: id } });
 
         if(!getAdmin){
             return new ApiResponse("error", -1007, "Adminstrator for this id is not exists");
@@ -55,7 +65,7 @@ export class AdministratorService {
         admin.password = passwordHas;
 
         try{
-            const saveAdministrator = await this.administratorServices.save(admin);
+            const saveAdministrator = await this.administratorEntitets.save(admin);
             return await this.getById(saveAdministrator.adminId);
         }catch(error){
             if(error.errno === 1062 || error.errno === 23505){

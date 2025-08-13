@@ -6,6 +6,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { AdministratorModule } from './administrator/administrator.module';
 import { TimeofworkModule } from './timeofwork/timeofwork.module';
+import { AuthController } from './auth/auth.controller';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -21,7 +23,9 @@ import { TimeofworkModule } from './timeofwork/timeofwork.module';
     }),
     UserModule,
     AdministratorModule,
-    TimeofworkModule
+    TimeofworkModule,
+    AuthModule
   ],
+  controllers: [AuthController],
 })
 export class AppModule {}
