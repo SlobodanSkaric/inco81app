@@ -24,22 +24,25 @@ export class AuthController {
         if(!checkedAdmin){
             return new ApiResponse("error", -1010, "Email is not exites");
         }
-
-        const checkedPassword = bcrypt.compareSync(data.password, checkedAdmin.password);
+        const checkedPassword = await bcrypt.compare(data.password, checkedAdmin.password);
 
         if(!checkedPassword){
             return new ApiResponse("error", -1011, "Password is not correct");
         }
 
         const dateFormat = new Date();
-        const dateNormailize = dateFormat.setDate(dateFormat.getDate() + 14);
+        const dateNormailize = dateFormat.setDate(dateFormat.getDate() + 7);
         const dateExp = Math.floor(dateNormailize / 1000);
         const ip = req.ip?req.ip: "Undefined Ip";
         const ua = req.headers["user-agent"]?req.headers["user-agent"]:"Undefined user agent";
 
         const authInfo = new AuthInfoDto(checkedAdmin.adminId, checkedAdmin.email, checkedAdmin.phonenumber, dateExp, ip, ua);
         const plainObject = authInfo.getPlainObject();
-        const token = jwt.sign(plainObject, this.configServices.get<string>("SECRET_TOKEN_KEY"));
+        const secret = this.configServices.get<string>("SECRET_TOKEN_KEY");
+        if (!secret) {
+            throw new Error("SECRET_TOKEN_KEY is not defined in configuration");
+        }
+        const token = jwt.sign(plainObject, secret);
 
         const authLogin = new AuthLoginDto(checkedAdmin.adminId, checkedAdmin.email, token);
 
@@ -55,21 +58,25 @@ export class AuthController {
         if(!user){
             return new ApiResponse("error", -1022, "Email is not exites");
         }
-        const passwordChecked = bcrypt.compareSync(data.password, user.password);
+        const passwordChecked = await bcrypt.compareSync(data.password, user.password);
 
         if(!passwordChecked){
             return new ApiResponse("error", -1013, "Password is not correct");
         }
 
         const dateFormat = new Date();
-        const dateNormailize = dateFormat.setDate(dateFormat.getDate() + 14);
+        const dateNormailize = dateFormat.setDate(dateFormat.getDate() + 7);
         const dateExp = Math.floor(dateNormailize / 1000);
         const ip = req.ip?req.ip:"Undefined Ip";
         const ua = req.headers["user-agent"]?req.headers["user-agent"] : "Undefined user agent";
 
         const authInfo = new AuthInfoDto(user.userId, user.email, user.phonenumber, dateExp, ip, ua);
         const plainObject = authInfo.getPlainObject();
-        const token = jwt.sign(plainObject, this.configServices.get<string>("SECRET_TOKEN_KEY"));
+        const secret = this.configServices.get<string>("SECRET_TOKEN_KEY");
+        if (!secret) {
+            throw new Error("SECRET_TOKEN_KEY is not defined in configuration");
+        }
+        const token = jwt.sign(plainObject, secret);
 
         const authLogin = new AuthLoginDto(user.userId, user.email, token);
 
