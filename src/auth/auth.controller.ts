@@ -36,7 +36,7 @@ export class AuthController {
         const ip = req.ip?req.ip: "Undefined Ip";
         const ua = req.headers["user-agent"]?req.headers["user-agent"]:"Undefined user agent";
 
-        const authInfo = new AuthInfoDto(checkedAdmin.adminId, checkedAdmin.email, checkedAdmin.phonenumber, dateExp, ip, ua);
+        const authInfo = new AuthInfoDto(checkedAdmin.adminId, checkedAdmin.email, checkedAdmin.phonenumber, dateExp, ip, ua, "administrator");
         const plainObject = authInfo.getPlainObject();
         const secret = this.configServices.get<string>("SECRET_TOKEN_KEY");
         if (!secret) {
@@ -70,7 +70,7 @@ export class AuthController {
         const ip = req.ip?req.ip:"Undefined Ip";
         const ua = req.headers["user-agent"]?req.headers["user-agent"] : "Undefined user agent";
 
-        const authInfo = new AuthInfoDto(user.userId, user.email, user.phonenumber, dateExp, ip, ua);
+        const authInfo = new AuthInfoDto(user.userId, user.email, user.phonenumber, dateExp, ip, ua, "user");
         const plainObject = authInfo.getPlainObject();
         const secret = this.configServices.get<string>("SECRET_TOKEN_KEY");
         if (!secret) {

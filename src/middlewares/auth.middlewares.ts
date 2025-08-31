@@ -3,6 +3,14 @@ import { AdministratorService } from "src/administrator/administrator.service";
 import * as jwt from "jsonwebtoken";
 import { NextFunction, Request } from "express";
 
+// Extend Express Request interface to include 'user'
+import "express";
+declare module "express" {
+    interface Request {
+        user?: any;
+    }
+}
+
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
 
@@ -11,7 +19,7 @@ export class AuthMiddleware implements NestMiddleware {
     ){}
     async use(req: Request, res: Request, next: NextFunction) {
         const getToken = req.headers["authorization"];
-
+        console.log(getToken);
         if(!getToken){
             throw new UnauthorizedException("Authorization header is missing");
         }
@@ -33,18 +41,7 @@ export class AuthMiddleware implements NestMiddleware {
             throw new UnauthorizedException("Invalid token payload");
         }
 
-        let admin = await this.adminstratorServices.getById(tokenVerify.id);
-
-        if(!admin){
-            throw new UnauthorizedException("Token not valid1")
-        }
-
         
-        if (('email' in admin && admin.email) && ("phonenumber" in admin && admin.phonenumber)) {
-            if(admin.email !== tokenVerify.email || admin.phonenumber !== tokenVerify.phonenumber){
-                throw new UnauthorizedException("Token not valid2");
-            }
-        }
         
         const ip = req.ip;
         const ua = req.headers["user-agent"];
@@ -61,6 +58,10 @@ export class AuthMiddleware implements NestMiddleware {
         if(tokenVerify.dateExp < current){
             throw new UnauthorizedException("Token expired");
         }
-        next();    }
+
+        req.user = tokenVerify;
+        console.log(tokenVerify);
+        next();    
+    }
 
 }
