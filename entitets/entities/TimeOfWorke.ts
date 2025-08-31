@@ -22,11 +22,17 @@ export class TimeOfWorke {
   })
   dateAndTime: Date;
 
-  @Column("int", { name: "user_id", nullable: true, default: () => "'0'" })
-  userId: number | null;
+  @Column("int", { name: "user_id", default: () => "'0'" })
+  userId: number ;
 
-  @Column("int", { name: "admin_id", nullable: true, default: () => "'0'" })
-  adminId: number | null;
+  @Column("int", { name: "admin_id", default: () => "'0'" })
+  adminId: number ;
+
+  @Column({ type: "datetime", nullable:true })
+  checked_in: Date;
+
+  @Column({ type: "datetime", nullable:true })
+  checked_out: Date;
 
   @ManyToOne(
     () => Administrator,
