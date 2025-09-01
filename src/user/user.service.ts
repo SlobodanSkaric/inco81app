@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from 'entitets/entities/Users';
 import { ApiResponse } from 'src/misc/api.response.dto';
@@ -6,12 +6,23 @@ import { Repository } from 'typeorm';
 import { UserInfoDto } from './dto/user.info.dto';
 import { UserAddDto } from './dto/user.add.dto';
 import * as bcrypt from "bcrypt";
+import { Administrator } from 'entitets/entities/Administrator';
 
 @Injectable()
 export class UserService {
-    constructor(@InjectRepository(Users) private readonly userEntitets: Repository<Users>){}
+    constructor(
+        @InjectRepository(Users) private readonly userEntitets: Repository<Users>,
+        @InjectRepository(Administrator) private readonly adminRepository: Repository<Administrator>
+    ){}
 
-    async getAllUsers(): Promise<UserInfoDto[] | ApiResponse>{
+    async getAllUsers(req): Promise<UserInfoDto[] | ApiResponse>{
+        const adminId = req.user.id;
+        const admin = await this.adminRepository.findOne({ where: { adminId: adminId } });
+
+        if(!admin){
+            return new ApiResponse("error", -1002, "No admin");
+        }
+
         const allUsers = await this.userEntitets.find();
         
         if(allUsers.length === 0){
@@ -26,8 +37,10 @@ export class UserService {
         return userInfoDto;
     }
 
-    async getUserById(id: number): Promise<UserInfoDto | ApiResponse>{
-        const user = await this.userEntitets.findOne({ where: { userId: id } });
+    async getUserById(req): Promise<UserInfoDto | ApiResponse>{
+        const getId = req.user.id;
+        
+        const user = await this.userEntitets.findOne({ where: { userId: getId } });
 
         if(!user){
             return new ApiResponse("error", -1001, "No user");

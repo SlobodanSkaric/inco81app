@@ -19,7 +19,6 @@ export class AuthMiddleware implements NestMiddleware {
     ){}
     async use(req: Request, res: Request, next: NextFunction) {
         const getToken = req.headers["authorization"];
-        console.log(getToken);
         if(!getToken){
             throw new UnauthorizedException("Authorization header is missing");
         }
@@ -60,7 +59,6 @@ export class AuthMiddleware implements NestMiddleware {
         }
 
         req.user = tokenVerify;
-        console.log(tokenVerify);
         next();    
     }
 
