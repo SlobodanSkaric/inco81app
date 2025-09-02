@@ -7,6 +7,7 @@ import { TimeofworkModule } from './timeofwork/timeofwork.module';
 import { AuthController } from './auth/auth.controller';
 import { AuthModule } from './auth/auth.module';
 import { AuthMiddleware } from './middlewares/auth.middlewares';
+import { ReportController } from './report/report.controller';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { AuthMiddleware } from './middlewares/auth.middlewares';
     TimeofworkModule,
     AuthModule
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, ReportController],
 })
 export class AppModule implements NestModule{
   configure(consumer: MiddlewareConsumer) {

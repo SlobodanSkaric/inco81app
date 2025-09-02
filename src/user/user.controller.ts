@@ -23,7 +23,7 @@ export class UserController {
     @Get("")
     @Roles("user")
     @UseGuards(RoleGuards)
-    async agById(@Req() req: Request): Promise<UserInfoDto | ApiResponse>{
+    async getById(@Req() req: Request): Promise<UserInfoDto | ApiResponse>{
         return this.userServices.getUserById(req);
     }
 

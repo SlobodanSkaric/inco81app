@@ -17,21 +17,45 @@ export class UserService {
 
     async getAllUsers(req): Promise<UserInfoDto[] | ApiResponse>{
         const adminId = req.user.id;
-        const admin = await this.adminRepository.findOne({ where: { adminId: adminId } });
+        const admin = await this.adminRepository.findOne({ 
+            where: { adminId: adminId }
+        });
 
         if(!admin){
             return new ApiResponse("error", -1002, "No admin");
         }
 
-        const allUsers = await this.userEntitets.find();
-        
+        const allUsers = await this.userEntitets.find({
+            relations: { timeOfWorkes: true }
+        });
+        //console.log(allUsers);
         if(allUsers.length === 0){
             return new ApiResponse("error", -1001, "No users");
         }
+
         const userInfoDto: UserInfoDto[] = [];
+        let sumTimeOfWork = 0;
+
+
 
         allUsers.forEach((data) => {
-            userInfoDto.push(new UserInfoDto(data.userId, data.name, data.lastname, data.email, data.phonenumber));
+            const timeOfWorkSet = data.timeOfWorkes;
+            timeOfWorkSet.forEach((dataSet) =>{
+                if(data.userId == dataSet.userId){
+                    sumTimeOfWork += dataSet.checked_out.getTime() - dataSet.checked_in.getTime();
+                }
+            
+           });
+            
+            let sumTimeOfWorkset = Number((sumTimeOfWork / (1000 * 60 * 60)).toFixed(2)); 
+            let sufix = "H";
+
+            if(sumTimeOfWorkset < 1){
+                sufix = "min";
+                sumTimeOfWorkset = Number(sumTimeOfWorkset.toString().split(".")[1])
+            }
+            userInfoDto.push(new UserInfoDto(data.userId, data.name, data.lastname, data.email, data.phonenumber,data.timeOfWorkes,sumTimeOfWorkset.toString() + sufix));
+            sumTimeOfWork = 0;
         });
 
         return userInfoDto;
