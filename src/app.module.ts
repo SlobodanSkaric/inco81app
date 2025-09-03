@@ -8,6 +8,7 @@ import { AuthController } from './auth/auth.controller';
 import { AuthModule } from './auth/auth.module';
 import { AuthMiddleware } from './middlewares/auth.middlewares';
 import { ReportController } from './report/report.controller';
+import { ReportModule } from './report/report.module';
 
 @Module({
   imports: [
@@ -24,12 +25,13 @@ import { ReportController } from './report/report.controller';
     UserModule,
     AdministratorModule,
     TimeofworkModule,
-    AuthModule
+    AuthModule,
+    ReportModule
   ],
-  controllers: [AuthController, ReportController],
+  controllers: [AuthController],
 })
 export class AppModule implements NestModule{
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthMiddleware).forRoutes("administrator","user");//exclude
+    consumer.apply(AuthMiddleware).forRoutes("administrator","user","report");//exclude
   }
 }
