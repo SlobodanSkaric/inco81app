@@ -99,7 +99,7 @@ export class UserService {
 
         try{
             const saveUser = await this.userEntitets.save(user);
-            return await this.getUserById(saveUser.userId);
+            return await this.getUserByIdLocal(saveUser.userId);
         }catch(error){
             if(error.errno === 1062 || error.code === "ER_DUP_ENTRY" || error.errno === 23505){
                 throw new ConflictException("User that this email or phone number alredy existe");
@@ -109,6 +109,17 @@ export class UserService {
     }
 
 
+    async getUserByIdLocal(id: number): Promise<UserInfoDto | ApiResponse>{
+        const user = await this.userEntitets.findOne({ where: { userId: id } });
+
+        if(!user){
+            return new ApiResponse("error", -1003, "No user");
+        }
+
+        const userIfno = new UserInfoDto(user.userId, user.name, user.lastname, user.email, user.phonenumber);
+        return userIfno;
+
+    }
 
     async updateUser(){}//TODO
         

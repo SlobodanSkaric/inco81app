@@ -6,8 +6,9 @@ export class AuthInfoDto{
     ip: string;
     ua: string;
     role:string;
+    premissions: string[]
 
-    constructor(id: number, email: string, phonenumber: string, dataExp: number, ip: string, ua: string, role: string){
+    constructor(id: number, email: string, phonenumber: string, dataExp: number, ip: string, ua: string, role: string, premissions: string[]){
         this.id = id;
         this.email = email;
         this.phonenumber = phonenumber;
@@ -15,6 +16,7 @@ export class AuthInfoDto{
         this.ip = ip;
         this.ua = ua;
         this.role = role;
+        this.premissions = premissions;
     }
     
 
@@ -26,7 +28,8 @@ export class AuthInfoDto{
             dateExp: this.dateExp,
             ip: this.ip,
             ua: this.ua,
-            role: this.role
+            role: this.role,
+            premissions: this.premissions
         }
     }
 }

@@ -7,6 +7,8 @@ import { UserAddDto } from './dto/user.add.dto';
 import { Roles } from 'src/common/decorators/role.decorators';
 import { RoleGuards } from 'src/common/guards/roles.guards';
 import { Request } from 'express';
+import { Premissions } from 'src/common/decorators/premissions.decorators';
+import { PremissionsGuards } from 'src/common/guards/premissions.guards';
 
 
 @Controller('user')
@@ -30,7 +32,8 @@ export class UserController {
 
     @Post("/add")
     @Roles("administrator")
-    @UseGuards(RoleGuards)
+    @Premissions("create")
+    @UseGuards(RoleGuards, PremissionsGuards)
     async addUser(@Body() data: UserAddDto): Promise<UserInfoDto | ApiResponse>{
         return this.userServices.addUser(data);
     }
