@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString } from "class-validator";
+import { IsEmail, IsNotEmpty, IsString, Matches, MinLength } from "class-validator";
 
 export class AdministratorAddDto{
     @IsString()
@@ -18,6 +18,8 @@ export class AdministratorAddDto{
     phonenumber:string;
 
     @IsString()
-    @IsNotEmpty()
+    @MinLength(8, { message: "Password must be at least 8 characters long" })
+    @Matches(/^(?=.*\d)(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z0-9@$!%*?&]+$/, { message: "Password must have alpha, numberic and specials characeters" })
+    @IsNotEmpty()    
     password: string;
 }

@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString } from "class-validator";
+import { IsEmail, IsNotEmpty, IsString, Matches, Min, MinLength } from "class-validator";
 
 export class UserAddDto{
 
@@ -20,5 +20,7 @@ export class UserAddDto{
 
     @IsString()
     @IsNotEmpty()
+    @MinLength(8, {message: "Password is too short, minimum length is 8 characters"})
+    @Matches(/^(?=.*\d)(?=.[A-Z])(?=.[@$!%*?&])[A-Za-z0-9@$!%*?&]$/)
     password: string;
 }
