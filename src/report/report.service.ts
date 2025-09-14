@@ -7,15 +7,20 @@ import * as PDFDocument from 'pdfkit';
 import { Users } from 'entitets/entities/Users';
 import { get } from 'http';
 import { time } from 'console';
+import { ReportDto } from './dto/report.dto';
+import { getRandomValues } from 'crypto';
+import { generateRandomDocName } from 'src/misc/random.docname';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ReportService {
     constructor(
         @InjectRepository(TimeOfWorke) private readonly timeOfWorkRepository: Repository<TimeOfWorke>,
         @InjectRepository(Users) private readonly userRepository: Repository<Users>,    
+        private readonly configServices: ConfigService
     ){}
 
-    async createPdfReport(report): Promise<string | {message: string}> {
+    async createPdfReport(report: ReportDto): Promise<string | {message: string}> {
         const getUser = await this.userRepository.findOneBy({userId: report.userId});
 
         if(!getUser){
@@ -23,9 +28,14 @@ export class ReportService {
         }
 
         const doc = new PDFDocument();
-        const filePath = './exports/example1.pdf';
+        const filePathServer = this.configServices.get<string>("SERVER_PDF_PATH")+ getUser.name + "-"+getUser.lastname + "-" + generateRandomDocName(getUser.userId,new Date().getMonth() + "-" + new Date().getFullYear(),1, 1000) + ".pdf";
+        const filePathHostMacines = this.configServices.get<string>("HOST_MACHINE_PDF_PATH")+ getUser.name+"-"+getUser.lastname + "-" + generateRandomDocName(getUser.userId,new Date().getMonth() + "-" + new Date().getFullYear(),1, 1000) + ".pdf";
+        if (!fs.existsSync('./exports')) {
+            fs.mkdirSync('./exports');
+        }
 
-        doc.pipe(fs.createWriteStream(filePath));
+        doc.pipe(fs.createWriteStream(filePathServer));
+        doc.pipe(fs.createWriteStream(filePathHostMacines));
 
         doc.fontSize(20).text('Izveštaj', { align: 'center' });
         doc.moveDown();
