@@ -28,7 +28,7 @@ export class UserService {
         const allUsers = await this.userEntitets.find({
             relations: { timeOfWorkes: true }
         });
-        //console.log(allUsers);
+        
         if(allUsers.length === 0){
             return new ApiResponse("error", -1001, "No users");
         }
