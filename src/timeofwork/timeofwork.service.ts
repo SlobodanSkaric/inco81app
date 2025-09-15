@@ -5,6 +5,8 @@ import { ApiResponse } from 'src/misc/api.response.dto';
 import { Between, IsNull, Repository } from 'typeorm';
 import { UserCheckedInDto } from './dtos/user.checkedin.dto';
 import { GetHorseDto } from './dtos/get.horse.dto';
+import { UdateTimeOfWorkUserDto } from './dtos/udate.timeofwork.user.dto';
+import { dataUtils } from 'src/utils/data.utils';
 
 @Injectable()
 export class TimeofworkService {
@@ -96,4 +98,33 @@ export class TimeofworkService {
         return { getOfTime: totalHouerse.toString() + sufix }
 
     }
+
+    async getInfoTimeOfWork(id: number): Promise<TimeOfWorke | ApiResponse>{
+        const timeOfWork = await this.timeOfWorksRepository.findOne({ where: { timeOfWorkeId: id } });
+
+        if(!timeOfWork){
+            return new ApiResponse("error", -1009, "Time of work for this id is not exists");
+        }
+
+        return timeOfWork;
+    }
+
+    async updateUserTimeOfWork(data: UdateTimeOfWorkUserDto): Promise<TimeOfWorke | ApiResponse | null>{
+        const result = await this.timeOfWorksRepository.createQueryBuilder()
+                        .update(TimeOfWorke)
+                        .set({
+                            checked_in: dataUtils(data.dateStartTime) ? dataUtils(data.dateStartTime) : () => "checked_in",
+                            checked_out: dataUtils(data.dateEndTime) ? dataUtils(data.dateEndTime) : () => "checked_out"
+                        })
+                        .where("timeOfWorkeId = :id", { id: data.id })
+                        .execute();
+
+        if(result.affected === 0){
+            return new ApiResponse("error", -1009, "Time of work for this id is not exists");
+        }
+
+        return await this.timeOfWorksRepository.findOne({ where: { timeOfWorkeId: data.id } });
+    }
+
+    async deleteUserTimeOfWork(){}
 }

@@ -6,6 +6,7 @@ import { AdministratorAddDto } from './dto/administrator.add.dto';
 import { Roles } from 'src/common/decorators/role.decorators';
 import { RoleGuards } from 'src/common/guards/roles.guards';
 import { Request } from 'express';
+import { EditUserTimeOfWorkDto } from './dto/edit.user.timeofwork.dto';
 
 @Controller('administrator')
 export class AdministratorController {
@@ -28,5 +29,12 @@ export class AdministratorController {
     @Post("add")//add role and gurds of superadmin
     async addAdministrator(@Body() data: AdministratorAddDto): Promise<AdministratorInfoDto | ApiResponse>{
         return await this.admiServices.addAdministratorServices(data);
+    }
+
+    @Post("edit/timeofwork/{:optional}")
+    @Roles("administrator")
+    @UseGuards(RoleGuards)
+    async editUserTimeOfWork(@Body() data, @Param("optional") optional: string){
+        return await this.admiServices.edutUserTimeOfWork(data, optional);
     }
 }

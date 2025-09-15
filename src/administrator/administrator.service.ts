@@ -6,10 +6,17 @@ import { AdministratorInfoDto } from './dto/administrator.info.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { AdministratorAddDto } from './dto/administrator.add.dto';
 import * as bcrypt from "bcrypt";
+import { EditUserTimeOfWorkDto } from './dto/edit.user.timeofwork.dto';
+import { TimeOfWorke } from 'entitets/entities/TimeOfWorke';
+import { dataUtils } from 'src/utils/data.utils';
+import { get } from 'http';
 
 @Injectable()
 export class AdministratorService {
-    constructor(@InjectRepository(Administrator) private readonly administratorEntitets: Repository<Administrator>){}
+    constructor(
+        @InjectRepository(Administrator) private readonly administratorEntitets: Repository<Administrator>,
+        @InjectRepository(TimeOfWorke) private readonly timeOfWorkeEntitets: Repository<TimeOfWorke>
+    ){}
 
     async getAllAdmin(): Promise<AdministratorInfoDto[] | ApiResponse>{
         const getAdmin = await this.administratorEntitets.find();
@@ -75,4 +82,28 @@ export class AdministratorService {
             return error;
         }
     }
+
+    async edutUserTimeOfWork(data: EditUserTimeOfWorkDto, optional: string):Promise<TimeOfWorke[] | ApiResponse>{
+        const getDate = data.dateEndTime.split(" ")[0];
+        const excangeDate = dataUtils(data.dateEndTime);
+        const checkedInDate = new Date(getDate);
+
+        
+       const result = await this.timeOfWorkeEntitets.createQueryBuilder("time_of_works")
+                        .where("DATE(time_of_works.checked_in) = :checked_in", { checked_in: checkedInDate.toISOString().split('T')[0] })
+                        .andWhere("time_of_works.userId = :userId", { userId: data.userId })
+                        .getMany();
+
+        if(!result){
+            return new ApiResponse("error", -1009, "Time of work for this user is not exists");
+        }
+
+        return result;
+    }
+
+    async updateUserTimeOfWork(userId:number, result: any, udateDataAndTime: any){
+        console.log( userId, result, udateDataAndTime);
+    }
+
+    async deleteUserTimeOfWork(){}
 }

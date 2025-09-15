@@ -32,6 +32,6 @@ import { ReportModule } from './report/report.module';
 })
 export class AppModule implements NestModule{
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthMiddleware).forRoutes("administrator","user","report");//exclude
+    consumer.apply(AuthMiddleware).forRoutes("administrator","user","report","timeofwork");//exclude
   }
 }

@@ -7,6 +7,6 @@ import { TimeOfWorke } from 'entitets/entities/TimeOfWorke';
 @Module({
   imports: [TypeOrmModule.forFeature([TimeOfWorke])],
   controllers: [TimeofworkController],
-  providers: [TimeofworkService]
+  providers: [TimeofworkService],
 })
 export class TimeofworkModule {}
