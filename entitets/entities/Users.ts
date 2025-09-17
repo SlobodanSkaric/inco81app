@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { TimeOfWorke } from "./TimeOfWorke";
+import { RequestLogs } from "./RequestLogs";
 
 @Index("email", ["email"], { unique: true })
 @Index("phonenumber", ["phonenumber"], { unique: true })
@@ -68,4 +69,7 @@ export class Users {
 
   @OneToMany(() => TimeOfWorke, (timeOfWorke) => timeOfWorke.user)
   timeOfWorkes: TimeOfWorke[];
+
+  @OneToMany(() => RequestLogs, (requestLogs) => requestLogs.user)
+  requestLogs: RequestLogs[];
 }

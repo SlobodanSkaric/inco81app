@@ -21,6 +21,10 @@ export class RoleGuards implements CanActivate {
         const request = context.switchToHttp().getRequest();
         const user = request.user;
 
+        if(request.fingerprint?.suspicious){
+            throw new ForbiddenException("Suspicious login detected");
+        }
+
         if(!user ||!user.role){
             throw new ForbiddenException("User role not found");
         }

@@ -9,6 +9,8 @@ import { AuthModule } from './auth/auth.module';
 import { AuthMiddleware } from './middlewares/auth.middlewares';
 import { ReportController } from './report/report.controller';
 import { ReportModule } from './report/report.module';
+import { RequestlogController } from './requestlog/requestlog.controller';
+import { RequestlogModule } from './requestlog/requestlog.module';
 
 @Module({
   imports: [
@@ -26,9 +28,10 @@ import { ReportModule } from './report/report.module';
     AdministratorModule,
     TimeofworkModule,
     AuthModule,
-    ReportModule
+    ReportModule,
+    RequestlogModule
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, RequestlogController],
 })
 export class AppModule implements NestModule{
   configure(consumer: MiddlewareConsumer) {
