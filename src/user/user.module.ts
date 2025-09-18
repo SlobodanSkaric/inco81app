@@ -4,10 +4,9 @@ import { UserService } from './user.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Users } from 'entitets/entities/Users';
 import { Administrator } from 'entitets/entities/Administrator';
-import { AdministratorModule } from 'src/administrator/administrator.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Users,Administrator]), AdministratorModule],
+  imports: [TypeOrmModule.forFeature([Users,Administrator])],
   controllers: [UserController],
   providers: [UserService],
   exports: [UserService],

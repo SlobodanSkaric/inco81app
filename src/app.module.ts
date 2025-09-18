@@ -1,5 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { AdministratorModule } from './administrator/administrator.module';
@@ -29,9 +29,9 @@ import { RequestlogModule } from './requestlog/requestlog.module';
     TimeofworkModule,
     AuthModule,
     ReportModule,
-    RequestlogModule
+    RequestlogModule,
   ],
-  controllers: [AuthController, RequestlogController],
+  controllers: [],
 })
 export class AppModule implements NestModule{
   configure(consumer: MiddlewareConsumer) {

@@ -10,12 +10,13 @@ import { EditUserTimeOfWorkDto } from './dto/edit.user.timeofwork.dto';
 import { TimeOfWorke } from 'entitets/entities/TimeOfWorke';
 import { dataUtils } from 'src/utils/data.utils';
 import { get } from 'http';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AdministratorService {
     constructor(
         @InjectRepository(Administrator) private readonly administratorEntitets: Repository<Administrator>,
-        @InjectRepository(TimeOfWorke) private readonly timeOfWorkeEntitets: Repository<TimeOfWorke>
+        @InjectRepository(TimeOfWorke) private readonly timeOfWorkeEntitets: Repository<TimeOfWorke>,
     ){}
 
     async getAllAdmin(): Promise<AdministratorInfoDto[] | ApiResponse>{

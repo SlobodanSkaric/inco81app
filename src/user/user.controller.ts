@@ -9,6 +9,7 @@ import { RoleGuards } from 'src/common/guards/roles.guards';
 import { Request } from 'express';
 import { Premissions } from 'src/common/decorators/premissions.decorators';
 import { PremissionsGuards } from 'src/common/guards/premissions.guards';
+import { JwtAuthGuards } from 'src/auth/jwtAuthGuards';
 
 
 @Controller('user')
@@ -17,14 +18,14 @@ export class UserController {
 
     @Get("/all")
     @Roles("administrator")
-    @UseGuards(RoleGuards)
+    @UseGuards(JwtAuthGuards)
     async getAll(@Req() req: Request): Promise<UserInfoDto[] | ApiResponse>{
         return await this.userServices.getAllUsers(req);
     }
 
     @Get("")
     @Roles("user")
-    @UseGuards(RoleGuards)
+    @UseGuards(JwtAuthGuards)
     async getById(@Req() req: Request): Promise<UserInfoDto | ApiResponse>{
         return this.userServices.getUserById(req);
     }
@@ -33,7 +34,7 @@ export class UserController {
     @Post("/add")
     @Roles("administrator")
     @Premissions("create")
-    @UseGuards(RoleGuards, PremissionsGuards)
+    @UseGuards(JwtAuthGuards)
     async addUser(@Body() data: UserAddDto): Promise<UserInfoDto | ApiResponse>{
         return this.userServices.addUser(data);
     }

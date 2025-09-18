@@ -5,6 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Administrator } from 'entitets/entities/Administrator';
 import { RoleGuards } from 'src/common/guards/roles.guards';
 import { TimeOfWorke } from 'entitets/entities/TimeOfWorke';
+import { PassportModule } from '@nestjs/passport';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Administrator,TimeOfWorke])],
