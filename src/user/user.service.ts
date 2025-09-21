@@ -7,6 +7,7 @@ import { UserInfoDto } from './dto/user.info.dto';
 import { UserAddDto } from './dto/user.add.dto';
 import * as bcrypt from "bcrypt";
 import { Administrator } from 'entitets/entities/Administrator';
+import { UserVisibilityDto } from './dto/user.visibility.dto';
 
 @Injectable()
 export class UserService {
@@ -121,6 +122,38 @@ export class UserService {
 
     }
 
+    
+
+    async deleteUser(user_data: UserVisibilityDto): Promise<ApiResponse>{
+        const user = await this.userEntitets.findOne({ where: { userId: user_data.user_id } });
+
+        if(!user){
+            return new ApiResponse("error", -1003, "No user");
+        }
+
+        if(user_data.visible == user.visibility){
+            return new ApiResponse("error", -1004, "User already has this visibility");
+        }
+
+        user.visibility = user_data.visible;
+
+        try{
+            await this.userEntitets.save(user);
+            if(user_data.visible == 0){
+                return new ApiResponse("ok", 0, "User successfuly hidden");
+            }else{
+                return new ApiResponse("ok", 1, "User successfuly unhidden");
+            }
+        }catch(e){
+            return new ApiResponse("error", -1005, "Cant change user visibility");
+        }
+        
+    }
+
+    
+    
+    
+    
     async updateUser(){}//TODO
         
 }

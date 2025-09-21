@@ -50,6 +50,9 @@ export class Administrator {
   @Column("varchar", { name: "token", length: 256, default: () => "'0'" })
   token: string;
 
+  @Column("int", {name: "visibility", default: () => "'0'"})
+  visibility: number;
+
   @Column("datetime", {
     name: "created_at",
     default: () => "CURRENT_TIMESTAMP",

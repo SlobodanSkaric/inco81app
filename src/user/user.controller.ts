@@ -10,6 +10,7 @@ import { Request } from 'express';
 import { Premissions } from 'src/common/decorators/premissions.decorators';
 import { PremissionsGuards } from 'src/common/guards/premissions.guards';
 import { JwtAuthGuards } from 'src/auth/jwtAuthGuards';
+import { UserVisibilityDto } from './dto/user.visibility.dto';
 
 
 @Controller('user')
@@ -37,5 +38,13 @@ export class UserController {
     @UseGuards(JwtAuthGuards)
     async addUser(@Body() data: UserAddDto): Promise<UserInfoDto | ApiResponse>{
         return this.userServices.addUser(data);
+    }
+
+    @Post("/delete")
+    @Roles("administrator")
+    @Premissions("delete")
+    @UseGuards(JwtAuthGuards)
+    async deleteUser(@Body() user_data: UserVisibilityDto): Promise<ApiResponse>{
+        return this.userServices.deleteUser(user_data);
     }
 }

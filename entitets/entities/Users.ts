@@ -61,6 +61,9 @@ export class Users {
   })
   token: string | null;
 
+  @Column("int", {name: "visibility", default: () => "'0'"})
+  visibility: number;
+
   @Column("datetime", {
     name: "created_at",
     default: () => "CURRENT_TIMESTAMP",
