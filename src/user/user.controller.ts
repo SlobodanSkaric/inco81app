@@ -8,6 +8,7 @@ import { Request } from 'express';
 import { Premissions } from 'src/common/decorators/premissions.decorators';
 import { JwtAuthGuards } from 'src/auth/jwtAuthGuards';
 import { UserVisibilityDto } from './dto/user.visibility.dto';
+import { RoleGuards } from 'src/common/guards/roles.guards';
 
 
 @Controller('user')
@@ -16,7 +17,7 @@ export class UserController {
 
     @Get("/all")
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards)
+    @UseGuards(JwtAuthGuards, RoleGuards)
     async getAll(@Req() req: Request): Promise<UserInfoDto[] | ApiResponse>{
         return await this.userServices.getAllUsers(req);
     }
@@ -40,7 +41,7 @@ export class UserController {
     @Post("/delete")
     @Roles("administrator")
     @Premissions("delete")
-    @UseGuards(JwtAuthGuards)
+    @UseGuards(JwtAuthGuards, RoleGuards)
     async deleteUser(@Body() user_data: UserVisibilityDto): Promise<ApiResponse>{
         return this.userServices.deleteUser(user_data);
     }
