@@ -1,15 +1,8 @@
 import { Body, Controller, Injectable, Post, Req, Res } from '@nestjs/common';
-import { AdministratorService } from 'src/administrator/administrator.service';
 import { AuthDto } from './dto/auth.dto';
 import { AuthLoginDto } from './dto/auth.login.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
-import * as bcrypt from "bcrypt";
 import { Request, Response } from 'express';
-import { AuthInfoDto } from './dto/auth.info.dto';
-import * as jwt from "jsonwebtoken";
-import { UserService } from 'src/user/user.service';
-import { JwtService } from '@nestjs/jwt';
-import { get } from 'http';
 import { AuthService } from './auth.service';
 
 @Controller('auth')

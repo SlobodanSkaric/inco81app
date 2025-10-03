@@ -5,10 +5,7 @@ import { Repository } from 'typeorm';
 import * as fs from 'fs';
 import * as PDFDocument from 'pdfkit';
 import { Users } from 'entitets/entities/Users';
-import { get } from 'http';
-import { time } from 'console';
 import { ReportDto } from './dto/report.dto';
-import { getRandomValues } from 'crypto';
 import { generateRandomDocName } from 'src/misc/random.docname';
 import { ConfigService } from '@nestjs/config';
 

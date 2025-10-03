@@ -9,8 +9,6 @@ import * as bcrypt from "bcrypt";
 import { EditUserTimeOfWorkDto } from './dto/edit.user.timeofwork.dto';
 import { TimeOfWorke } from 'entitets/entities/TimeOfWorke';
 import { dataUtils } from 'src/utils/data.utils';
-import { get } from 'http';
-import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AdministratorService {

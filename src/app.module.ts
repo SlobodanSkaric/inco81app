@@ -4,12 +4,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { AdministratorModule } from './administrator/administrator.module';
 import { TimeofworkModule } from './timeofwork/timeofwork.module';
-import { AuthController } from './auth/auth.controller';
 import { AuthModule } from './auth/auth.module';
 import { AuthMiddleware } from './middlewares/auth.middlewares';
-import { ReportController } from './report/report.controller';
 import { ReportModule } from './report/report.module';
-import { RequestlogController } from './requestlog/requestlog.controller';
 import { RequestlogModule } from './requestlog/requestlog.module';
 
 @Module({

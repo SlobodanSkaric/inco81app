@@ -1,14 +1,11 @@
 import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiResponse } from 'src/misc/api.response.dto';
-import { Users } from 'entitets/entities/Users';
 import { UserInfoDto } from './dto/user.info.dto';
 import { UserAddDto } from './dto/user.add.dto';
 import { Roles } from 'src/common/decorators/role.decorators';
-import { RoleGuards } from 'src/common/guards/roles.guards';
 import { Request } from 'express';
 import { Premissions } from 'src/common/decorators/premissions.decorators';
-import { PremissionsGuards } from 'src/common/guards/premissions.guards';
 import { JwtAuthGuards } from 'src/auth/jwtAuthGuards';
 import { UserVisibilityDto } from './dto/user.visibility.dto';
 

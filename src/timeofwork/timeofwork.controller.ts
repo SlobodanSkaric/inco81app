@@ -2,7 +2,6 @@ import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { TimeofworkService } from './timeofwork.service';
 import { TimeOfWorke } from 'entitets/entities/TimeOfWorke';
 import { ApiResponse } from 'src/misc/api.response.dto';
-import { AddWorksDto } from './dtos/add.works.dto';
 import { UserCheckedInDto } from './dtos/user.checkedin.dto';
 import { UserCheckedOutDto } from './dtos/usercheckedout.dto';
 import { GetHorseDto } from './dtos/get.horse.dto';

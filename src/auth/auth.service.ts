@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Administrator } from 'entitets/entities/Administrator';
 import { Users } from 'entitets/entities/Users';
-import { Repository } from 'typeorm';
 import { AuthDto } from './dto/auth.dto';
 import { AuthLoginDto } from './dto/auth.login.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
