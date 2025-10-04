@@ -33,7 +33,7 @@ export class UserController {
     @Post("/add")
     @Roles("administrator")
     @Premissions("create")
-    @UseGuards(JwtAuthGuards)
+    @UseGuards(JwtAuthGuards, RoleGuards)
     async addUser(@Body() data: UserAddDto): Promise<UserInfoDto | ApiResponse>{
         return this.userServices.addUser(data);
     }
@@ -42,7 +42,7 @@ export class UserController {
     @Roles("administrator")
     @Premissions("delete")
     @UseGuards(JwtAuthGuards, RoleGuards)
-    async deleteUser(@Body() user_data: UserVisibilityDto): Promise<ApiResponse>{
+    async deleteUser(@Body() user_data: UserVisibilityDto, @Req() req: Request): Promise<ApiResponse>{
         return this.userServices.deleteUser(user_data);
     }
 }
