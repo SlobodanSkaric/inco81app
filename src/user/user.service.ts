@@ -156,22 +156,21 @@ export class UserService {
     
     
     
-    async editUser(userData: UserEditDto): Promise<UserInfoDto | ApiResponse>{
-        const user = await this.userEntitets.findOne({ where: { userId: userData.userId } });
-
+    async editUser(userData: UserEditDto, userId: number): Promise<UserInfoDto | ApiResponse>{
+        const user = await this.userEntitets.findOne({ where: { userId: userId} });
         if(!user){
             return new ApiResponse("errot", -1003, "No user");
         }
 
-        const checkedEmail = await this.userEntitets.findOne({ where : { email: userData.email, userId: Not(userData.userId)}});
+        const checkedEmail = await this.userEntitets.findOne({ where : { email: userData.email, userId: Not(userId)}});
 
-        if((!checkedEmail) === false){
+        if(!checkedEmail){//This condition is checked
             return new ApiResponse("error", -1006, "Email already in use");
         }
 
-        const checkedPhonenumber = await this.userEntitets.findOne({ where : { phonenumber: userData.phonenumber, userId: Not(userData.userId)}});
+        const checkedPhonenumber = await this.userEntitets.findOne({ where : { phonenumber: userData.phonenumber, userId: Not(userId)}});
 
-        if((!checkedPhonenumber) === false){
+        if(checkedPhonenumber){// This condition is checked
             return new ApiResponse("error", -1007, "Phone number already in use");
         }
 

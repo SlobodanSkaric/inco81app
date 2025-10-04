@@ -50,7 +50,7 @@ export class UserController {
     @Post("/edit")
     @Roles("user")
     @UseGuards(JwtAuthGuards, RoleGuards)
-    async editUser(@Body() userData: UserEditDto): Promise<UserInfoDto | ApiResponse>{
-        return this.userServices.editUser(userData);
+    async editUser(@Body() userData: UserEditDto, @Req() req: Request): Promise<UserInfoDto | ApiResponse>{
+        return this.userServices.editUser(userData, req.user.id);
     }
 }
