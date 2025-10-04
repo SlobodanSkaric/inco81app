@@ -19,7 +19,7 @@ export class AuthMiddleware implements NestMiddleware {
         private readonly adminstratorServices: AdministratorService
     ){}
     async use(req: Request, res: Request, next: NextFunction) {
-        /* const getToken = req.headers["authorization"];
+       /*  const getToken = req.headers["authorization"];
         if(!getToken){
             throw new UnauthorizedException("Authorization header is missing");
         }
@@ -73,11 +73,10 @@ export class AuthMiddleware implements NestMiddleware {
 
         if(tokenVerify.ua !== ua){
             throw new UnauthorizedException("Token not valid4");
-        }*/
+        }*
 
-        
-
-        /* req.user = tokenVerify;
+            
+        req.user = tokenVerify;
         req.fingerprint ={ip, ua, suspicious}; */ 
         next();    
     }

@@ -32,34 +32,17 @@ export class AuthController {
     }
 
     @Post("user")
-    async userLogin(@Body() data: AuthDto, @Req() req: Request): Promise<AuthLoginDto | ApiResponse | any>{
-      /*   const user = await this.userServices.getByEmail(data.email);
+    async userLogin(@Body() data: AuthDto, @Req() req: Request, @Res({ passthrough: true}) res: Response): Promise<AuthLoginDto | ApiResponse | any>{
+        const token = await this.authService.userLogin(data, req);
 
-        if(!user){
-            return new ApiResponse("error", -1022, "Email is not exites");
-        }
-        const passwordChecked = await bcrypt.compareSync(data.password, user.password);
+        res.cookie("access_token", token,{
+            httpOnly: true,
+            secure: true,
+            sameSite: "strict",
+            maxAge: 15 * 60 * 1000
+        })
 
-        if(!passwordChecked){
-            return new ApiResponse("error", -1013, "Password is not correct");
-        }
+        return { messages: "Login successful"}
 
-        const dateFormat = new Date();
-        const dateNormailize = dateFormat.setDate(dateFormat.getDate() + 7);
-        const dateExp = Math.floor(dateNormailize / 1000);
-        const ip = req.ip?req.ip:"Undefined Ip";
-        const ua = req.headers["user-agent"]?req.headers["user-agent"] : "Undefined user agent";
-
-        const authInfo = new AuthInfoDto(user.userId, user.email, user.phonenumber, dateExp, ip, ua, "user", ["create","update","delete"]);
-        const plainObject = authInfo.getPlainObject();
-        const secret = this.configServices.get<string>("SECRET_TOKEN_KEY");
-        if (!secret) {
-            throw new Error("SECRET_TOKEN_KEY is not defined in configuration");
-        }
-        const token = jwt.sign(plainObject, secret);
-
-        const authLogin = new AuthLoginDto(user.userId, user.email, token);
-
-        return authLogin; */
     }
 }
