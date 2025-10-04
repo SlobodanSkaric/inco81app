@@ -2,12 +2,14 @@ import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from 'entitets/entities/Users';
 import { ApiResponse } from 'src/misc/api.response.dto';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { UserInfoDto } from './dto/user.info.dto';
 import { UserAddDto } from './dto/user.add.dto';
 import * as bcrypt from "bcrypt";
 import { Administrator } from 'entitets/entities/Administrator';
 import { UserVisibilityDto } from './dto/user.visibility.dto';
+import { UserEditDto } from './dto/user.edit.dto';
+import * as bycript from "bcrypt";
 
 @Injectable()
 export class UserService {
@@ -154,6 +156,42 @@ export class UserService {
     
     
     
-    async updateUser(){}//TODO
+    async editUser(userData: UserEditDto): Promise<UserInfoDto | ApiResponse>{
+        const user = await this.userEntitets.findOne({ where: { userId: userData.userId } });
+
+        if(!user){
+            return new ApiResponse("errot", -1003, "No user");
+        }
+
+        const checkedEmail = await this.userEntitets.findOne({ where : { email: userData.email, userId: Not(userData.userId)}});
+
+        if((!checkedEmail) === false){
+            return new ApiResponse("error", -1006, "Email already in use");
+        }
+
+        const checkedPhonenumber = await this.userEntitets.findOne({ where : { phonenumber: userData.phonenumber, userId: Not(userData.userId)}});
+
+        if((!checkedPhonenumber) === false){
+            return new ApiResponse("error", -1007, "Phone number already in use");
+        }
+
+        user.name = userData.name? userData.name : user.name;
+        user.lastname = userData.lastname? userData.lastname : user.lastname;
+        user.email = userData.email? userData.email : user.email;
+        user.phonenumber = userData.phonenumber? userData.phonenumber : user.phonenumber;
+
+        if(userData.password){
+            const saltRound = 10;
+            const passwordHash = await bcrypt.hash(userData.password, saltRound);
+            user.password = passwordHash;
+        }
+
+        try{
+            const saveUser = await this.userEntitets.save(user);
+            return await this.getUserByIdLocal(saveUser.userId)
+        }catch(e){
+            return new ApiResponse("error", -1008, "Cant update user");
+        }
+    }
         
 }

@@ -19,7 +19,7 @@ export class AuthMiddleware implements NestMiddleware {
         private readonly adminstratorServices: AdministratorService
     ){}
     async use(req: Request, res: Request, next: NextFunction) {
-        const getToken = req.headers["authorization"];
+        /* const getToken = req.headers["authorization"];
         if(!getToken){
             throw new UnauthorizedException("Authorization header is missing");
         }
@@ -47,8 +47,8 @@ export class AuthMiddleware implements NestMiddleware {
         if(tokenVerify.dateExp < current){
             throw new UnauthorizedException("Token expired");
         }
-
-        const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress; //modify loclahost ip address
+ */
+       /*  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress; //modify loclahost ip address
         const ua = req.headers["user-agent"] || "unknown"; 
 
         const expectedIp = tokenVerify.ip;
@@ -77,8 +77,8 @@ export class AuthMiddleware implements NestMiddleware {
 
         
 
-        req.user = tokenVerify;
-        req.fingerprint ={ip, ua, suspicious};
+        /* req.user = tokenVerify;
+        req.fingerprint ={ip, ua, suspicious}; */ 
         next();    
     }
 
