@@ -8,6 +8,7 @@ import { GetHorseDto } from './dtos/get.horse.dto';
 import { Roles } from 'src/common/decorators/role.decorators';
 import { RoleGuards } from 'src/common/guards/roles.guards';
 import { UdateTimeOfWorkUserDto } from './dtos/udate.timeofwork.user.dto';
+import { JwtAuthGuards } from 'src/auth/jwtAuthGuards';
 
 @Controller('timeofwork')
 export class TimeofworkController {
@@ -30,14 +31,14 @@ export class TimeofworkController {
 
     @Get("getinfotimeofwork/{:id}")
     @Roles("administrator")
-    @UseGuards(RoleGuards)
+    @UseGuards(JwtAuthGuards,RoleGuards)
     async getInfoTimeOfWork(@Param("id") id: number){
         return await this.timeOfVorkServices.getInfoTimeOfWork(id);
     }
 
     @Post("updateusertimeofwork")
     @Roles("administrator")
-    @UseGuards(RoleGuards)
+    @UseGuards(JwtAuthGuards,RoleGuards)
     async updateUserTimeOfWork(@Body() data: UdateTimeOfWorkUserDto): Promise<TimeOfWorke | ApiResponse | null>{
         return await this.timeOfVorkServices.updateUserTimeOfWork(data);
     }

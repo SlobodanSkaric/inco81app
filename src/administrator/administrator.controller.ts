@@ -7,6 +7,7 @@ import { Roles } from 'src/common/decorators/role.decorators';
 import { RoleGuards } from 'src/common/guards/roles.guards';
 import { Request } from 'express';
 import { EditUserTimeOfWorkDto } from './dto/edit.user.timeofwork.dto';
+import { JwtAuthGuards } from 'src/auth/jwtAuthGuards';
 
 @Controller('administrator')
 export class AdministratorController {
@@ -14,14 +15,14 @@ export class AdministratorController {
 
     @Get("all")
     @Roles("administrator")
-    @UseGuards(RoleGuards)
+    @UseGuards(JwtAuthGuards,RoleGuards)
     async getAllAdministrator(): Promise<AdministratorInfoDto[] | ApiResponse>{
         return await this.admiServices.getAllAdmin();
     }
 
     @Get("")
     @Roles("administrator")
-    @UseGuards(RoleGuards)
+    @UseGuards(JwtAuthGuards,RoleGuards)
     async getAdminstratorById(@Req() req: Request): Promise<AdministratorInfoDto | ApiResponse>{
         return await this.admiServices.getById(req);
     }
@@ -33,7 +34,7 @@ export class AdministratorController {
 
     @Post("edit/timeofwork/{:optional}")
     @Roles("administrator")
-    @UseGuards(RoleGuards)
+    @UseGuards(JwtAuthGuards,RoleGuards)
     async editUserTimeOfWork(@Body() data, @Param("optional") optional: string){
         return await this.admiServices.edutUserTimeOfWork(data, optional);
     }
