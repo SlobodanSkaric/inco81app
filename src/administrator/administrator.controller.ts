@@ -8,6 +8,7 @@ import { RoleGuards } from 'src/common/guards/roles.guards';
 import { Request } from 'express';
 import { EditUserTimeOfWorkDto } from './dto/edit.user.timeofwork.dto';
 import { JwtAuthGuards } from 'src/auth/jwtAuthGuards';
+import { DeleteUserTimeOfWorkDto } from './dto/delete.user.timeofwork';
 
 @Controller('administrator')
 export class AdministratorController {
@@ -32,10 +33,32 @@ export class AdministratorController {
         return await this.admiServices.addAdministratorServices(data);
     }
 
-    @Post("edit/timeofwork/{:optional}")
+    @Post("edit/timeofwork/")
     @Roles("administrator")
     @UseGuards(JwtAuthGuards,RoleGuards)
-    async editUserTimeOfWork(@Body() data, @Param("optional") optional: string){
-        return await this.admiServices.edutUserTimeOfWork(data, optional);
+    async editUserTimeOfWork(@Body() data: EditUserTimeOfWorkDto, @Param("optional") optional: string){
+        return await this.admiServices.editUserTimeOfWork(data);
+    }
+
+    @Post("delete/timeofwork")
+    @Roles("administrator")
+    @UseGuards(JwtAuthGuards,RoleGuards)
+    async deleteUserTimeOfWork(@Body() data: DeleteUserTimeOfWorkDto){
+        return await this.admiServices.deleteUserTimeOfWork(data);
+    }
+
+
+    @Post("edit/adminstator")//This is methods to move superadministrator
+    @Roles("administrator")
+    @UseGuards(JwtAuthGuards,RoleGuards)
+    async editAdministrator(@Body() data: AdministratorAddDto, @Req() req: Request): Promise<AdministratorInfoDto | ApiResponse | void>{
+        /* return await this.admiServices.editAdministrator(data, req); */
+    }
+
+    @Post("delete/administrator/{:id}")//This is methods to move superadministrator
+    @Roles("administrator")
+    @UseGuards(JwtAuthGuards,RoleGuards)
+    async deleteAdministrator(@Param("id") id: number, @Req() req: Request): Promise<AdministratorInfoDto | ApiResponse | void>{
+        /* return await this.admiServices.deleteAdministrator(id, req); */
     }
 }

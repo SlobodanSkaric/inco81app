@@ -34,6 +34,9 @@ export class TimeOfWorke {
   @Column({ type: "datetime", nullable:true })
   checked_out: Date;
 
+   @Column("int", { name: "status", default: ()=> "'0'"})
+  status: number;
+  
   @ManyToOne(
     () => Administrator,
     (administrator) => administrator.timeOfWorkes,

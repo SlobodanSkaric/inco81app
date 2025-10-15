@@ -9,6 +9,7 @@ import * as bcrypt from "bcrypt";
 import { EditUserTimeOfWorkDto } from './dto/edit.user.timeofwork.dto';
 import { TimeOfWorke } from 'entitets/entities/TimeOfWorke';
 import { dataUtils } from 'src/utils/data.utils';
+import { DeleteUserTimeOfWorkDto } from './dto/delete.user.timeofwork';
 
 @Injectable()
 export class AdministratorService {
@@ -82,15 +83,15 @@ export class AdministratorService {
         }
     }
 
-    async edutUserTimeOfWork(data: EditUserTimeOfWorkDto, optional: string):Promise<TimeOfWorke[] | ApiResponse>{
+    async editUserTimeOfWork(data: EditUserTimeOfWorkDto):Promise<TimeOfWorke[] | ApiResponse>{
         const getDate = data.dateEndTime.split(" ")[0];
         const excangeDate = dataUtils(data.dateEndTime);
         const checkedInDate = new Date(getDate);
-
         
        const result = await this.timeOfWorkeEntitets.createQueryBuilder("time_of_works")
                         .where("DATE(time_of_works.checked_in) = :checked_in", { checked_in: checkedInDate.toISOString().split('T')[0] })
                         .andWhere("time_of_works.userId = :userId", { userId: data.userId })
+                        .andWhere("time_of_works.status = :status", { status: 0 })
                         .getMany();
 
         if(!result){
@@ -104,5 +105,25 @@ export class AdministratorService {
         console.log( userId, result, udateDataAndTime);
     }
 
-    async deleteUserTimeOfWork(){}
+    async deleteUserTimeOfWork(data: DeleteUserTimeOfWorkDto): Promise<TimeOfWorke | ApiResponse | any>{
+        const getTimeOfWorForUser = await this.timeOfWorkeEntitets.findOne({ where: { timeOfWorkeId: data.timeOfWorkeId, userId: data.userId } });
+
+        if(!getTimeOfWorForUser){
+            return new ApiResponse("error", -1009, "Time of work for this user is not exists");
+        }
+
+        if(getTimeOfWorForUser.status === data.status){
+            return new ApiResponse("error", -1011, "Time of work for this user is already in this status");
+        }
+
+        const deleteTimeOfWorkUser = await  this.timeOfWorkeEntitets.update({ timeOfWorkeId: data.timeOfWorkeId }, { status: data.status });
+
+        if(deleteTimeOfWorkUser.affected === 0){
+            return new ApiResponse("error", -1010, "Can not delete time of work for this user");
+        }
+
+        const getUpdateTimeOfWork = await this.timeOfWorkeEntitets.findOne({ where: { timeOfWorkeId: data.timeOfWorkeId } });
+
+        return getUpdateTimeOfWork;
+    }
 }
