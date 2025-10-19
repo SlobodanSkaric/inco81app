@@ -1,28 +1,29 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Users } from "./Users";
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity()
-export class RequestLogs {
+@Entity("request_log")
+export class RequestLogs{
 
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryGeneratedColumn({ type: "int", name: "request_log_id" })
+    id:number;
 
-    @ManyToOne(() => Users, (user) => user.requestLogs, {onDelete: 'CASCADE'})
-    user: Users;
+    @Column("int", { name:"user_id", nullable:true })
+    userId?:number;
 
-    @Column({type: 'varchar', length: 45, nullable: false})
-    ip: string;
+    @Column("varchar", { name:"ip", nullable:true})
+    ip:string;
 
-    @Column({type: 'varchar', length: 255, nullable: false})
-    ua: string;
+    @Column("text", { name:"user_agent", nullable:true})
+    userAgent?:string;
 
-    @Column({type: 'int', default: 0})
-    riskscore: number;
-    
-    @Column({type: 'varchar', length: 255, nullable: true})
-    description: string;
+    @Column("varchar", { name:"accept_language", nullable:true})
+    acceptLanguage?:string;
 
+    @Column("text", { name:"device_fingerprint", nullable:true})
+    deviceFingerprint?:string;
 
-    @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
-    createdAt: Date;
+    @Column("varchar", { name:"route", nullable:true})
+    route?:string;
+
+    @Column("datetime", { name:"ts", default: () => "CURRENT_TIMESTAMP"})
+    ts:Date;
 }

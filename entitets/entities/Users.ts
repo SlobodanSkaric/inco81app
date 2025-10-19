@@ -73,6 +73,6 @@ export class Users {
   @OneToMany(() => TimeOfWorke, (timeOfWorke) => timeOfWorke.user)
   timeOfWorkes: TimeOfWorke[];
 
-  @OneToMany(() => RequestLogs, (requestLogs) => requestLogs.user)
+  @OneToMany(() => RequestLogs, (requestLogs: RequestLogs) => requestLogs.userId)
   requestLogs: RequestLogs[];
 }

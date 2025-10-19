@@ -8,6 +8,11 @@ import { AuthModule } from './auth/auth.module';
 import { AuthMiddleware } from './middlewares/auth.middlewares';
 import { ReportModule } from './report/report.module';
 import { RequestlogModule } from './requestlog/requestlog.module';
+import { FingerprintMiddleware } from './middlewares/fingerprint.middleware';
+import { RequestlogService } from './requestlog/requestlog.service';
+import { APP_GUARD } from '@nestjs/core';
+import { FingerprintGuard } from './common/guards/fingerprints.gurds';
+
 
 @Module({
   imports: [
@@ -29,9 +34,17 @@ import { RequestlogModule } from './requestlog/requestlog.module';
     RequestlogModule,
   ],
   controllers: [],
+
+  providers:[
+    RequestlogService,
+    {
+      provide: APP_GUARD,
+      useClass: FingerprintGuard
+    }
+  ]
 })
 export class AppModule implements NestModule{
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthMiddleware).forRoutes("administrator","user","report","timeofwork");//exclude
+    consumer.apply(FingerprintMiddleware).forRoutes("*");//exclude
   }
 }

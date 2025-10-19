@@ -6,5 +6,6 @@ import { RequestLogs } from 'entitets/entities/RequestLogs';
 @Module({
   providers: [RequestlogService],
   imports: [TypeOrmModule.forFeature([RequestLogs])],
+  exports: [RequestlogService, TypeOrmModule],
 })
 export class RequestlogModule {}
