@@ -7,6 +7,7 @@ import {
 } from "typeorm";
 import { TimeOfWorke } from "./TimeOfWorke";
 import { RequestLogs } from "./RequestLogs";
+import { JobInformations } from "./JobInformations";
 
 @Index("email", ["email"], { unique: true })
 @Index("phonenumber", ["phonenumber"], { unique: true })

@@ -12,6 +12,7 @@ import { FingerprintMiddleware } from './middlewares/fingerprint.middleware';
 import { RequestlogService } from './requestlog/requestlog.service';
 import { APP_GUARD } from '@nestjs/core';
 import { FingerprintGuard } from './common/guards/fingerprints.gurds';
+import { JobinformationsModule } from './jobinformations/jobinformations.module';
 
 
 @Module({
@@ -32,6 +33,7 @@ import { FingerprintGuard } from './common/guards/fingerprints.gurds';
     AuthModule,
     ReportModule,
     RequestlogModule,
+    JobinformationsModule,
   ],
   controllers: [],
 

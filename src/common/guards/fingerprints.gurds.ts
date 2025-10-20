@@ -10,16 +10,15 @@ export class FingerprintGuard implements CanActivate {
         const req = context.switchToHttp().getRequest();
         const userId = req.user;
         const fingerprint = req.fingerprint;
-        console.log("www1");
         if (userId && fingerprint) {
             this.requestLogServices.logRequest(userId, fingerprint).catch(err => {
                 console.error("Failed to log request fingerprint:", err);
             });
         }
-console.log("www2");
+        
         const n = Number(process.env.REDIS_RECENT_COUNT ?? 10);
         const recent = await this.requestLogServices.loadLogs(userId);
-        console.log(recent);
+        //console.log(recent);
         const riskScore = this.calculateRiskScore(recent, fingerprint);
 
 
