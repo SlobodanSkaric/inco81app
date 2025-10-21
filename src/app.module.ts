@@ -10,13 +10,18 @@ import { ReportModule } from './report/report.module';
 import { RequestlogModule } from './requestlog/requestlog.module';
 import { FingerprintMiddleware } from './middlewares/fingerprint.middleware';
 import { RequestlogService } from './requestlog/requestlog.service';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { FingerprintGuard } from './common/guards/fingerprints.gurds';
 import { JobinformationsModule } from './jobinformations/jobinformations.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { RequestLogInterceptor } from './common/interceptors/request.log.interceptors';
+import { log } from 'console';
+import { LogsModule } from './logs/logs.module';
 
 
 @Module({
   imports: [
+    EventEmitterModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: "mysql",
@@ -34,6 +39,7 @@ import { JobinformationsModule } from './jobinformations/jobinformations.module'
     ReportModule,
     RequestlogModule,
     JobinformationsModule,
+    LogsModule
   ],
   controllers: [],
 
@@ -42,6 +48,10 @@ import { JobinformationsModule } from './jobinformations/jobinformations.module'
     {
       provide: APP_GUARD,
       useClass: FingerprintGuard
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RequestLogInterceptor
     }
   ]
 })

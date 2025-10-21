@@ -76,4 +76,5 @@ export class Users {
 
   @OneToMany(() => RequestLogs, (requestLogs: RequestLogs) => requestLogs.userId)
   requestLogs: RequestLogs[];
+
 }
