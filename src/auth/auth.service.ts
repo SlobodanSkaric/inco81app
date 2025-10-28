@@ -8,13 +8,15 @@ import * as bcrypt from "bcrypt";
 import { JwtService } from '@nestjs/jwt';
 import { AdministratorService } from 'src/administrator/administrator.service';
 import { UserService } from 'src/user/user.service';
+import { SuperadministratorService } from 'src/superadministrator/superadministrator.service';
 
 @Injectable()
 export class AuthService {
     constructor(
         private readonly admistrattorServices: AdministratorService,
         private readonly jwtService: JwtService,
-        private readonly userServices: UserService
+        private readonly userServices: UserService,
+        private readonly superadministratorsServices: SuperadministratorService,
     ){}
 
     async adminstratorLogin(data: AuthDto, req): Promise<AuthLoginDto | ApiResponse | Administrator | any>{
@@ -75,11 +77,45 @@ export class AuthService {
             ua: ua
         }
 
-        console.log(payload)
 
         const accessToken = await this.jwtService.signAsync(payload, { expiresIn: "15min"});
 
         return accessToken;
+    }
+
+
+    async loginSuperAdministrators(data: AuthDto, req): Promise<AuthLoginDto | ApiResponse | any>{
+        const checkedSuperadmistrators = await this.superadministratorsServices.getsuperadministratorsByEmail(data.email);
+
+        if(checkedSuperadmistrators instanceof ApiResponse){
+            return checkedSuperadmistrators;
+        }
+
+        const checkedPassword = await bcrypt.compare(data.password, checkedSuperadmistrators.password);
+
+        if(!checkedPassword){
+            return new ApiResponse("error", -1014, "Password is not correct");
+        }
+
+        const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+        const ua = req.headers["user-agent"]?req.headers["user-agent"]:"unknown";
+
+        const payload = {
+            id: checkedSuperadmistrators.superAdmistratorId,
+            email: checkedSuperadmistrators.email,
+            phonenumber: checkedSuperadmistrators.phoneNumber,
+            role: "superadministrator",
+            permissions: ["create","update","delete","manage"],
+            ip: ip,
+            ua: ua
+
+        }
+
+        const access_token =  await this.jwtService.signAsync(payload, { expiresIn: "15min"});
+
+
+
+        return access_token;
     }
 
 }

@@ -20,7 +20,7 @@ export class JobinformationsService {
     }
 
     async getJobById(id: number): Promise<JobInformations | ApiResponse> {
-        const jobinfo = await this.jobinfo.findOne({ where: { id: id}});
+        const jobinfo = await this.jobinfo.findOne({ where: { jobInfoId: id}});
 
         if(!jobinfo){
             return new ApiResponse("error", -1011, "Job information not found");

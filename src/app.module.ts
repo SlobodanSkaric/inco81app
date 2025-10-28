@@ -17,6 +17,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { RequestLogInterceptor } from './common/interceptors/request.log.interceptors';
 import { log } from 'console';
 import { LogsModule } from './logs/logs.module';
+import { SuperadministratorModule } from './superadministrator/superadministrator.module';
 
 
 @Module({
@@ -39,7 +40,8 @@ import { LogsModule } from './logs/logs.module';
     ReportModule,
     RequestlogModule,
     JobinformationsModule,
-    LogsModule
+    LogsModule,
+    SuperadministratorModule
   ],
   controllers: [],
 

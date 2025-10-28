@@ -4,7 +4,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 export class RequestLogs{
 
     @PrimaryGeneratedColumn({ type: "int", name: "request_log_id" })
-    id:number;
+    requestLogId:number;
 
     @Column("int", { name:"user_id", nullable:true })
     userId?:number;

@@ -4,6 +4,7 @@ import { AuthLoginDto } from './dto/auth.login.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
+import { LoginSuperadministratorsDto } from 'src/superadministrator/dtos/login.superadministrators.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -51,5 +52,21 @@ export class AuthController {
     async userLogout(@Res({ passthrough:true }) res: Response): Promise<{message: string}>{
         res.clearCookie("access_token");
         return { message: "Logout successful"};
+    }
+
+
+    @Post("superadministrators/login")
+    async loginSuperAdministrators(@Body() superadminsData: AuthDto, @Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<{message: string}> {
+        const token = await this.authService.loginSuperAdministrators(superadminsData, req);
+
+        res.cookie("access_token", token,{
+            httpOnly: true,
+            secure: true,
+            sameSite: "strict",
+            maxAge: 15 * 60 * 1000
+        })
+
+
+        return { message: "Superadministrators Login successful"};
     }
 }

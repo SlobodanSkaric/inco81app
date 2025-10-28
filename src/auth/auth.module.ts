@@ -10,6 +10,8 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './jwr.strategy';
+import { Superadministrator } from 'entitets/entities/Superadministrator';
+import { SuperadministratorModule } from 'src/superadministrator/superadministrator.module';
 
 @Module({
   controllers: [AuthController],
@@ -24,9 +26,10 @@ import { JwtStrategy } from './jwr.strategy';
         signOptions: { expiresIn: '15m' },
       }),
     }),
-    TypeOrmModule.forFeature([Users, Administrator]),
+    TypeOrmModule.forFeature([Users, Administrator, Superadministrator]),
     AdministratorModule,
     UserModule,
+    SuperadministratorModule
   ]
 })
 export class AuthModule {}

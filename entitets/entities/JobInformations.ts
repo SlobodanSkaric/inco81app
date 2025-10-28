@@ -5,7 +5,7 @@ import { Users } from "./Users";
 @Entity("job_information")
 export class JobInformations {
     @PrimaryGeneratedColumn({ type: "int", name: "job_information_id" })
-    id: number;
+    jobInfoId: number;
 
     @Column("int", { name: "administrator_id", nullable: true })
     administratorId?: number;
