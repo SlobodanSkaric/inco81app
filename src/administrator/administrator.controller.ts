@@ -9,6 +9,7 @@ import { Request } from 'express';
 import { EditUserTimeOfWorkDto } from './dto/edit.user.timeofwork.dto';
 import { JwtAuthGuards } from 'src/auth/jwtAuthGuards';
 import { DeleteUserTimeOfWorkDto } from './dto/delete.user.timeofwork';
+import { JwtRefreshGuards } from 'src/auth/jwtRefreshGuards';
 
 @Controller('administrator')
 export class AdministratorController {
@@ -23,7 +24,7 @@ export class AdministratorController {
 
     @Get("")
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards,RoleGuards)
+    @UseGuards(JwtAuthGuards,JwtRefreshGuards,RoleGuards)
     async getAdminstratorById(@Req() req: Request): Promise<AdministratorInfoDto | ApiResponse>{
         return await this.admiServices.getById(req);
     }
@@ -35,14 +36,14 @@ export class AdministratorController {
 
     @Post("edit/timeofwork/")
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards,RoleGuards)
+    @UseGuards(JwtAuthGuards,JwtRefreshGuards,RoleGuards)
     async editUserTimeOfWork(@Body() data: EditUserTimeOfWorkDto, @Param("optional") optional: string){
         return await this.admiServices.editUserTimeOfWork(data);
     }
 
     @Post("delete/timeofwork")
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards,RoleGuards)
+    @UseGuards(JwtAuthGuards,JwtRefreshGuards,RoleGuards)
     async deleteUserTimeOfWork(@Body() data: DeleteUserTimeOfWorkDto){
         return await this.admiServices.deleteUserTimeOfWork(data);
     }
@@ -50,14 +51,14 @@ export class AdministratorController {
 
     @Post("edit/adminstator")//This is methods to move superadministrator
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards,RoleGuards)
+    @UseGuards(JwtAuthGuards,JwtRefreshGuards,RoleGuards)
     async editAdministrator(@Body() data: AdministratorAddDto, @Req() req: Request): Promise<AdministratorInfoDto | ApiResponse | void>{
         /* return await this.admiServices.editAdministrator(data, req); */
     }
 
     @Post("delete/administrator/{:id}")//This is methods to move superadministrator
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards,RoleGuards)
+    @UseGuards(JwtAuthGuards,JwtRefreshGuards,RoleGuards)
     async deleteAdministrator(@Param("id") id: number, @Req() req: Request): Promise<AdministratorInfoDto | ApiResponse | void>{
         /* return await this.admiServices.deleteAdministrator(id, req); */
     }

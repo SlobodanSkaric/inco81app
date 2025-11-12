@@ -14,18 +14,27 @@ export class AuthController {
    
     @Post("administrator")
     async administratorLogin(@Body() data: AuthDto, @Req() req: Request, @Res({ passthrough: true }) res: Response):Promise<{message: string} | AuthLoginDto | ApiResponse | any>{
-            const token = await this.authService.adminstratorLogin(data, req);
+            const tokens = await this.authService.adminstratorLogin(data, req);
 
-            res.cookie("access_token", token, {
+           
+
+           res.cookie("access_token", tokens.accessToken, {
                 httpOnly: true,
                 secure: true, 
                 sameSite: 'strict', // Adjust based on your requirements
                 maxAge: 15 * 60 * 1000, 
             });
 
+            res.cookie("refresh_token", tokens.refreshToken, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'strict',
+                maxAge: 7 * 24 * 60 * 60 * 1000,
+            });
+
             
            
-            return { message: "Login successful"}
+            return { message: "Login successful"};
     } 
 
     @Post("administrator/logout")

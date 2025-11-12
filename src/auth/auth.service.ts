@@ -45,9 +45,20 @@ export class AuthService {
             ua: ua
         }
 
-        const accessToken = await this.jwtService.signAsync(payload, { expiresIn: '15m' });
+        const payloadRefershToken = {
+            id: checkedAdministrator.adminId,
+            email: checkedAdministrator.email,
+            phonenumber: checkedAdministrator.phonenumber,
+            role: "administrator",
+            permissions: ["create","update","delete"],
+            ip: ip,
+            ua: ua
+        }
 
-        return accessToken;
+        const accessToken = await this.jwtService.signAsync(payload, { expiresIn: '15m' });
+        const refreshToken = await this.jwtService.signAsync(payloadRefershToken, { expiresIn: '7d' });
+
+        return { accessToken, refreshToken };
        
     }
 
