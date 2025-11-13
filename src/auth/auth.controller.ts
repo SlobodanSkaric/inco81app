@@ -15,7 +15,7 @@ export class AuthController {
     @Post("administrator")
     async administratorLogin(@Body() data: AuthDto, @Req() req: Request, @Res({ passthrough: true }) res: Response):Promise<{message: string} | AuthLoginDto | ApiResponse | any>{
             const tokens = await this.authService.adminstratorLogin(data, req);
-
+            console.log(tokens);
            
 
            res.cookie("access_token", tokens.accessToken, {
@@ -34,7 +34,7 @@ export class AuthController {
 
             
            
-            return { message: "Login successful"};
+            return { message: "Login successful", administrators: tokens.administratorInfo };
     } 
 
     @Post("administrator/logout")
@@ -47,14 +47,23 @@ export class AuthController {
     async userLogin(@Body() data: AuthDto, @Req() req: Request, @Res({ passthrough: true}) res: Response): Promise<AuthLoginDto | ApiResponse | any>{
         const token = await this.authService.userLogin(data, req);
 
-        res.cookie("access_token", token,{
+        res.cookie("access_token", token.accessToken,{
             httpOnly: true,
             secure: true,
             sameSite: "strict",
             maxAge: 15 * 60 * 1000
         })
 
-        return { messages: "Login successful"}
+        res.cookie("refresh_token", token.refreshToken,{
+            httpOnly: true,
+            secure: true,
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        })
+
+
+
+        return { messages: "Login successful", user: token.userInfo };
     }
 
     @Post("user/logout")
