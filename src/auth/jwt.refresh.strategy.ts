@@ -9,7 +9,7 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
                 (req: Request) => req.cookies?.refresh_token
             ]),
             ignoreExpiration: false,
-            secretOrKey: process.env.REFRESH_TOKEN_KEY
+            secretOrKey: process.env.SECRET_REFRESH_TOKEN_KEY
         });
     }
 

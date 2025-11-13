@@ -12,10 +12,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './jwr.strategy';
 import { Superadministrator } from 'entitets/entities/Superadministrator';
 import { SuperadministratorModule } from 'src/superadministrator/superadministrator.module';
+import { JwtRefreshStrategy } from './jwt.refresh.strategy';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, JwtRefreshStrategy],
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({

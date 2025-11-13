@@ -9,6 +9,8 @@ import { JwtService } from '@nestjs/jwt';
 import { AdministratorService } from 'src/administrator/administrator.service';
 import { UserService } from 'src/user/user.service';
 import { SuperadministratorService } from 'src/superadministrator/superadministrator.service';
+import { config } from 'dotenv';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -55,8 +57,8 @@ export class AuthService {
             ua: ua
         }
 
-        const accessToken = await this.jwtService.signAsync(payload, { expiresIn: '15m' });
-        const refreshToken = await this.jwtService.signAsync(payloadRefershToken, { expiresIn: '7d' });
+        const accessToken = await this.jwtService.signAsync(payload, { secret:  process.env.SECRET_TOKEN_KEY ,expiresIn: '15m' });
+        const refreshToken = await this.jwtService.signAsync(payloadRefershToken, { secret: process.env.SECRET_REFRESH_TOKEN_KEY ,expiresIn: '7d' });
 
         return { accessToken, refreshToken };
        
