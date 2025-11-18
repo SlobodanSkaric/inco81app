@@ -1,4 +1,4 @@
-import { Body, Controller, Injectable, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Injectable, Post, Req, Res } from '@nestjs/common';
 import { AuthDto } from './dto/auth.dto';
 import { AuthLoginDto } from './dto/auth.login.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
@@ -40,6 +40,7 @@ export class AuthController {
     @Post("administrator/logout")
     async logut(@Res({ passthrough: true }) res: Response): Promise<{message: string}>{
         res.clearCookie("access_token");
+        res.clearCookie("refresh_token");
         return { message: "Logout successful"};
     }
 
@@ -69,22 +70,37 @@ export class AuthController {
     @Post("user/logout")
     async userLogout(@Res({ passthrough:true }) res: Response): Promise<{message: string}>{
         res.clearCookie("access_token");
+        res.clearCookie("refresh_token");
         return { message: "Logout successful"};
     }
 
 
     @Post("superadministrators/login")
-    async loginSuperAdministrators(@Body() superadminsData: AuthDto, @Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<{message: string}> {
+    async loginSuperAdministrators(@Body() superadminsData: AuthDto, @Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<{message: string} |any> {
         const token = await this.authService.loginSuperAdministrators(superadminsData, req);
 
-        res.cookie("access_token", token,{
+        res.cookie("access_token", token.access_token,{
             httpOnly: true,
             secure: true,
             sameSite: "strict",
             maxAge: 15 * 60 * 1000
         })
 
+        res.cookie("refresh_token", token.refreshToken, {
+             httpOnly: true,
+            secure: true,
+            sameSite: "strict",
+            maxAge: 7 * 34 * 60 * 60 * 1000
+        })
 
-        return { message: "Superadministrators Login successful"};
+
+        return { message: "Superadministrators Login successful", superadministrators: token.superadministrastorsInfo  };
+    }
+
+    @Post("superadministrators/logout")
+    async logoutSuperAdministrators(@Res({ passthrough: true }) res: Response): Promise<{message: string}> {
+        res.clearCookie("access_token");
+        res.clearCookie("refresh_token");
+        return { message: "Superadministrators Logout successful" };
     }
 }

@@ -13,6 +13,7 @@ import { config } from 'dotenv';
 import { ConfigService } from '@nestjs/config';
 import { AdministratorInfoDto } from 'src/administrator/dto/administrator.info.dto';
 import { UserInfoDto } from 'src/user/dto/user.info.dto';
+import { SuperadministratorInfoDto } from 'src/superadministrator/dtos/superadministrator.info.dto';
 
 @Injectable()
 export class AuthService {
@@ -156,9 +157,12 @@ export class AuthService {
         const refreshToken = await this.jwtService.signAsync(payloadRefrshToken, { secret: process.env.SECRET_REFRESH_TOKEN_KEY, expiresIn: "7d"});
 
 
+
+        const superadministrastorsInfo = new SuperadministratorInfoDto(checkedSuperadmistrators.superAdmistratorId,checkedSuperadmistrators.username ,checkedSuperadmistrators.email ,checkedSuperadmistrators.phoneNumber ?? "");
+
         
 
-        return { access_token, refreshToken, checkedSuperadmistrators };
+        return { access_token, refreshToken, superadministrastorsInfo };
     }
 
 }
