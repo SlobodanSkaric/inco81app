@@ -2,10 +2,12 @@ import {
   Column,
   Entity,
   Index,
+  ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { TimeOfWorke } from "./TimeOfWorke";
+import { Vacations } from "./Vacations";
 
 @Index("email", ["email"], { unique: true })
 @Index("phonenumber", ["phonenumber"], { unique: true })
@@ -61,4 +63,7 @@ export class Administrator {
 
   @OneToMany(() => TimeOfWorke, (timeOfWorke) => timeOfWorke.admin)
   timeOfWorkes: TimeOfWorke[];
+
+  @ManyToMany(() => Vacations, (vacations) => vacations.administrators)
+  vacations: Vacations[];
 }

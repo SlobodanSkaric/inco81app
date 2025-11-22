@@ -3,11 +3,13 @@ import {
   Entity,
   Index,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { TimeOfWorke } from "./TimeOfWorke";
 import { RequestLogs } from "./RequestLogs";
 import { JobInformations } from "./JobInformations";
+import { Vacations } from "./Vacations";
 
 @Index("email", ["email"], { unique: true })
 @Index("phonenumber", ["phonenumber"], { unique: true })
@@ -76,5 +78,8 @@ export class Users {
 
   @OneToMany(() => RequestLogs, (requestLogs: RequestLogs) => requestLogs.userId)
   requestLogs: RequestLogs[];
+
+  @OneToOne(() => Vacations, (vacations) => vacations.users)
+  vacations: Vacations[];
 
 }

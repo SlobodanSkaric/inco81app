@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
-import { RequestlogService } from "src/requestlog/requestlog.service";
+import { RequestlogService } from "src/modules/requestlog/requestlog.service";
 
 @Injectable()
 export class FingerprintGuard implements CanActivate {

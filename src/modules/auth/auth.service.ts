@@ -6,14 +6,12 @@ import { AuthLoginDto } from './dto/auth.login.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import * as bcrypt from "bcrypt";
 import { JwtService } from '@nestjs/jwt';
-import { AdministratorService } from 'src/administrator/administrator.service';
-import { UserService } from 'src/user/user.service';
-import { SuperadministratorService } from 'src/superadministrator/superadministrator.service';
-import { config } from 'dotenv';
-import { ConfigService } from '@nestjs/config';
-import { AdministratorInfoDto } from 'src/administrator/dto/administrator.info.dto';
-import { UserInfoDto } from 'src/user/dto/user.info.dto';
-import { SuperadministratorInfoDto } from 'src/superadministrator/dtos/superadministrator.info.dto';
+import { AdministratorService } from 'src/modules/administrator/administrator.service';
+import { UserService } from 'src/modules/user/user.service';
+import { SuperadministratorService } from 'src/modules/superadministrator/superadministrator.service';
+import { AdministratorInfoDto } from 'src/modules/administrator/dto/administrator.info.dto';
+import { UserInfoDto } from 'src/modules/user/dto/user.info.dto';
+import { SuperadministratorInfoDto } from 'src/modules/superadministrator/dtos/superadministrator.info.dto';
 
 @Injectable()
 export class AuthService {

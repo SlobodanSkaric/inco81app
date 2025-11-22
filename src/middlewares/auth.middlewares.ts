@@ -1,5 +1,5 @@
 import { Injectable, NestMiddleware, UnauthorizedException } from "@nestjs/common";
-import { AdministratorService } from "src/administrator/administrator.service";
+import { AdministratorService } from "src/modules/administrator/administrator.service";
 import * as jwt from "jsonwebtoken";
 import { NextFunction, Request } from "express";
 

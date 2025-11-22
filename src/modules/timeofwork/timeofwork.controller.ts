@@ -8,7 +8,7 @@ import { GetHorseDto } from './dtos/get.horse.dto';
 import { Roles } from 'src/common/decorators/role.decorators';
 import { RoleGuards } from 'src/common/guards/roles.guards';
 import { UdateTimeOfWorkUserDto } from './dtos/udate.timeofwork.user.dto';
-import { JwtAuthGuards } from 'src/auth/jwtAuthGuards';
+import { JwtAuthGuards } from 'src/modules/auth/jwtAuthGuards';
 
 @Controller('timeofwork')
 export class TimeofworkController {

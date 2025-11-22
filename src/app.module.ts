@@ -1,23 +1,22 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserModule } from './user/user.module';
-import { AdministratorModule } from './administrator/administrator.module';
-import { TimeofworkModule } from './timeofwork/timeofwork.module';
-import { AuthModule } from './auth/auth.module';
-import { AuthMiddleware } from './middlewares/auth.middlewares';
-import { ReportModule } from './report/report.module';
-import { RequestlogModule } from './requestlog/requestlog.module';
+import { UserModule } from './modules/user/user.module';
+import { AdministratorModule } from './modules/administrator/administrator.module';
+import { TimeofworkModule } from './modules/timeofwork/timeofwork.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { ReportModule } from './modules/report/report.module';
+import { RequestlogModule } from './modules/requestlog/requestlog.module';
 import { FingerprintMiddleware } from './middlewares/fingerprint.middleware';
-import { RequestlogService } from './requestlog/requestlog.service';
+import { RequestlogService } from './modules/requestlog/requestlog.service';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { FingerprintGuard } from './common/guards/fingerprints.gurds';
-import { JobinformationsModule } from './jobinformations/jobinformations.module';
+import { JobinformationsModule } from './modules/jobinformations/jobinformations.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { RequestLogInterceptor } from './common/interceptors/request.log.interceptors';
-import { log } from 'console';
 import { LogsModule } from './logs/logs.module';
-import { SuperadministratorModule } from './superadministrator/superadministrator.module';
+import { SuperadministratorModule } from './modules/superadministrator/superadministrator.module';
+import { VacationModule } from './modules/vacation/vacation.module';
 
 
 @Module({
@@ -41,9 +40,9 @@ import { SuperadministratorModule } from './superadministrator/superadministrato
     RequestlogModule,
     JobinformationsModule,
     LogsModule,
-    SuperadministratorModule
+    SuperadministratorModule,
+    VacationModule
   ],
-  controllers: [],
 
   providers:[
     RequestlogService,

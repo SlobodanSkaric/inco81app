@@ -1,7 +1,6 @@
 import { NestMiddleware } from "@nestjs/common";
 import { NextFunction, Request, Response } from "express";
 import * as jwt from "jsonwebtoken";
-import { decode } from "punycode";
 
 export class FingerprintMiddleware implements NestMiddleware {
     use(req: Request, res: Response, next: NextFunction){

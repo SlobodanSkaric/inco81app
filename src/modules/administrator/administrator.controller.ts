@@ -7,9 +7,9 @@ import { Roles } from 'src/common/decorators/role.decorators';
 import { RoleGuards } from 'src/common/guards/roles.guards';
 import { Request } from 'express';
 import { EditUserTimeOfWorkDto } from './dto/edit.user.timeofwork.dto';
-import { JwtAuthGuards } from 'src/auth/jwtAuthGuards';
+import { JwtAuthGuards } from 'src/modules/auth/jwtAuthGuards';
 import { DeleteUserTimeOfWorkDto } from './dto/delete.user.timeofwork';
-import { JwtRefreshGuards } from 'src/auth/jwtRefreshGuards';
+import { JwtRefreshGuards } from 'src/modules/auth/jwtRefreshGuards';
 
 @Controller('administrator')
 export class AdministratorController {

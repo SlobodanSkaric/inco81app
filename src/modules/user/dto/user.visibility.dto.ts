@@ -1,5 +1,4 @@
 import { IsIn, IsNotEmpty, IsNumber } from "class-validator";
-import { Not } from "typeorm";
 
 export class UserVisibilityDto{
     @IsNumber()

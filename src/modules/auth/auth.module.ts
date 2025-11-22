@@ -4,14 +4,14 @@ import { AuthController } from './auth.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Users } from 'entitets/entities/Users';
 import { Administrator } from 'entitets/entities/Administrator';
-import { AdministratorModule } from 'src/administrator/administrator.module';
-import { UserModule } from 'src/user/user.module';
+import { AdministratorModule } from 'src/modules/administrator/administrator.module';
+import { UserModule } from 'src/modules/user/user.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './jwr.strategy';
 import { Superadministrator } from 'entitets/entities/Superadministrator';
-import { SuperadministratorModule } from 'src/superadministrator/superadministrator.module';
+import { SuperadministratorModule } from 'src/modules/superadministrator/superadministrator.module';
 import { JwtRefreshStrategy } from './jwt.refresh.strategy';
 
 @Module({

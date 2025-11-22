@@ -5,7 +5,6 @@ import { Repository } from 'typeorm';
 import { AddSuperadministratorsDto } from './dtos/add.superadministrators.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import * as bcrypt from 'bcrypt';
-import { Request } from 'express';
 
 @Injectable()
 export class SuperadministratorService {

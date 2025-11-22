@@ -4,7 +4,6 @@ import { AuthLoginDto } from './dto/auth.login.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
-import { LoginSuperadministratorsDto } from 'src/superadministrator/dtos/login.superadministrators.dto';
 
 @Controller('auth')
 export class AuthController {

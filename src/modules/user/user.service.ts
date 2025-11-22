@@ -9,7 +9,6 @@ import * as bcrypt from "bcrypt";
 import { Administrator } from 'entitets/entities/Administrator';
 import { UserVisibilityDto } from './dto/user.visibility.dto';
 import { UserEditDto } from './dto/user.edit.dto';
-import * as bycript from "bcrypt";
 
 @Injectable()
 export class UserService {
