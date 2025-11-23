@@ -13,9 +13,7 @@ export class AuthController {
    
     @Post("administrator")
     async administratorLogin(@Body() data: AuthDto, @Req() req: Request, @Res({ passthrough: true }) res: Response):Promise<{message: string} | AuthLoginDto | ApiResponse | any>{
-            const tokens = await this.authService.adminstratorLogin(data, req);
-            console.log(tokens);
-           
+           const tokens = await this.authService.adminstratorLogin(data, req);           
 
            res.cookie("access_token", tokens.accessToken, {
                 httpOnly: true,

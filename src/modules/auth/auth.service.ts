@@ -35,7 +35,7 @@ export class AuthService {
           return new ApiResponse("error", -1011, "Password is not correct");
         }
 
-        const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;//normalize ip
+        const ip = req.headers["x-forwarded-for"]?.split(",")[0].trim() ?? null   //req.socket.remoteAddress its only for production enviroment
         const ua = req.headers["user-agent"]?req.headers["user-agent"]:"Undefined user agent";
 
         const payload = {
@@ -79,7 +79,7 @@ export class AuthService {
             return new ApiResponse("error", -1013, "Password is not correct");
         }
 
-        const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress; //modify loclahost ip address
+        const ip = req.headers["x-forwarded-for"]?.split(",")[0].trim() ?? null  //req.socket.remoteAddress its only for production enviroment
         const ua = req.headers["user-agent"]?req.headers["user-agent"] : "unknown";
 
         const payload = {

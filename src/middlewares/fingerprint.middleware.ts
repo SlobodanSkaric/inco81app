@@ -21,7 +21,7 @@ export class FingerprintMiddleware implements NestMiddleware {
         }
 
         req.fingerprint = {//req["fingerprint"]
-            ip,
+            ip:ip,
             userAgent:ua,
             acceptLenguage:acceptLang,
             deviceFingerprint:deviceFingerprint,
