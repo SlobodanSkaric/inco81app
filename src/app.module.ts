@@ -58,6 +58,6 @@ import { VacationModule } from './modules/vacation/vacation.module';
 })
 export class AppModule implements NestModule{
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(FingerprintMiddleware).forRoutes("*");//exclude
+    consumer.apply(FingerprintMiddleware).exclude("auth/*").forRoutes("*");//exclude
   }
 }

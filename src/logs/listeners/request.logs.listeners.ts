@@ -11,11 +11,10 @@ export class RequestLogsListeners {
     @OnEvent("request.log", {async: true})
     async handle(payload: any){
         const reqLogs = new RequestLogs();
-        reqLogs.userId = payload.user_id.id;
+        reqLogs.userId = payload.user_id;
         reqLogs.ip = payload.ip;
         reqLogs.userAgent = payload.user_agent;
         reqLogs.ts = payload.ts;
-        console.log("Logging request:", payload);
         await this.requestLog.save(reqLogs);
     }
 }

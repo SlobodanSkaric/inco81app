@@ -2,6 +2,15 @@ import { NestMiddleware } from "@nestjs/common";
 import { NextFunction, Request, Response } from "express";
 import * as jwt from "jsonwebtoken";
 
+
+import "express";
+declare module "express" {
+    interface Request {
+        fingerprint?: any;
+        userIdreq?: any;
+    }
+}
+
 export class FingerprintMiddleware implements NestMiddleware {
     use(req: Request, res: Response, next: NextFunction){
         const ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").toString().split(",")[0].trim();
@@ -28,8 +37,9 @@ export class FingerprintMiddleware implements NestMiddleware {
             route:req.originalUrl,
             ts:new Date(),
         }
-
-        req.user = decodeToken?.id || null;
+        
+        const userId = decodeToken.id || null;
+        req.userIdreq = userId;
         next();
     }
 }

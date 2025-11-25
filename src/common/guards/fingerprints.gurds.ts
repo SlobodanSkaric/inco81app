@@ -8,7 +8,8 @@ export class FingerprintGuard implements CanActivate {
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const req = context.switchToHttp().getRequest();
-        const userId = req.user;
+        const userId = req.userIdreq;
+        console.log(userId);
         const fingerprint = req.fingerprint;
         if (userId && fingerprint) {
             this.requestLogServices.logRequest(userId, fingerprint).catch(err => {
@@ -18,7 +19,6 @@ export class FingerprintGuard implements CanActivate {
         
         const n = Number(process.env.REDIS_RECENT_COUNT ?? 10);
         const recent = await this.requestLogServices.loadLogs(userId);
-        //console.log(recent);
         const riskScore = this.calculateRiskScore(recent, fingerprint);
 
 

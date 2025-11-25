@@ -18,7 +18,7 @@ export class RequestLogInterceptor implements NestInterceptor{
         const basePayload = {
             method: request.method,
             path: path,
-            user_id: request.user || null,
+            user_id: request.userIdreq || null,
             fingerprint: request.fingerprint || request.headers["x-fingerprint"] || null,
             coleration_id: request.headers["x-request-id"] || null,
             ip: ((request.ip || request.headers["x-forwarded-for"] || request.socket.remoteAddress || "").toString().split(",")[0].trim()) as string,
