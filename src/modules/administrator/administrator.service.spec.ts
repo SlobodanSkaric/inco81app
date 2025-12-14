@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AdministratorService } from './administrator.service';
 
+
 describe('AdministratorService', () => {
   let service: AdministratorService;
 
