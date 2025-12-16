@@ -26,7 +26,7 @@ export class AdministratorController {
     @Roles("administrator")
     @UseGuards(JwtAuthGuards,JwtRefreshGuards,RoleGuards)
     async getAdminstratorById(@Req() req: Request): Promise<AdministratorInfoDto | ApiResponse>{
-        return await this.admiServices.getById(req);
+        return await this.admiServices.getById(req.user.id);
     }
 
     @Post("add")//add role and gurds of superadmin

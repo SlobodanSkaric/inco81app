@@ -46,9 +46,8 @@ export class AdministratorService {
     }
 
 
-    async getById(req): Promise<AdministratorInfoDto | ApiResponse>{
-        const adminId = req.user.id;
-        const getAdmin = await this.administratorEntitets.findOne({ where: { adminId: adminId } });
+    async getById(id): Promise<AdministratorInfoDto | ApiResponse>{
+        const getAdmin = await this.administratorEntitets.findOne({ where: { adminId: id } });
 
         if(!getAdmin){
             return new ApiResponse("error", -1007, "Adminstrator for this id is not exists");
