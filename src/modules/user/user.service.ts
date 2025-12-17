@@ -17,8 +17,8 @@ export class UserService {
         @InjectRepository(Administrator) private readonly adminRepository: Repository<Administrator>
     ){}
 
-    async getAllUsers(req): Promise<UserInfoDto[] | ApiResponse>{
-        const adminId = req.user.id;
+    async getAllUsers(userId): Promise<UserInfoDto[] | ApiResponse>{
+        const adminId = userId;
         const admin = await this.adminRepository.findOne({ 
             where: { adminId: adminId }
         });
@@ -63,8 +63,8 @@ export class UserService {
         return userInfoDto;
     }
 
-    async getUserById(req): Promise<UserInfoDto | ApiResponse>{
-        const getId = req.user.id;
+    async getUserById(id): Promise<UserInfoDto | ApiResponse>{
+        const getId = id;
         
         const user = await this.userEntitets.findOne({ where: { userId: getId } });
 

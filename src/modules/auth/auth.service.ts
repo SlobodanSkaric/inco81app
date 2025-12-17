@@ -22,7 +22,7 @@ export class AuthService {
         private readonly superadministratorsServices: SuperadministratorService,
     ){}
 
-    async adminstratorLogin(data: AuthDto, req): Promise<AuthLoginDto | ApiResponse | Administrator | any>{
+    async adminstratorLogin(data: AuthDto, ipuaData): Promise<AuthLoginDto | ApiResponse | Administrator | any>{
         const checkedAdministrator = await this.admistrattorServices.getByEmail(data.email);
 
         if(!checkedAdministrator){
@@ -35,8 +35,12 @@ export class AuthService {
           return new ApiResponse("error", -1011, "Password is not correct");
         }
 
-        const ip = req.headers["x-forwarded-for"]?.split(",")[0].trim() ?? null   //req.socket.remoteAddress its only for production enviroment
-        const ua = req.headers["user-agent"]?req.headers["user-agent"]:"Undefined user agent";
+        /* const ip = req.headers["x-forwarded-for"]?.split(",")[0].trim() ?? null   //req.socket.remoteAddress its only for production enviroment
+        const ua = req.headers["user-agent"]?req.headers["user-agent"]:"Undefined user agent"; */
+
+        
+        const ip = ipuaData.ip;
+        const ua = ipuaData.ua;
 
         const payload = {
             id: checkedAdministrator.adminId,
@@ -66,7 +70,7 @@ export class AuthService {
         return { accessToken, refreshToken, administratorInfo };       
     }
 
-    async userLogin(data: AuthDto, req): Promise<AuthLoginDto | ApiResponse | Users | any>{
+    async userLogin(data: AuthDto, ipuaData): Promise<AuthLoginDto | ApiResponse | Users | any>{
         const checkedUser = await this.userServices.getByEmail(data.email);
 
         if(!checkedUser){
@@ -79,8 +83,11 @@ export class AuthService {
             return new ApiResponse("error", -1013, "Password is not correct");
         }
 
-        const ip = req.headers["x-forwarded-for"]?.split(",")[0].trim() ?? null  //req.socket.remoteAddress its only for production enviroment
-        const ua = req.headers["user-agent"]?req.headers["user-agent"] : "unknown";
+        /* const ip = req.headers["x-forwarded-for"]?.split(",")[0].trim() ?? null  //req.socket.remoteAddress its only for production enviroment
+        const ua = req.headers["user-agent"]?req.headers["user-agent"] : "unknown"; */
+
+        const ip = ipuaData.ip;
+        const ua = ipuaData.ua;
 
         const payload = {
             id: checkedUser.userId,

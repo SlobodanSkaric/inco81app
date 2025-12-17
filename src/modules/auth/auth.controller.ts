@@ -12,8 +12,17 @@ export class AuthController {
     ){}
    
     @Post("administrator")
-    async administratorLogin(@Body() data: AuthDto, @Req() req: Request, @Res({ passthrough: true }) res: Response):Promise<{message: string} | AuthLoginDto | ApiResponse | any>{
-           const tokens = await this.authService.adminstratorLogin(data, req);           
+    async administratorLogin(@Body() data: AuthDto, @Req() req: Request, @Res({ passthrough: true }) res: Response):Promise<{message: string} | AuthLoginDto | ApiResponse | any>{             
+
+           const ip = typeof req.headers["x-forwarded-for"] === "string" ? req.headers["x-forwarded-for"].split(",")[0].trim() : null   //req.socket.remoteAddress its only for production enviroment
+           const ua = req.headers["user-agent"]?req.headers["user-agent"]:"Undefined user agent";
+
+           const ipuaData = {
+            ip: ip,
+            ua: ua
+           }
+
+           const tokens = await this.authService.adminstratorLogin(data, ipuaData);    
 
            res.cookie("access_token", tokens.accessToken, {
                 httpOnly: true,
@@ -74,7 +83,14 @@ export class AuthController {
 
     @Post("superadministrators/login")
     async loginSuperAdministrators(@Body() superadminsData: AuthDto, @Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<{message: string} |any> {
-        const token = await this.authService.loginSuperAdministrators(superadminsData, req);
+        const ip = req.headers["x-forwarded-for"] === "string" ? req.headers["x-forwarded-for"].split(",")[0].trim() : null  //req.socket.remoteAddress its only for production enviroment
+        const ua = req.headers["user-agent"]?req.headers["user-agent"] : "unknown";
+
+        const ipuaData = {
+            ip: ip,
+            ua: ua
+        }
+        const token = await this.authService.loginSuperAdministrators(superadminsData, ipuaData);
 
         res.cookie("access_token", token.access_token,{
             httpOnly: true,
@@ -84,7 +100,7 @@ export class AuthController {
         })
 
         res.cookie("refresh_token", token.refreshToken, {
-             httpOnly: true,
+            httpOnly: true,
             secure: true,
             sameSite: "strict",
             maxAge: 7 * 34 * 60 * 60 * 1000

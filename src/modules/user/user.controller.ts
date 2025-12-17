@@ -20,14 +20,15 @@ export class UserController {
     @Roles("administrator")
     @UseGuards(JwtAuthGuards, RoleGuards)
     async getAll(@Req() req: Request): Promise<UserInfoDto[] | ApiResponse>{
-        return await this.userServices.getAllUsers(req);
+        console.log("User ID:", req.user);
+        return await this.userServices.getAllUsers(req.user.id);
     }
 
     @Get("")
     @Roles("user")
     @UseGuards(JwtAuthGuards)
     async getById(@Req() req: Request): Promise<UserInfoDto | ApiResponse>{
-        return this.userServices.getUserById(req);
+        return this.userServices.getUserById(req.user.id);
     }
 
 
@@ -43,7 +44,7 @@ export class UserController {
     @Roles("administrator")
     @Premissions("delete")
     @UseGuards(JwtAuthGuards, RoleGuards)
-    async deleteUser(@Body() user_data: UserVisibilityDto, @Req() req: Request): Promise<ApiResponse>{
+    async deleteUser(@Body() user_data: UserVisibilityDto): Promise<ApiResponse>{
         return this.userServices.deleteUser(user_data);
     }
 
