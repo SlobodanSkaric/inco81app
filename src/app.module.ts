@@ -17,6 +17,9 @@ import { RequestLogInterceptor } from './common/interceptors/request.log.interce
 import { LogsModule } from './logs/logs.module';
 import { SuperadministratorModule } from './modules/superadministrator/superadministrator.module';
 import { VacationModule } from './modules/vacation/vacation.module';
+import { Controller } from './src/modules/customers/.controller';
+import { Controller } from './modules/customers/.controller';
+import { Module } from './modules/customers/.module';
 
 
 @Module({
@@ -41,7 +44,8 @@ import { VacationModule } from './modules/vacation/vacation.module';
     JobinformationsModule,
     LogsModule,
     SuperadministratorModule,
-    VacationModule
+    VacationModule,
+    Module
   ],
 
   providers:[
@@ -54,7 +58,9 @@ import { VacationModule } from './modules/vacation/vacation.module';
       provide: APP_INTERCEPTOR,
       useClass: RequestLogInterceptor
     }
-  ]
+  ],
+
+  controllers: [Controller]
 })
 export class AppModule implements NestModule{
   configure(consumer: MiddlewareConsumer) {
