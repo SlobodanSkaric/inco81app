@@ -11,7 +11,7 @@ export class Customers {
     @Column("boolean", { name: "is_active", default: true })
     isActive: boolean;
 
-    @Column("varchar", { name: "contact_email", length: 255 })
+    @Column("varchar", { name: "contact_email", length: 255, unique: true })
     contactEmail: string;
 
     @Column("varchar", { name: "phone_number", length: 20, nullable: true })
