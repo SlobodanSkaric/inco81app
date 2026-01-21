@@ -5,6 +5,7 @@ import { Administrator } from 'entitets/entities/Administrator';
 import { Repository } from 'typeorm';
 import { TimeOfWorke } from 'entitets/entities/TimeOfWorke';
 import { ApiResponse } from 'src/misc/api.response.dto';
+import { AdministratorInfoDto } from './dto/administrator.info.dto';
 
 const mockAdministratorsRepositiort = {
   find: jest.fn(),
@@ -92,21 +93,36 @@ describe('AdministratorService', () => {
     });
 
     it("Return administrator when ID is valid", async () => {
-      const mocAdministrator = { adminId: 1, name: "Slobodan" };
+      const mocAdministrator = 
+      { 
+        adminId: 1, 
+        name: "Slobodan",
+        lastname: "Skaric",
+        email: "slobodan.skaric@gmail.com",
+        phonenumber:"06054544756"
+      };
 
       mockAdministratorsRepositiort.findOne.mockResolvedValue(mocAdministrator);
 
       const resulte = await service.getById(1);
-      expect(resulte).toEqual(mocAdministrator);
+      expect(resulte).toStrictEqual(
+        new AdministratorInfoDto(
+          mocAdministrator.adminId, 
+          mocAdministrator.name, 
+          mocAdministrator.lastname, 
+          mocAdministrator.email, 
+          mocAdministrator.phonenumber
+        ) 
+      );
       expect(repository.findOne).toHaveBeenCalledWith({ where: { adminId: 1 } });
     });
 
     it("Add administrator", async () => {
-      const mocklAdministrator = {
+      const mocAdministrator = {
         adminId: 1,
         name: "Slobodan", 
         lastname: "Skaric",
-        email: "slobodan.skaric@gmail,com",
+        email: "slobodan.skaric@gmail.com",
         phonenumber: "06054544756",
         password: "Password1!"
       }
@@ -119,17 +135,25 @@ describe('AdministratorService', () => {
         phonenumber: "06054544756",
       }
 
-      mockAdministratorsRepositiort.save.mockResolvedValue( mocklAdministrator );
+      mockAdministratorsRepositiort.save.mockResolvedValue( mocAdministrator );
       mockAdministratorsRepositiort.findOne.mockResolvedValue( mockAdministratorGetById );
 
-      const resulte = await service.addAdministratorServices(mocklAdministrator);
+      const resulte = await service.addAdministratorServices(mocAdministrator);
 
-      expect(resulte).toEqual(mockAdministratorGetById);
+      expect(resulte).toStrictEqual(
+        new AdministratorInfoDto(
+          mocAdministrator.adminId, 
+          mocAdministrator.name, 
+          mocAdministrator.lastname, 
+          mocAdministrator.email, 
+          mocAdministrator.phonenumber
+        ) 
+      );
       expect(repository.save).toHaveBeenCalledWith( expect.objectContaining({
-        name: mocklAdministrator.name,
-        lastname: mocklAdministrator.lastname,
-        email: mocklAdministrator.email,
-        phonenumber: mocklAdministrator.phonenumber,
+        name: mocAdministrator.name,
+        lastname: mocAdministrator.lastname,
+        email: mocAdministrator.email,
+        phonenumber: mocAdministrator.phonenumber,
         password: expect.any(String),
       }) );
     });
