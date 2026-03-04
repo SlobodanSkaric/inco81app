@@ -64,9 +64,8 @@ export class UserService {
     }
 
     async getUserById(id): Promise<UserInfoDto | ApiResponse>{
-        const getId = id;
         
-        const user = await this.userEntitets.findOne({ where: { userId: getId } });
+        const user = await this.userEntitets.findOne({ where: { userId: id } });
 
         if(!user){
             return new ApiResponse("error", -1001, "No user");
