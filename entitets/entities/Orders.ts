@@ -1,5 +1,6 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { OrderItems } from "./OrderItems";
+import { Customers } from "./Customers";
 
 @Entity("orders")
 export class Orders {
@@ -23,4 +24,8 @@ export class Orders {
 
     @OneToMany(() => OrderItems, orderItems => orderItems.orders)
     orderItems: OrderItems[];
+
+    @ManyToOne(() => Customers, customers => customers.orders)
+    @JoinColumn([{ name: "customer_id", referencedColumnName: "customerId" }])
+    customers: Customers[];
 }

@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Orders } from "./Orders";
 
 @Entity("customers")
 export class Customers {
@@ -25,4 +26,7 @@ export class Customers {
 
     @Column("datetime", { name: "updated_at", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP" })
     updatedAt: Date;
+
+    @OneToMany(() => Orders, orders => orders.customers)
+    orders: Orders[];
 }
