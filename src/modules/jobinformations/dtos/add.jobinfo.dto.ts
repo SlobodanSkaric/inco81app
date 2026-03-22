@@ -3,7 +3,7 @@ import { IsDateString, IsNotEmpty, IsNumber, IsString } from "class-validator";
 export class AddJobinfoDto {
     @IsNotEmpty()
     @IsNumber()
-    administratorId?: number;
+    administratorId: number;
 
     @IsNotEmpty()
     @IsString()

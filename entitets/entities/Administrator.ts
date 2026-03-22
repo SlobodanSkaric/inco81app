@@ -8,12 +8,13 @@ import {
 } from "typeorm";
 import { TimeOfWorke } from "./TimeOfWorke";
 import { Vacations } from "./Vacations";
+import { JobInformations } from "./JobInformations";
 
 @Index("email", ["email"], { unique: true })
 @Index("phonenumber", ["phonenumber"], { unique: true })
 @Entity("administrator", { schema: "inco81app" })
 export class Administrator {
-  @PrimaryGeneratedColumn({ type: "int", name: "admin_id" })
+  @PrimaryGeneratedColumn({ type: "int", name: "admin_id"})
   adminId: number;
 
   @Column("varchar", { name: "name", length: 128, default: () => "'0'" })
@@ -64,6 +65,9 @@ export class Administrator {
   @OneToMany(() => TimeOfWorke, (timeOfWorke) => timeOfWorke.admin)
   timeOfWorkes: TimeOfWorke[];
 
-  @ManyToMany(() => Vacations, (vacations) => vacations.administrators)
+  @OneToMany(() => Vacations, (vacations) => vacations.administrators)
   vacations: Vacations[];
+
+  @OneToMany(() => JobInformations, (jobInformations) => jobInformations.adminstratorsId)
+  jobInformations: JobInformations[]; 
 }

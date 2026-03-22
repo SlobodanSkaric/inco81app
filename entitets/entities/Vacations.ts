@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Administrator } from "./Administrator";
 import { Users } from "./Users";
 
@@ -35,9 +35,11 @@ export class Vacations {
     @Column({ type: "text", nullable: true })
     user_comment: string | null;
 
-    @ManyToMany(() => Administrator, (administrator) => administrator.adminId)
+    @ManyToOne(() => Administrator, (administrator) => administrator.adminId)
+    @JoinColumn({ name: "admin_id", referencedColumnName: "adminId" })
     administrators: Administrator[];
 
-    @OneToOne(() => Users, (users) => users.userId)
+    @ManyToOne(() => Users, (users) => users.userId)
+    @JoinColumn({ name: "user_id", referencedColumnName: "userId" })
     users: Users;
 }

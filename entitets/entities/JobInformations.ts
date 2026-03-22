@@ -1,5 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Users } from "./Users";
+import { Administrator } from "./Administrator";
 
 
 @Entity("job_information")
@@ -7,8 +8,6 @@ export class JobInformations {
     @PrimaryGeneratedColumn({ type: "int", name: "job_information_id" })
     jobInfoId: number;
 
-    @Column("int", { name: "administrator_id", nullable: true })
-    administratorId?: number;
 
     @Column("varchar", { name: "job_title", length: 255 })
     jobTitle: string;
@@ -33,4 +32,9 @@ export class JobInformations {
 
     @Column("datetime", { name: "updated_at", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP" })
     updatedAt: Date;
+
+
+    @ManyToOne(() => Administrator, administrator => administrator.adminId,  { cascade: true, onDelete: "RESTRICT", onUpdate: "CASCADE", nullable: false })
+    @JoinColumn([{ name: "admin_id", referencedColumnName: "adminId" }])
+    adminstratorsId: number;
 }
