@@ -10,24 +10,24 @@ import { TimeOfWorke } from "./TimeOfWorke";
 import { Vacations } from "./Vacations";
 import { JobInformations } from "./JobInformations";
 
-@Index("email", ["email"], { unique: true })
-@Index("phonenumber", ["phonenumber"], { unique: true })
+@Index("email", ["email"])
+@Index("phonenumber", ["phonenumber"])
 @Entity("administrator", { schema: "inco81app" })
 export class Administrator {
   @PrimaryGeneratedColumn({ type: "int", name: "admin_id"})
   adminId: number;
 
-  @Column("varchar", { name: "name", length: 128, default: () => "'0'" })
+  @Column("varchar", { name: "name", length: 128, default: 0 })
   name: string;
 
-  @Column("varchar", { name: "lastname", length: 128, default: () => "'0'" })
+  @Column("varchar", { name: "lastname", length: 128, default: 0 })
   lastname: string;
 
   @Column("varchar", {
     name: "email",
     unique: true,
     length: 128,
-    default: () => "'0'",
+    default: 0,
   })
   email: string;
 
@@ -35,7 +35,7 @@ export class Administrator {
     name: "password",
     unique: false,
     length: 256,
-    default: () => "'0'",
+    default: 0,
   })
   password: string;
 
@@ -43,17 +43,17 @@ export class Administrator {
     name: "phonenumber",
     unique: true,
     length: 128,
-    default: () => "'0'",
+    default: 0,
   })
   phonenumber: string;
 
-  @Column("varchar", { name: "role", length: 128, default: () => "'0'" })
+  @Column("varchar", { name: "role", length: 128, default: 0})
   role: string;
 
-  @Column("varchar", { name: "token", length: 256, default: () => "'0'" })
+  @Column("varchar", { name: "token", length: 256, default: 0 })
   token: string;
 
-  @Column("int", {name: "visibility", default: () => "'0'"})
+  @Column("int", {name: "visibility", default: 0})
   visibility: number;
 
   @Column("datetime", {
@@ -65,9 +65,9 @@ export class Administrator {
   @OneToMany(() => TimeOfWorke, (timeOfWorke) => timeOfWorke.admin)
   timeOfWorkes: TimeOfWorke[];
 
-  @OneToMany(() => Vacations, (vacations) => vacations.administrators)
+  @OneToMany(() => Vacations, (vacations) => vacations.admin)
   vacations: Vacations[];
 
-  @OneToMany(() => JobInformations, (jobInformations) => jobInformations.adminstratorsId)
+  @OneToMany(() => JobInformations, (jobInformations) => jobInformations.admin)
   jobInformations: JobInformations[]; 
 }

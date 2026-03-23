@@ -3,7 +3,7 @@ import { Administrator } from "./Administrator";
 import { Users } from "./Users";
 
 
-@Entity("vacations", { schema: "inco81app" })                                                                               
+@Entity("vacations")                                                                               
 export class Vacations {
     @PrimaryGeneratedColumn({ type: "int", name: "vacation_id" })
     vacationId: number;
@@ -14,16 +14,10 @@ export class Vacations {
     @Column({ type: "datetime", nullable: true  })
     vacation_end: Date;
 
-    @Column({ type: "int", name: "user_id", default:() => "'0'" })
-    userId: number;
-
-    @Column({ type: "int", name: "admin_id", default: () => "'0'" })
-    adminId: number;
-
-    @Column({ type: "varchar", length: 256, default: () => "'0'" })
+    @Column({ type: "varchar", length: 256, default: 0 })
     reason: string;
 
-    @Column({ type: "int", name: "status", default: () => "'0'" })
+    @Column({ type: "int", name: "status", default: 0 })
     status: number;
 
     @Column({ type: "datetime", default: () => "CURRENT_TIMESTAMP" })
@@ -35,11 +29,11 @@ export class Vacations {
     @Column({ type: "text", nullable: true })
     user_comment: string | null;
 
-    @ManyToOne(() => Administrator, (administrator) => administrator.adminId)
+    @ManyToOne(() => Administrator, (administrator) => administrator.vacations)
     @JoinColumn({ name: "admin_id", referencedColumnName: "adminId" })
-    administrators: Administrator[];
+    admin: Administrator;
 
-    @ManyToOne(() => Users, (users) => users.userId)
+    @ManyToOne(() => Users, (users) => users.vacations)
     @JoinColumn({ name: "user_id", referencedColumnName: "userId" })
-    users: Users;
+    user: Users;
 }

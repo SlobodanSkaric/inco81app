@@ -34,7 +34,7 @@ export class JobInformations {
     updatedAt: Date;
 
 
-    @ManyToOne(() => Administrator, administrator => administrator.adminId,  { cascade: true, onDelete: "RESTRICT", onUpdate: "CASCADE", nullable: false })
+    @ManyToOne(() => Administrator, administrator => administrator.jobInformations,{nullable: true})
     @JoinColumn([{ name: "admin_id", referencedColumnName: "adminId" }])
-    adminstratorsId: number;
+    admin: Administrator;
 }

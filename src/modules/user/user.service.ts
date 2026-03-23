@@ -43,7 +43,7 @@ export class UserService {
         allUsers.forEach((data) => {
             const timeOfWorkSet = data.timeOfWorkes;
             timeOfWorkSet.forEach((dataSet) =>{
-                if(data.userId == dataSet.userId){
+                if(data.userId == dataSet.user.userId){
                     sumTimeOfWork += dataSet.checked_out.getTime() - dataSet.checked_in.getTime();
                 }
             

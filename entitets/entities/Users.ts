@@ -18,17 +18,17 @@ export class Users {
   @PrimaryGeneratedColumn({ type: "int", name: "user_id" })
   userId: number;
 
-  @Column("varchar", { name: "name", length: 128, default: () => "'0'" })
+  @Column("varchar", { name: "name", length: 128, default: 0 })
   name: string;
 
-  @Column("varchar", { name: "lastname", length: 128, default: () => "'0'" })
+  @Column("varchar", { name: "lastname", length: 128, default: 0})
   lastname: string;
 
   @Column("varchar", {
     name: "email",
     unique: true,
     length: 128,
-    default: () => "'0'",
+    default: 0,
   })
   email: string;
 
@@ -36,7 +36,7 @@ export class Users {
     name: "password",
     unique: false,
     length: 256,
-    default: () => "'0'",
+    default: 0,
   })
   password: string;
 
@@ -44,7 +44,7 @@ export class Users {
     name: "phonenumber",
     unique: true,
     length: 128,
-    default: () => "'0'",
+    default: 0,
   })
   phonenumber: string;
 
@@ -52,7 +52,7 @@ export class Users {
     name: "role",
     nullable: true,
     length: 128,
-    default: () => "'0'",
+    default: 0,
   })
   role: string | null;
 
@@ -60,11 +60,11 @@ export class Users {
     name: "token",
     nullable: true,
     length: 256,
-    default: () => "'0'",
+    default: 0,
   })
   token: string | null;
 
-  @Column("int", {name: "visibility", default: () => "'0'"})
+  @Column("int", {name: "visibility", default: 0})
   visibility: number;
 
   @Column("datetime", {
@@ -79,7 +79,7 @@ export class Users {
   @OneToMany(() => RequestLogs, (requestLogs: RequestLogs) => requestLogs.userId)
   requestLogs: RequestLogs[];
 
-  @OneToOne(() => Vacations, (vacations) => vacations.users)
+  @OneToOne(() => Vacations, (vacations) => vacations.user)
   vacations: Vacations[];
 
 }

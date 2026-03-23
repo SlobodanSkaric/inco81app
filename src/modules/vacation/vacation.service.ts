@@ -5,6 +5,8 @@ import { ApiResponse } from 'src/misc/api.response.dto';
 import { Repository } from 'typeorm';
 import { AddVacationsDto } from './dtos/add.vacations.dto';
 import { dataUtils } from 'src/utils/data.utils';
+import { Users } from 'entitets/entities/Users';
+import { Administrator } from 'entitets/entities/Administrator';
 
 @Injectable()
 export class VacationService {
@@ -34,8 +36,8 @@ export class VacationService {
         const newVacations = new Vacations();
         newVacations.vacation_start = dataUtils(vacactionsData.vacation_start);
         newVacations.vacation_end = dataUtils(vacactionsData.vacation_end);
-        newVacations.userId = vacactionsData.userId;
-        newVacations.adminId = vacactionsData.adminId;
+        newVacations.user = {userId: vacactionsData.userId} as Users;
+        newVacations.admin = {adminId: vacactionsData.adminId} as Administrator;
         newVacations.reason = vacactionsData.reason;
         newVacations.status = vacactionsData.status;
         newVacations.admin_comment = vacactionsData.admin_comment ?? null;

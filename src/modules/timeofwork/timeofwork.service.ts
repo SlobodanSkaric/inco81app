@@ -7,6 +7,8 @@ import { UserCheckedInDto } from './dtos/user.checkedin.dto';
 import { GetHorseDto } from './dtos/get.horse.dto';
 import { UdateTimeOfWorkUserDto } from './dtos/udate.timeofwork.user.dto';
 import { dataUtils } from 'src/utils/data.utils';
+import { Administrator } from 'entitets/entities/Administrator';
+import { Users } from 'entitets/entities/Users';
 
 @Injectable()
 export class TimeofworkService {
@@ -15,7 +17,7 @@ export class TimeofworkService {
     async userCheckedIn(data: UserCheckedInDto): Promise<TimeOfWorke | ApiResponse>{
         const checkedUser = await this.timeOfWorksRepository.findOne({
             where : {
-                userId: data.userId,
+                user: { userId: data.userId } as Users,
                 checked_out: IsNull()
             }
         })
@@ -27,8 +29,8 @@ export class TimeofworkService {
 
 
         const timeOfWork = new TimeOfWorke();
-        timeOfWork.userId = data.userId;
-        timeOfWork.adminId = data.adminId;
+        timeOfWork.user = { userId: data.userId } as Users;
+        timeOfWork.admin = {adminId: data.adminId} as Administrator;
         timeOfWork.checked_in = new Date();
 
         const savedTimeOfWork = await this.timeOfWorksRepository.save(timeOfWork);
@@ -45,7 +47,7 @@ export class TimeofworkService {
     async userCheckedOut(data: UserCheckedInDto): Promise<TimeOfWorke | ApiResponse>{
         const checkedUser = await this.timeOfWorksRepository.findOne({
             where : {
-                userId: data.userId,
+                user: { userId: data.userId } as Users,
                 checked_out: IsNull()
             }
         })
@@ -67,7 +69,7 @@ export class TimeofworkService {
     async getTiemOfWorkByUserId(data: GetHorseDto): Promise<{getOfTime: string}>{
         const timeOfWork = await this.timeOfWorksRepository.find({
             where: {
-                userId: data.userId,
+                user: { userId: data.userId } as Users,
                 checked_in: Between(new Date(data.stratDate), new Date(data.endDate))
             }
         });

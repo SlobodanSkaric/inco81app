@@ -10,6 +10,7 @@ import { EditUserTimeOfWorkDto } from './dto/edit.user.timeofwork.dto';
 import { TimeOfWorke } from 'entitets/entities/TimeOfWorke';
 import { dataUtils } from 'src/utils/data.utils';
 import { DeleteUserTimeOfWorkDto } from './dto/delete.user.timeofwork';
+import { Users } from 'entitets/entities/Users';
 
 @Injectable()
 export class AdministratorService {
@@ -105,7 +106,7 @@ export class AdministratorService {
     }
 
     async deleteUserTimeOfWork(data: DeleteUserTimeOfWorkDto): Promise<TimeOfWorke | ApiResponse | any>{
-        const getTimeOfWorForUser = await this.timeOfWorkeEntitets.findOne({ where: { timeOfWorkeId: data.timeOfWorkeId, userId: data.userId } });
+        const getTimeOfWorForUser = await this.timeOfWorkeEntitets.findOne({ where: { timeOfWorkeId: data.timeOfWorkeId, user: { userId: data.userId } as Users } });
 
         if(!getTimeOfWorForUser){
             return new ApiResponse("error", -1009, "Time of work for this user is not exists");
