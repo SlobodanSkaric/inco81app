@@ -14,7 +14,11 @@ export class RequestLogsListeners {
         reqLogs.userId = payload.user_id;
         reqLogs.ip = payload.ip;
         reqLogs.userAgent = payload.user_agent;
+        reqLogs.acceptLanguage = payload.accept_language;
+        reqLogs.deviceFingerprint = payload.device_fingerprint;
+        reqLogs.route = payload.route;
         reqLogs.ts = payload.ts;
+        console.log("Saving request log:", reqLogs);
         await this.requestLog.save(reqLogs);
     }
 }

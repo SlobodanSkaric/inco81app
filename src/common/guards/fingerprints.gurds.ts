@@ -11,6 +11,7 @@ export class FingerprintGuard implements CanActivate {
         const userId = req.userIdreq;
         console.log(userId);
         const fingerprint = req.fingerprint;
+        
         if (userId && fingerprint) {
             this.requestLogServices.logRequest(userId, fingerprint).catch(err => {
                 console.error("Failed to log request fingerprint:", err);

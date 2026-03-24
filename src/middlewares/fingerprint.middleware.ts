@@ -23,7 +23,7 @@ export class FingerprintMiddleware implements NestMiddleware {
         const secret = process.env.SECRET_TOKEN_KEY;
         if (token && secret) {
             try {
-                decodeToken = jwt.verify(token, secret);
+                decodeToken = jwt.verify(token, secret);                
             } catch (err) {
                 console.warn("JWT verification failed:", err);
             }
@@ -37,8 +37,15 @@ export class FingerprintMiddleware implements NestMiddleware {
             route:req.originalUrl,
             ts:new Date(),
         }
-        
+
+        if(!decodeToken){
+            next();
+            res.status(401).json({ message: "Unauthorized - Invalid or missing token", code: -1 } );
+            return;
+        }
+        console.log("Decoded JWT:", req.originalUrl);
         const userId = decodeToken.id || null;
+        
         req.userIdreq = userId;
         next();
     }
