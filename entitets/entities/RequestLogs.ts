@@ -24,6 +24,15 @@ export class RequestLogs{
     @Column("varchar", { name:"route", nullable:true})
     route?:string;
 
+    @Column("int", { name:"response_status", nullable:true})
+    responseStatus?:number;
+
+    @Column("int", { name:"response_time", nullable:true})
+    responseTime?:number;
+
+    @Column("varchar", { name: "request_method", nullable:true})
+    requestMethod?:string;
+
     @Column("datetime", { name:"ts", default: () => "CURRENT_TIMESTAMP"})
     ts:Date;
 }

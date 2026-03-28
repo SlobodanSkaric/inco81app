@@ -43,7 +43,7 @@ export class FingerprintMiddleware implements NestMiddleware {
             res.status(401).json({ message: "Unauthorized - Invalid or missing token", code: -1 } );
             return;
         }
-        console.log("Decoded JWT:", req.originalUrl);
+       
         const userId = decodeToken.id || null;
         
         req.userIdreq = userId;

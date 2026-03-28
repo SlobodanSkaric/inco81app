@@ -16,9 +16,12 @@ export class RequestLogsListeners {
         reqLogs.userAgent = payload.user_agent;
         reqLogs.acceptLanguage = payload.accept_language;
         reqLogs.deviceFingerprint = payload.device_fingerprint;
-        reqLogs.route = payload.route;
+        reqLogs.route = payload.path;
         reqLogs.ts = payload.ts;
-        console.log("Saving request log:", reqLogs);
+        reqLogs.responseStatus = payload.response_status;
+        reqLogs.responseTime = payload.response_time;
+        reqLogs.requestMethod = payload.method;
+        
         await this.requestLog.save(reqLogs);
     }
 }

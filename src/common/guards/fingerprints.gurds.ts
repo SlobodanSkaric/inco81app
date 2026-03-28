@@ -9,7 +9,7 @@ export class FingerprintGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const req = context.switchToHttp().getRequest();
         const userId = req.userIdreq;
-        console.log(userId);
+        
         const fingerprint = req.fingerprint;
         
         if (userId && fingerprint) {
