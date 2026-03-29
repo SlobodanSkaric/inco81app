@@ -43,7 +43,7 @@ Before running the project, ensure you have:
     1.Clone the repository:
 
       git clone https://github.com/SlobodanSkaric/inco81app.git
-      cd project-name
+      cd inco81app
 
     2.Install dependencies:
 
