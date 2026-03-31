@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { RequestLogs } from "./RequestLogs";
 
 @Entity("superadministrator")
 export class Superadministrator {
@@ -22,4 +23,7 @@ export class Superadministrator {
 
     @Column("datetime", { name: "updated_at", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP" })
     updatedAt: Date;
+
+    @OneToMany(() => RequestLogs, (requestLogs) => requestLogs.superadminId)
+    requestLogs: RequestLogs[];
 }

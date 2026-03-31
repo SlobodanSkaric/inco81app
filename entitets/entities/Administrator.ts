@@ -9,6 +9,7 @@ import {
 import { TimeOfWorke } from "./TimeOfWorke";
 import { Vacations } from "./Vacations";
 import { JobInformations } from "./JobInformations";
+import { RequestLogs } from "./RequestLogs";
 
 @Index("email", ["email"])
 @Index("phonenumber", ["phonenumber"])
@@ -70,4 +71,7 @@ export class Administrator {
 
   @OneToMany(() => JobInformations, (jobInformations) => jobInformations.admin)
   jobInformations: JobInformations[]; 
+
+  @OneToMany(() => RequestLogs, (requestLogs: RequestLogs) => requestLogs.adminId)
+  requestLogs: RequestLogs[];
 }

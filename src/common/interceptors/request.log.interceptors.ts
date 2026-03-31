@@ -18,6 +18,7 @@ export class RequestLogInterceptor implements NestInterceptor{
         const basePayload = {
             method: request.method,
             path: path,
+            role: request.role || null, 
             user_id: request.userIdreq || null,
             fingerprint: request.fingerprint || request.headers["x-fingerprint"] || null,
             coleration_id: request.headers["x-request-id"] || null,

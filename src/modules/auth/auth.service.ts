@@ -121,7 +121,7 @@ export class AuthService {
     }
 
 
-    async loginSuperAdministrators(data: AuthDto, req): Promise<AuthLoginDto | ApiResponse | any>{
+    async loginSuperAdministrators(data: AuthDto, ipuaData): Promise<AuthLoginDto | ApiResponse | any>{
         const checkedSuperadmistrators = await this.superadministratorsServices.getsuperadministratorsByEmail(data.email);
 
         if(checkedSuperadmistrators instanceof ApiResponse){
@@ -134,9 +134,13 @@ export class AuthService {
             return new ApiResponse("error", -1014, "Password is not correct");
         }
 
-        const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-        const ua = req.headers["user-agent"]?req.headers["user-agent"]:"unknown";
+        /* const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+        const ua = req.headers["user-agent"]?req.headers["user-agent"]:"unknown";*/
 
+
+        const ip = ipuaData.ip;
+        const ua = ipuaData.ua;
+        
         const payload = {
             id: checkedSuperadmistrators.superAdmistratorId,
             email: checkedSuperadmistrators.email,

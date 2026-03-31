@@ -2,6 +2,7 @@ import {
   Column,
   Entity,
   Index,
+  JoinColumn,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -77,6 +78,7 @@ export class Users {
   timeOfWorkes: TimeOfWorke[];
 
   @OneToMany(() => RequestLogs, (requestLogs: RequestLogs) => requestLogs.userId)
+  @JoinColumn({ name: "user_id", referencedColumnName: "userId" })
   requestLogs: RequestLogs[];
 
   @OneToOne(() => Vacations, (vacations) => vacations.user)

@@ -8,6 +8,7 @@ declare module "express" {
     interface Request {
         fingerprint?: any;
         userIdreq?: any;
+        role?: any;
     }
 }
 
@@ -19,11 +20,13 @@ export class FingerprintMiddleware implements NestMiddleware {
         const deviceFingerprint = req.headers["device-fingerprint"] || req.cookies?.deviceFingerprint || "unknown";
 
         const token = req.cookies?.access_token;
+        
         let decodeToken: any = null;
         const secret = process.env.SECRET_TOKEN_KEY;
         if (token && secret) {
             try {
-                decodeToken = jwt.verify(token, secret);                
+                decodeToken = jwt.verify(token, secret);    
+                //console.log("Extracted token from cookies:", decodeToken);            
             } catch (err) {
                 console.warn("JWT verification failed:", err);
             }
@@ -47,6 +50,7 @@ export class FingerprintMiddleware implements NestMiddleware {
         const userId = decodeToken.id || null;
         
         req.userIdreq = userId;
+        req.role = decodeToken.role || null;
         next();
     }
 }

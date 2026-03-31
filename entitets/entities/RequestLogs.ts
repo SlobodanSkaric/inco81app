@@ -1,4 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Users } from "./Users";
+import { Administrator } from "./Administrator";
+import { Superadministrator } from "./Superadministrator";
 
 @Entity("request_log")
 export class RequestLogs{
@@ -6,8 +9,17 @@ export class RequestLogs{
     @PrimaryGeneratedColumn({ type: "int", name: "request_log_id" })
     requestLogId:number;
 
-    @Column("int", { name:"user_id", nullable:true })
-    userId?:number;
+    @ManyToOne(() => Users, (user) => user.requestLogs, { nullable: true, onDelete: "RESTRICT", onUpdate: "CASCADE" })
+    @JoinColumn({ name: "user_id", referencedColumnName: "userId" })
+    userId: Users[];
+
+    @ManyToOne(() => Administrator, (admin) => admin.requestLogs, { nullable: true, onDelete: "RESTRICT", onUpdate: "CASCADE" })
+    @JoinColumn({ name: "admin_id", referencedColumnName: "adminId" })
+    adminId: Administrator[];
+
+    @ManyToOne(() => Superadministrator, (superadmin) => superadmin.requestLogs, { nullable: true, onDelete: "RESTRICT", onUpdate: "CASCADE" })
+    @JoinColumn({ name: "superadministrator_id", referencedColumnName: "superAdmistratorId" })
+    superadminId: Superadministrator[];
 
     @Column("varchar", { name:"ip", nullable:true})
     ip:string;

@@ -11,7 +11,7 @@ export class RequestLogsListeners {
     @OnEvent("request.log", {async: true})
     async handle(payload: any){
         const reqLogs = new RequestLogs();
-        reqLogs.userId = payload.user_id;
+        this.saveActorsRequestLog(payload, reqLogs);
         reqLogs.ip = payload.ip;
         reqLogs.userAgent = payload.user_agent;
         reqLogs.acceptLanguage = payload.accept_language;
@@ -23,5 +23,21 @@ export class RequestLogsListeners {
         reqLogs.requestMethod = payload.method;
         
         await this.requestLog.save(reqLogs);
+    }
+
+    saveActorsRequestLog(payload: any, reqLogs: RequestLogs){
+            const role = payload.role;
+
+            switch(role){
+                case "user":
+                    reqLogs.userId = payload.user_id;
+                    break;
+                case "administrator":
+                    reqLogs.adminId = payload.user_id;
+                    break;
+                case "superadministrator":
+                    reqLogs.superadminId = payload.user_id;
+                    break;
+            }
     }
 }
