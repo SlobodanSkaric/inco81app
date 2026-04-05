@@ -21,8 +21,12 @@ export class AuthController {
             ip: ip,
             ua: ua
            }
-
+           
            const tokens = await this.authService.adminstratorLogin(data, ipuaData);    
+
+           if(tokens instanceof ApiResponse){
+            return tokens;
+           }
 
            res.cookie("access_token", tokens.accessToken, {
                 httpOnly: true,

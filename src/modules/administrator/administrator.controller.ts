@@ -30,6 +30,8 @@ export class AdministratorController {
     }
 
     @Post("add")//add role and gurds of superadmin
+    @Roles("superadministrator")
+    @UseGuards(JwtAuthGuards,JwtRefreshGuards,RoleGuards)
     async addAdministrator(@Body() data: AdministratorAddDto): Promise<AdministratorInfoDto | ApiResponse>{
         return await this.admiServices.addAdministratorServices(data);
     }

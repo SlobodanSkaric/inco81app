@@ -6,31 +6,31 @@ import { AuthLoginDto } from './dto/auth.login.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import * as bcrypt from "bcrypt";
 import { JwtService } from '@nestjs/jwt';
-import { AdministratorService } from 'src/modules/administrator/administrator.service';
-import { UserService } from 'src/modules/user/user.service';
-import { SuperadministratorService } from 'src/modules/superadministrator/superadministrator.service';
-import { AdministratorInfoDto } from 'src/modules/administrator/dto/administrator.info.dto';
-import { UserInfoDto } from 'src/modules/user/dto/user.info.dto';
-import { SuperadministratorInfoDto } from 'src/modules/superadministrator/dtos/superadministrator.info.dto';
+import { AdministratorService } from '../administrator/administrator.service';
+import { UserService } from '../user/user.service';
+import { SuperadministratorService } from '../superadministrator/superadministrator.service';
+import { AdministratorInfoDto } from '../administrator/dto/administrator.info.dto';
+import { UserInfoDto } from '../user/dto/user.info.dto';
+import { SuperadministratorInfoDto } from '../superadministrator/dtos/superadministrator.info.dto';
+import { AuthUserServices } from './auth.user.services';
+import { Superadministrator } from 'entitets/entities/Superadministrator';
 
 @Injectable()
 export class AuthService {
     constructor(
-        private readonly admistrattorServices: AdministratorService,
         private readonly jwtService: JwtService,
-        private readonly userServices: UserService,
-        private readonly superadministratorsServices: SuperadministratorService,
+        private readonly authUserServices: AuthUserServices,
     ){}
 
     async adminstratorLogin(data: AuthDto, ipuaData): Promise<AuthLoginDto | ApiResponse | Administrator | any>{
-        const checkedAdministrator = await this.admistrattorServices.getByEmail(data.email);
-
+        const checkedAdministrator = await this.authUserServices.getUserByEmail(data.email) as Administrator;
+        
         if(!checkedAdministrator){
             return new ApiResponse("error", -1010, "Email is not exites");
         }
-
+        
         const passwordChecked = await bcrypt.compare(data.password, checkedAdministrator.password);
-
+       
         if(!passwordChecked){
           return new ApiResponse("error", -1011, "Password is not correct");
         }
@@ -38,6 +38,7 @@ export class AuthService {
         /* const ip = req.headers["x-forwarded-for"]?.split(",")[0].trim() ?? null   //req.socket.remoteAddress its only for production enviroment
         const ua = req.headers["user-agent"]?req.headers["user-agent"]:"Undefined user agent"; */
 
+        
         
         const ip = ipuaData.ip;
         const ua = ipuaData.ua;
@@ -71,7 +72,7 @@ export class AuthService {
     }
 
     async userLogin(data: AuthDto, ipuaData): Promise<AuthLoginDto | ApiResponse | Users | any>{
-        const checkedUser = await this.userServices.getByEmail(data.email);
+        const checkedUser = await this.authUserServices.getUserByEmail(data.email) as Users;
 
         if(!checkedUser){
             return new ApiResponse("error", -1022, "Email is not exites");
@@ -122,7 +123,7 @@ export class AuthService {
 
 
     async loginSuperAdministrators(data: AuthDto, ipuaData): Promise<AuthLoginDto | ApiResponse | any>{
-        const checkedSuperadmistrators = await this.superadministratorsServices.getsuperadministratorsByEmail(data.email);
+        const checkedSuperadmistrators = await this.authUserServices.getUserByEmail(data.email) as Superadministrator;
 
         if(checkedSuperadmistrators instanceof ApiResponse){
             return checkedSuperadmistrators;
