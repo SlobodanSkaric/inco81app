@@ -41,11 +41,10 @@ describe('AuthServiceAdminstrator', () => {
      authUserService = module.get<AuthUserServices>(AuthUserServices);
      jwtService = module.get<JwtService>(JwtService);
   });
+  
     it('should be defined', () => {
       expect(service).toBeDefined();
     });
-
-
 
     it("Admin login with correct credentials", async () =>{
       jest.spyOn(authUserService, "getUserByEmail").mockResolvedValue(mockAdminstrator as any);
@@ -64,7 +63,6 @@ describe('AuthServiceAdminstrator', () => {
           phonenumber: "123456789",
         }
       });
-
     });
 
     it("Admin login with incorrect email", async () =>{
