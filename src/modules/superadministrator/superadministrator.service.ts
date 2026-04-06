@@ -22,11 +22,11 @@ export class SuperadministratorService {
     }
 
 
-    async getsuperadministratorsByEmail(email: string): Promise<Superadministrator | ApiResponse> {
+    async getByEmail(email: string): Promise<Superadministrator | null> {
         const superadminisGetByEmail = await this.superadministrators.findOne({ where: { email: email }});
 
         if(!superadminisGetByEmail){
-            return new ApiResponse('error', -2000, 'Superadministrator not found');
+            return null;
         }
 
         return superadminisGetByEmail

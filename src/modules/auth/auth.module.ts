@@ -13,12 +13,12 @@ import { JwtStrategy } from './jwr.strategy';
 import { Superadministrator } from 'entitets/entities/Superadministrator';
 import { SuperadministratorModule } from 'src/modules/superadministrator/superadministrator.module';
 import { JwtRefreshStrategy } from './jwt.refresh.strategy';
-import { AdministratorService } from '../administrator/administrator.service';
+import { TimeOfWorke } from 'entitets/entities/TimeOfWorke';
 import { AuthUserServices } from './auth.user.services';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, AuthUserServices,JwtStrategy, JwtRefreshStrategy],
+  providers: [AuthService, JwtStrategy, JwtRefreshStrategy, JwtService, AuthUserServices],
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
@@ -29,10 +29,10 @@ import { AuthUserServices } from './auth.user.services';
         signOptions: { expiresIn: '15m' },
       }),
     }),
-    TypeOrmModule.forFeature([Users, Administrator, Superadministrator]),
+    TypeOrmModule.forFeature([Users, Administrator, Superadministrator, TimeOfWorke]),
     AdministratorModule,
     UserModule,
-    SuperadministratorModule,
+    SuperadministratorModule
   ]
 })
 export class AuthModule {}

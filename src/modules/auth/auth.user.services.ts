@@ -23,7 +23,7 @@ export class AuthUserServices{
         if(administrator) return administrator;
         
 
-        const superadministrator = await this.superadministratorsServices.getsuperadministratorsByEmail(email);
+        const superadministrator = await this.superadministratorsServices.getByEmail(email);
         if(superadministrator) return superadministrator;
 
         return null;

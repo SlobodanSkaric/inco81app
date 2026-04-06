@@ -1,55 +1,92 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import * as bcrypt from 'bcrypt';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Users } from 'entitets/entities/Users';
-import { Repository } from 'typeorm';
 import { ApiResponse } from 'src/misc/api.response.dto';
-import { AuthDto } from './dto/auth.dto';
-import { AdministratorService } from '../administrator/administrator.service';
-import { SuperadministratorService } from '../superadministrator/superadministrator.service';
-import { Administrator } from 'entitets/entities/Administrator';
-import { Superadministrator } from 'entitets/entities/Superadministrator';
-import { get } from 'http';
-import { UserService } from '../user/user.service';
-const mockUserRepository = {
-  findOne: jest.fn(),
-}
+import { AuthUserServices } from './auth.user.services';
+import { JwtService } from '@nestjs/jwt';
 
-jest.mock('bcrypt', () => ({
-  compare: jest.fn(),
-}));
+describe('AuthServiceAdminstrator', () => {
+  let service: AuthService;
+  let authUserService: AuthUserServices;
+  let jwtService: JwtService;
 
-describe('AuthServiceUsers', () => {
-  let  service: AuthService;
-  let repositoryUser: Repository<Users>;
-  let userService: UserService;
-  let administratorService: AdministratorService;
-  let repositoryAdministrator: Repository<Administrator>;
-  let administratotrService: AdministratorService;
-  let superadministratorService: SuperadministratorService;
-  let repositorySuperadministrator: Repository<Superadministrator>; 
+  const mockAdminstrator = {
+    adminId: 1,
+    name: "Slobodan",
+    lastname: "Skaric",
+    email: "slobodan.skaric@gmail.com",
+    phonenumber: "123456789",
+    password: "hashedpassword",
+  }
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [AuthService,
         {
-          provide: getRepositoryToken(Users),
-          useValue: mockUserRepository,
+          provide: AuthUserServices,
+          useValue: {
+            getUserByEmail: jest.fn()
+          }
         },
         {
-          provide: getRepositoryToken(Administrator),
+          provide: JwtService,
           useValue: {
-            findOne: jest.fn(),
+             signAsync: jest.fn()
           }
         }
       ],
     }).compile();
 
      service = module.get<AuthService>(AuthService);
-     repositoryUser = module.get<Repository<Users>>(getRepositoryToken(Users));
+     authUserService = module.get<AuthUserServices>(AuthUserServices);
+     jwtService = module.get<JwtService>(JwtService);
   });
     it('should be defined', () => {
       expect(service).toBeDefined();
+    });
+
+
+
+    it("Admin login with correct credentials", async () =>{
+      jest.spyOn(authUserService, "getUserByEmail").mockResolvedValue(mockAdminstrator as any);
+      jest.spyOn(bcrypt, "compare").mockResolvedValue(true as never);
+      jest.spyOn(jwtService, "signAsync").mockResolvedValueOnce("accessToken").mockResolvedValueOnce("refreshToken");
+
+      const result = await service.adminstratorLogin({email: "slobodan.skaric@gmail.com", password: "password"}, {ip: "127.0.0.1"} as any);
+      expect(result).toEqual({
+        accessToken: "accessToken",
+        refreshToken: "refreshToken",
+        administratorInfo: {
+          adminId: 1,
+          name: "Slobodan",
+          lastname: "Skaric",
+          email: "slobodan.skaric@gmail.com",
+          phonenumber: "123456789",
+        }
+      });
+
+    });
+
+    it("Admin login with incorrect email", async () =>{
+      jest.spyOn(authUserService, "getUserByEmail").mockResolvedValue(null);
+
+      const result = await service.adminstratorLogin({email: "incorrect@gmail.com", password: "password"}, {ip: "127.0.0.1"} as any);
+      expect(result).toEqual(new ApiResponse(
+        "error",
+        -1010,
+        "Email is not exites"
+      )); 
+    });
+
+    it("Admin login with incorrect password", async () =>{
+      jest.spyOn(authUserService, "getUserByEmail").mockResolvedValue(mockAdminstrator as any);
+      jest.spyOn(bcrypt, "compare").mockResolvedValue(false as never);
+
+      const result = await service.adminstratorLogin({email: "slobodan.skaric@gmail.com", password: "incorrectpassword"}, {ip: "127.0.0.1"} as any);
+      expect(result).toEqual(new ApiResponse(
+        "error",
+        -1011,
+        "Password is not correct"
+      )); 
     });
   });
