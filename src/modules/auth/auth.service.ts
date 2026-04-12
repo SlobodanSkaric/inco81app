@@ -81,7 +81,7 @@ export class AuthService {
         const checkedPassword = await bcrypt.compare(data.password, checkedUser.password);
 
         if(!checkedPassword){
-            return new ApiResponse("error", -1013, "Password is not correct");
+            return new ApiResponse("error", -1023, "Password is not correct");
         }
 
         /* const ip = req.headers["x-forwarded-for"]?.split(",")[0].trim() ?? null  //req.socket.remoteAddress its only for production enviroment
