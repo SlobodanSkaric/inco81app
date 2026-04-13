@@ -75,11 +75,11 @@ export class AdministratorService {
         try{
             const saveAdministrator = await this.administratorEntitets.save(admin);
             return await this.getById(saveAdministrator.adminId);
-        }catch(error){
-            if(error.errno === 1062 || error.errno === 23505){
+        }catch(error: unknown){
+            if(error instanceof Object && 'errno' in error && (error.errno === 1062 || error.errno === 23505)){
                 throw new ConflictException("Administrator for this email or phonenumber is  existes");
             }
-            return error;
+            return new ApiResponse("error", -1008, "Failed to add administrator");
         }
     }
 
