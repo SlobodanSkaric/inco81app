@@ -32,7 +32,7 @@ export class JobinformationsService {
     async addJobs(jobinfos: AddJobinfoDto): Promise<JobInformations | ApiResponse> {
         const addJobs = new JobInformations();
 
-        //addJobs.adminstratorsId = jobinfos.administratorId;
+        addJobs.admin_id = jobinfos.administratorId;
         addJobs.jobTitle = jobinfos.jobTitle;
         addJobs.companyName = jobinfos.companyName;
         addJobs.location = jobinfos.location;

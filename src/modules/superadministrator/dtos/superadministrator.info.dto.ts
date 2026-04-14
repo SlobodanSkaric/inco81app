@@ -1,13 +1,13 @@
 export class SuperadministratorInfoDto {
-    adminId: number;
-    name: string;
+    superAdmistratorId: number;
+    username: string;
     email: string;
-    phonenumber:string;
+    phoneNumber:string;
 
     constructor(adminId: number, name: string, email: string, phonenumber: string){
-        this.adminId = adminId;
-        this.name = name;
+        this.superAdmistratorId = adminId;
+        this.username = name;
         this.email = email;
-        this.phonenumber = phonenumber;
+        this.phoneNumber = phonenumber;
     }
 }

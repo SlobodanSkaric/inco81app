@@ -69,7 +69,7 @@ export class Administrator {
   @OneToMany(() => Vacations, (vacations) => vacations.admin)
   vacations: Vacations[];
 
-  @OneToMany(() => JobInformations, (jobInformations) => jobInformations.admin)
+  @OneToMany(() => JobInformations, (jobInformations) => jobInformations.admin_id)
   jobInformations: JobInformations[]; 
 
   @OneToMany(() => RequestLogs, (requestLogs: RequestLogs) => requestLogs.adminId)

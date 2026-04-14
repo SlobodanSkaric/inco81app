@@ -15,7 +15,7 @@ export class AddVacationsDto {
 
     @IsNumber()
     @IsNotEmpty()
-    adminId: number;
+    admin: number;
 
     @IsString()
     @IsNotEmpty()

@@ -65,7 +65,7 @@ describe('SuperadministratorService', () => {
 
     mockSuperadministratorRepository.findOne.mockResolvedValueOnce(mockSuperadministrator);
 
-    const result = await service.getsuperadministratorsByEmail("slobodan.skaric@gmali.com")
+    const result = await service.getByEmail("slobodan.skaric@gmali.com")
 
     expect(result).toEqual(mockSuperadministrator);
     expect(mockSuperadministratorRepository.findOne).toHaveBeenCalledWith({ where: { email:"slobodan.skaric@gmali.com"}});

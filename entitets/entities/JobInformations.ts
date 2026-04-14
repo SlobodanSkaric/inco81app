@@ -36,5 +36,5 @@ export class JobInformations {
 
     @ManyToOne(() => Administrator, administrator => administrator.jobInformations,{nullable: true})
     @JoinColumn([{ name: "admin_id", referencedColumnName: "adminId" }])
-    admin: Administrator;
+    admin_id: number;
 }

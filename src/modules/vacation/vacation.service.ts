@@ -36,8 +36,8 @@ export class VacationService {
         const newVacations = new Vacations();
         newVacations.vacation_start = dataUtils(vacactionsData.vacation_start);
         newVacations.vacation_end = dataUtils(vacactionsData.vacation_end);
-        newVacations.user = {userId: vacactionsData.userId} as Users;
-        newVacations.admin = {adminId: vacactionsData.adminId} as Administrator;
+        newVacations.user = vacactionsData.userId;
+        newVacations.admin = vacactionsData.admin;
         newVacations.reason = vacactionsData.reason;
         newVacations.status = vacactionsData.status;
         newVacations.admin_comment = vacactionsData.admin_comment ?? null;

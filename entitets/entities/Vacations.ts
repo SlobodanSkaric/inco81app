@@ -31,9 +31,9 @@ export class Vacations {
 
     @ManyToOne(() => Administrator, (administrator) => administrator.vacations)
     @JoinColumn({ name: "admin_id", referencedColumnName: "adminId" })
-    admin: Administrator;
+    admin: number;
 
     @ManyToOne(() => Users, (users) => users.vacations)
     @JoinColumn({ name: "user_id", referencedColumnName: "userId" })
-    user: Users;
+    user: number;
 }

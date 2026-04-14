@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Customers } from 'entitets/entities/Customers';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { mock } from 'node:test';
+import { GetCustomersDto } from './dtos/get.customers.dto';
 
 const mokCustomersRepository = {
   find: jest.fn(),
@@ -80,7 +81,14 @@ describe('CustomersService', () => {
     mokCustomersRepository.findOne.mockResolvedValue(mockCustomer);
 
     const customer = await service.findCustomersById(1);
-    expect(customer).toEqual(mockCustomer);
+    expect(customer).toEqual(new GetCustomersDto(
+      mockCustomer.customerId,
+      mockCustomer.customerName,
+      mockCustomer.isActive,
+      mockCustomer.contactEmail,
+      "",
+      ""
+    ));
     expect(mokCustomersRepository.findOne).toHaveBeenCalledWith({ where: { customerId: 1 } });
   });
 });

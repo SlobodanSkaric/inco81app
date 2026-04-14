@@ -113,7 +113,7 @@ describe('VacationService', () => {
     vactionData.vacation_start = "2024-01-10 00:00:00";
     vactionData.vacation_end = "2024-01-10 00:00:00";
     vactionData.userId = 1;
-    vactionData.adminId = 1;
+    vactionData.admin = 1;
     vactionData.reason = "Vacation reason";
     vactionData.status = 1;
     vactionData.admin_comment = "This is admin comment";
@@ -123,8 +123,8 @@ describe('VacationService', () => {
     returnedVacation.vacationId = 1;
     returnedVacation.vacation_start = new Date(vactionData.vacation_start);
     returnedVacation.vacation_end = new Date(vactionData.vacation_end);
-    returnedVacation.userId = vactionData.userId;
-    returnedVacation.adminId = vactionData.adminId;
+    returnedVacation.user = vactionData.userId;
+    returnedVacation.admin = vactionData.admin;
     returnedVacation.reason = vactionData.reason;
     returnedVacation.status = vactionData.status;
     returnedVacation.created_at = new Date();
@@ -138,8 +138,8 @@ describe('VacationService', () => {
     expect(mockVacationRepository.save).toHaveBeenCalledWith(expect.objectContaining({
       vacation_start: expect.any(Date),
       vacation_end: expect.any(Date),
-      userId: vactionData.userId,
-      adminId: vactionData.adminId,
+      user: vactionData.userId,
+      admin: vactionData.admin,
       reason: vactionData.reason,
       status: vactionData.status,
       admin_comment: vactionData.admin_comment,

@@ -125,8 +125,8 @@ export class AuthService {
     async loginSuperAdministrators(data: AuthDto, ipuaData): Promise<AuthLoginDto | ApiResponse | any>{
         const checkedSuperadmistrators = await this.authUserServices.getUserByEmail(data.email) as Superadministrator;
 
-        if(checkedSuperadmistrators instanceof ApiResponse){
-            return checkedSuperadmistrators;
+        if(!checkedSuperadmistrators){
+            return new ApiResponse("error", -1013, "Email is not exists");  
         }
 
         const checkedPassword = await bcrypt.compare(data.password, checkedSuperadmistrators.password);
@@ -163,7 +163,7 @@ export class AuthService {
             ua: ua
         }
 
-        const access_token =  await this.jwtService.signAsync(payload, { secret:process.env.SECRET_TOKEN_KEY, expiresIn: "15min"});
+        const accessToken =  await this.jwtService.signAsync(payload, { secret:process.env.SECRET_TOKEN_KEY, expiresIn: "15min"});
         const refreshToken = await this.jwtService.signAsync(payloadRefrshToken, { secret: process.env.SECRET_REFRESH_TOKEN_KEY, expiresIn: "7d"});
 
 
@@ -172,7 +172,7 @@ export class AuthService {
 
         
 
-        return { access_token, refreshToken, superadministrastorsInfo };
+        return { accessToken, refreshToken, superadministrastorsInfo };
     }
 
 }

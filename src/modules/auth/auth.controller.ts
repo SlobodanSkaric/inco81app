@@ -95,6 +95,10 @@ export class AuthController {
             ua: ua
         }
         const token = await this.authService.loginSuperAdministrators(superadminsData, ipuaData);
+        
+        if(token instanceof ApiResponse){
+            return token;
+        }
 
         res.cookie("access_token", token.access_token,{
             httpOnly: true,

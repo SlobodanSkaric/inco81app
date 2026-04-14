@@ -112,7 +112,7 @@ describe('JobinformationsService', () => {
 
     expect(jobInfo).toStrictEqual(mockJobInfo);
     expect(repository.save).toHaveBeenCalledWith(expect.objectContaining({
-      administratorId: mockJobInfo.administratorId,
+      admin_id: mockJobInfo.administratorId,
       jobTitle: mockJobInfo.jobTitle,
       companyName: mockJobInfo.companyName,
       location: mockJobInfo.location,
