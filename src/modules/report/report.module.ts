@@ -5,9 +5,10 @@ import { TimeOfWorke } from 'entitets/entities/TimeOfWorke';
 import { Users } from 'entitets/entities/Users';
 import { Administrator } from 'entitets/entities/Administrator';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([TimeOfWorke,Users,Administrator])],
+  imports:[TypeOrmModule.forFeature([TimeOfWorke,Users,Administrator]), ConfigModule.forRoot()],
   providers: [ReportService],
   controllers: [ReportController]  
 })

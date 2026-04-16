@@ -17,7 +17,14 @@ export class ReportService {
         private readonly configServices: ConfigService
     ){}
 
-    async createPdfReport(report: ReportDto): Promise<string | {message: string}> {
+    private formatTime(date: Date): string {
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+
+        return `${hours}:${minutes}`;
+    }
+
+    async createPdfReport(report: ReportDto): Promise<{message: string}> {
         const getUser = await this.userRepository.findOneBy({userId: report.userId});
 
         if(!getUser){
@@ -25,9 +32,10 @@ export class ReportService {
         }
 
         const doc = new PDFDocument();
-        const filePathServer = this.configServices.get<string>("SERVER_PDF_PATH")+ getUser.name + "-"+getUser.lastname + "-" + generateRandomDocName(getUser.userId,new Date().getMonth() + "-" + new Date().getFullYear(),1, 1000) + ".pdf";
-        const filePathHostMacines = this.configServices.get<string>("HOST_MACHINE_PDF_PATH")+ getUser.name+"-"+getUser.lastname + "-" + generateRandomDocName(getUser.userId,new Date().getMonth() + "-" + new Date().getFullYear(),1, 1000) + ".pdf";
-        if (!fs.existsSync('./exports')) {
+        const generateRandomDocumentsName = generateRandomDocName(getUser.userId, new Date().getMonth() + 1 + "-" + new Date().getFullYear(),1, 1000);
+        const filePathServer = this.configServices.get<string>("SERVER_PDF_PATH")+ getUser.name + "-"+getUser.lastname + "-" + generateRandomDocumentsName  + ".pdf";
+        const filePathHostMacines = this.configServices.get<string>("HOST_MACHINE_PDF_PATH")+ getUser.name+"-"+getUser.lastname + "-" + generateRandomDocumentsName + ".pdf";
+        if (!fs.existsSync('./exports')) {//refactoring server patha i host machine patha checked
             fs.mkdirSync('./exports');
         }
 
@@ -45,8 +53,10 @@ export class ReportService {
 
         const workEntries = await this.timeOfWorkRepository.createQueryBuilder("time_of_worke")
             .where("time_of_worke.user_id = :userId", { userId: report.userId })
-            .andWhere("time_of_worke.checked_in >= :startDate", { startDate: report.startDate })
-            .andWhere("time_of_worke.checked_out <= :endDate", { endDate: report.endDate })
+            .andWhere("time_of_worke.checked_in IS NOT NULL")
+            .andWhere("time_of_worke.checked_out IS NOT NULL")
+            .andWhere("time_of_worke.checked_in <= :endDate", { endDate: report.endDate })
+            .andWhere("time_of_worke.checked_out >= :startDate", { startDate: report.startDate })
             .getMany();
         
 
@@ -71,11 +81,7 @@ export class ReportService {
                 const timeObjectCheckedIn = new Date(entry.checked_in);
                 const timeObjectCheckedOut = new Date(entry.checked_out);
 
-                const chedenInHourse = timeObjectCheckedIn.getHours();
-                const chedenInMinutes = timeObjectCheckedIn.getMinutes();
-                const chedenOutHourse = timeObjectCheckedOut.getHours();
-                const chedenOutMinutes = timeObjectCheckedOut.getMinutes();
-                doc.fontSize(10).text(`${ counter }. Datum: ${entry.dateAndTime.toISOString().split('T')[0]} - Pocetak: ${chedenInHourse}:${chedenInMinutes} - Zavrsetak: ${chedenOutHourse}:${chedenOutMinutes} - Sati: ${hoursWorked.toFixed(2)}`);
+                doc.fontSize(10).text(`${ counter }. Datum: ${entry.dateAndTime.toISOString().split('T')[0]} - Pocetak: ${this.formatTime(timeObjectCheckedIn)} - Zavrsetak: ${this.formatTime(timeObjectCheckedOut)} - Sati: ${hoursWorked.toFixed(2)}`);
                 counter++;
             });
         }
@@ -83,8 +89,12 @@ export class ReportService {
         doc.moveDown();
         doc.fontSize(12).text(`Ukupno radnih sati: ${totalHours.toFixed(2)}`);
         doc.moveDown();
+        
 
-        doc.end();
+        if(!doc.end()) {
+            return {message: "Greška prilikom kreiranja izveštaja"};
+        }
+
         return {message: "Uspešno kreiran izveštaj"};
     }
 }
