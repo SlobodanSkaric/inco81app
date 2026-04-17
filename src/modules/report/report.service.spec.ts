@@ -73,8 +73,8 @@ describe('ReportService', () => {
     queryBuilder.getMany.mockResolvedValue([]);
     userRepository.findOneBy.mockResolvedValue({
       userId: 7,
-      name: 'Marko',
-      lastname: 'Markovic',
+      name: 'Slobodan',
+      lastname: 'Skaric',
     });
 
     const module: TestingModule = await Test.createTestingModule({
