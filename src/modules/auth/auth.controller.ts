@@ -4,6 +4,7 @@ import { AuthLoginDto } from './dto/auth.login.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
+import { GetIp } from 'src/common/decorators/ip.decorators';
 
 @Controller('auth')
 export class AuthController {
@@ -86,10 +87,9 @@ export class AuthController {
 
 
     @Post("superadministrators/login")
-    async loginSuperAdministrators(@Body() superadminsData: AuthDto, @Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<{message: string} |any> {
-        const ip = req.headers["x-forwarded-for"] === "string" ? req.headers["x-forwarded-for"].split(",")[0].trim() : null  //req.socket.remoteAddress its only for production enviroment
-        const ua = req.headers["user-agent"]?req.headers["user-agent"] : "unknown";
-
+    async loginSuperAdministrators(@Body() superadminsData: AuthDto, @Req() req: Request,@GetIp() ip:string ,@Res({ passthrough: true }) res: Response): Promise<{message: string} |any> {
+        const ua = req.headers["user-agent"]?req.headers["user-agent"] : "unknown"; 
+        
         const ipuaData = {
             ip: ip,
             ua: ua
@@ -100,7 +100,7 @@ export class AuthController {
             return token;
         }
 
-        res.cookie("access_token", token.access_token,{
+        res.cookie("access_token", token.accessToken,{
             httpOnly: true,
             secure: true,
             sameSite: "strict",

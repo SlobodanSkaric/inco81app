@@ -135,10 +135,6 @@ export class AuthService {
             return new ApiResponse("error", -1014, "Password is not correct");
         }
 
-        /* const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-        const ua = req.headers["user-agent"]?req.headers["user-agent"]:"unknown";*/
-
-
         const ip = ipuaData.ip;
         const ua = ipuaData.ua;
         
@@ -166,12 +162,8 @@ export class AuthService {
         const accessToken =  await this.jwtService.signAsync(payload, { secret:process.env.SECRET_TOKEN_KEY, expiresIn: "15min"});
         const refreshToken = await this.jwtService.signAsync(payloadRefrshToken, { secret: process.env.SECRET_REFRESH_TOKEN_KEY, expiresIn: "7d"});
 
-
-
         const superadministrastorsInfo = new SuperadministratorInfoDto(checkedSuperadmistrators.superAdmistratorId,checkedSuperadmistrators.username ,checkedSuperadmistrators.email ,checkedSuperadmistrators.phoneNumber ?? "");
-
-        
-
+     
         return { accessToken, refreshToken, superadministrastorsInfo };
     }
 

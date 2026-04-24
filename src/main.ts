@@ -32,7 +32,10 @@ async function bootstrap() {
     origin: ['http://localhost:5173', 'http://localhost:3000'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Accept',
-  })
+  });
+
+  const server = app.getHttpAdapter().getInstance();  
+  server.set('trust proxy', true);
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
