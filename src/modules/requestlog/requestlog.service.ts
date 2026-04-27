@@ -28,6 +28,7 @@ export class RequestlogService implements OnModuleInit,OnModuleDestroy{
     }
 
     async logRequest(userId: number, event: any): Promise<void> {
+        console.log(`Logging event for user`, event);
         const key = `user:${userId}:events`;
         await this.client.lPush(key, JSON.stringify(event));
         await this.client.lTrim(key, 0, 49);

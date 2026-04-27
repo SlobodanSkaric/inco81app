@@ -34,9 +34,9 @@ export class TimeOfWorke {
     (administrator) => administrator.timeOfWorkes,
   )
   @JoinColumn([{ name: "admin_id", referencedColumnName: "adminId" }])
-  admin: Administrator;
+  admin: Administrator[];
 
   @ManyToOne(() => Users, (users) => users.timeOfWorkes)
   @JoinColumn([{ name: "user_id", referencedColumnName: "userId" }])
-  user: Users;
+  user: Users[];
 }

@@ -17,7 +17,6 @@ export class AuthController {
 
            const ip = typeof req.headers["x-forwarded-for"] === "string" ? req.headers["x-forwarded-for"].split(",")[0].trim() : null   //req.socket.remoteAddress its only for production enviroment
            const ua = req.headers["user-agent"]?req.headers["user-agent"]:"Undefined user agent";
-
            const ipuaData = {
             ip: ip,
             ua: ua

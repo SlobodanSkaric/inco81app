@@ -15,7 +15,7 @@ export class RequestLogsListeners {
         reqLogs.ip = payload.ip;
         reqLogs.userAgent = payload.user_agent;
         reqLogs.acceptLanguage = payload.accept_language;
-        reqLogs.deviceFingerprint = payload.device_fingerprint;
+        reqLogs.deviceFingerprint = payload.fingerprint;
         reqLogs.route = payload.path;
         reqLogs.ts = payload.ts;
         reqLogs.responseStatus = payload.response_status;

@@ -29,8 +29,8 @@ export class TimeofworkService {
 
 
         const timeOfWork = new TimeOfWorke();
-        timeOfWork.user = { userId: data.userId } as Users;
-        timeOfWork.admin = {adminId: data.adminId} as Administrator;
+        timeOfWork.user = [{ userId: data.userId } as Users];
+        timeOfWork.admin = [{ adminId: data.adminId } as Administrator];
         timeOfWork.checked_in = new Date();
 
         const savedTimeOfWork = await this.timeOfWorksRepository.save(timeOfWork);

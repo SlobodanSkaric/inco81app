@@ -28,25 +28,21 @@ export class UserService {
         }
 
         const allUsers = await this.userEntitets.find({
-            relations: { timeOfWorkes: true }
+            relations: { timeOfWorkes: { user: true } }
         });
-        
+
         if(allUsers.length === 0){
             return new ApiResponse("error", -1001, "No users");
         }
 
         const userInfoDto: UserInfoDto[] = [];
-        let sumTimeOfWork = 0;
-
+        let sumTimeOfWork = 0;  
 
 
         allUsers.forEach((data) => {
             const timeOfWorkSet = data.timeOfWorkes;
             timeOfWorkSet.forEach((dataSet) =>{
-                if(data.userId == dataSet.user.userId){
-                    sumTimeOfWork += dataSet.checked_out.getTime() - dataSet.checked_in.getTime();
-                }
-            
+                sumTimeOfWork += dataSet.checked_out.getTime() - dataSet.checked_in.getTime();
            });
             
             let sumTimeOfWorkset = Number((sumTimeOfWork / (1000 * 60 * 60)).toFixed(2)); 
@@ -101,7 +97,7 @@ export class UserService {
         try{
             const saveUser = await this.userEntitets.save(user);
             return await this.getUserByIdLocal(saveUser.userId);
-        }catch(error){
+        }catch(error: any){
             if(error.errno === 1062 || error.code === "ER_DUP_ENTRY" || error.errno === 23505){
                 throw new ConflictException("User that this email or phone number alredy existe");
             }

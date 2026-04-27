@@ -7,25 +7,13 @@ import { Superadministrator } from "./Superadministrator";
 export class RequestLogs{
 
     @PrimaryGeneratedColumn({ type: "int", name: "request_log_id" })
-    requestLogId:number;
-
-    @ManyToOne(() => Users, (user) => user.requestLogs, { nullable: true, onDelete: "RESTRICT", onUpdate: "CASCADE" })
-    @JoinColumn({ name: "user_id", referencedColumnName: "userId" })
-    userId: Users[];
-
-    @ManyToOne(() => Administrator, (admin) => admin.requestLogs, { nullable: true, onDelete: "RESTRICT", onUpdate: "CASCADE" })
-    @JoinColumn({ name: "admin_id", referencedColumnName: "adminId" })
-    adminId: Administrator[];
-
-    @ManyToOne(() => Superadministrator, (superadmin) => superadmin.requestLogs, { nullable: true, onDelete: "RESTRICT", onUpdate: "CASCADE" })
-    @JoinColumn({ name: "superadministrator_id", referencedColumnName: "superAdmistratorId" })
-    superadminId: Superadministrator[];
+    requestLogId:number;    
 
     @Column("varchar", { name:"ip", nullable:true})
     ip:string;
 
     @Column("text", { name:"user_agent", nullable:true})
-    userAgent?:string;
+    userAgent:string;
 
     @Column("varchar", { name:"accept_language", nullable:true})
     acceptLanguage?:string;
@@ -47,4 +35,16 @@ export class RequestLogs{
 
     @Column("datetime", { name:"ts", default: () => "CURRENT_TIMESTAMP"})
     ts:Date;
+
+    @ManyToOne(() => Users, (user) => user.requestLogs, { nullable: true, onDelete: "RESTRICT", onUpdate: "CASCADE" })
+    @JoinColumn({ name: "user_id", referencedColumnName: "userId" })
+    userId: Users[];
+
+    @ManyToOne(() => Administrator, (admin) => admin.requestLogs, { nullable: true, onDelete: "RESTRICT", onUpdate: "CASCADE" })
+    @JoinColumn({ name: "admin_id", referencedColumnName: "adminId" })
+    adminId: Administrator[];
+
+    @ManyToOne(() => Superadministrator, (superadmin) => superadmin.requestLogs, { nullable: true, onDelete: "RESTRICT", onUpdate: "CASCADE" })
+    @JoinColumn({ name: "superadministrator_id", referencedColumnName: "superAdmistratorId" })
+    superadminId: Superadministrator[];
 }
