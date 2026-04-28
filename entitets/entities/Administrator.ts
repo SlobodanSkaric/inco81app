@@ -24,28 +24,13 @@ export class Administrator {
   @Column("varchar", { name: "lastname", length: 128, default: 0 })
   lastname: string;
 
-  @Column("varchar", {
-    name: "email",
-    unique: true,
-    length: 128,
-    default: 0,
-  })
+  @Column("varchar", {name: "email",unique: true,length: 128,default: 0,})
   email: string;
 
-  @Column("varchar", {
-    name: "password",
-    unique: false,
-    length: 256,
-    default: 0,
-  })
+  @Column("varchar", {name: "password",unique: false,length: 256,default: 0,select: false})
   password: string;
 
-  @Column("varchar", {
-    name: "phonenumber",
-    unique: true,
-    length: 128,
-    default: 0,
-  })
+  @Column("varchar", {name: "phonenumber",unique: true,length: 128,default: 0})
   phonenumber: string;
 
   @Column("varchar", { name: "role", length: 128, default: 0})

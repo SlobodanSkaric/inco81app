@@ -58,7 +58,7 @@ export class AdministratorController {
         /* return await this.admiServices.editAdministrator(data, req); */
     }
 
-    @Post("delete/administrator/{:id}")//This is methods to move superadministrator
+    @Post("delete/administrator/:id")//This is methods to move superadministrator
     @Roles("administrator")
     @UseGuards(JwtAuthGuards,JwtRefreshGuards,RoleGuards)
     async deleteAdministrator(@Param("id") id: number, @Req() req: Request): Promise<AdministratorInfoDto | ApiResponse | void>{

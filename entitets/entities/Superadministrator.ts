@@ -9,7 +9,7 @@ export class Superadministrator {
     @Column("varchar", { name: "username", length: 255 })
     username: string;
 
-    @Column("varchar", { name: "password", length: 255 })
+    @Column("varchar", { name: "password", length: 255, select: false })
     password: string;
 
     @Column("varchar", { name: "email", length: 255 })

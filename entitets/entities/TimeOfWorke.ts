@@ -14,10 +14,7 @@ export class TimeOfWorke {
   @PrimaryGeneratedColumn({ type: "int", name: "time_of_worke_id" })
   timeOfWorkeId: number;
 
-  @Column("timestamp", {
-    name: "date_and_time",
-    default: () => "CURRENT_TIMESTAMP",
-  })
+  @Column("timestamp", { name: "date_and_time",default: () => "CURRENT_TIMESTAMP",})
   dateAndTime: Date;
 
   @Column({ type: "datetime", nullable:true })
