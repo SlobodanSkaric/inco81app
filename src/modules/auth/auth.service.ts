@@ -28,9 +28,8 @@ export class AuthService {
         if(!checkedAdministrator){
             return new ApiResponse("error", -1010, "Email is not exites");
         }
-        
         const passwordChecked = await bcrypt.compare(data.password, checkedAdministrator.password);
-       
+        
         if(!passwordChecked){
           return new ApiResponse("error", -1011, "Password is not correct");
         }

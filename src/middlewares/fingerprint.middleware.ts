@@ -43,7 +43,7 @@ export class FingerprintMiddleware implements NestMiddleware {
         const userInfo = new GetUserHostInfo();
         const hostInfo = userInfo.getUserHostInfo(req);
 
-        console.log("User host info:", hostInfo);
+        //console.log("User host info:", hostInfo);
 
         req.fingerprint = {
             ip:ip,
@@ -59,7 +59,7 @@ export class FingerprintMiddleware implements NestMiddleware {
             route:req.originalUrl,
             ts:new Date(),
         }
-        console.log("Constructed fingerprint:", req.fingerprint);
+        //console.log("Constructed fingerprint:", req.fingerprint);
         if(!decodeToken){
             next();
             res.status(401).json({ message: "Unauthorized - Invalid or missing token", code: -1 } );

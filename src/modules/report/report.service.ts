@@ -33,14 +33,16 @@ export class ReportService {
 
         const doc = new PDFDocument();
         const generateRandomDocumentsName = generateRandomDocName(getUser.userId, new Date().getMonth() + 1 + "-" + new Date().getFullYear(),1, 1000);
-        const filePathServer = this.configServices.get<string>("SERVER_PDF_PATH")+ getUser.name + "-"+getUser.lastname + "-" + generateRandomDocumentsName  + ".pdf";
+        const filrPathNameEnv = this.configServices.get<string>("SERVER_PDF_PATH");
+        const filePathServer = filrPathNameEnv + getUser.name + "-"+getUser.lastname + "-" + generateRandomDocumentsName  + ".pdf";
         const filePathHostMacines = this.configServices.get<string>("HOST_MACHINE_PDF_PATH")+ getUser.name+"-"+getUser.lastname + "-" + generateRandomDocumentsName + ".pdf";
-        if (!fs.existsSync('./exports')) {//refactoring server patha i host machine patha checked
-            fs.mkdirSync('./exports');
+        if (!fs.existsSync(filrPathNameEnv ? filrPathNameEnv : "./exports/")) {//refactoring server patha i host machine patha checked
+            fs.mkdirSync(filrPathNameEnv ? filrPathNameEnv : "./exports/");
         }
 
-        doc.pipe(fs.createWriteStream(filePathServer));
-        doc.pipe(fs.createWriteStream(filePathHostMacines));
+        const stream = fs.createWriteStream(filePathServer)
+
+        doc.pipe(stream);
 
         doc.fontSize(20).text('Izveštaj', { align: 'center' });
         doc.moveDown();
@@ -90,10 +92,22 @@ export class ReportService {
         doc.fontSize(12).text(`Ukupno radnih sati: ${totalHours.toFixed(2)}`);
         doc.moveDown();
         
+        
+        
 
-        if(!doc.end()) {
-            return {message: "Greška prilikom kreiranja izveštaja"};
-        }
+
+        stream.on("finish", () =>{
+            console.log("PDF izveštaj je uspešno kreiran");
+            fs.copyFile(filePathServer, filePathHostMacines, (err) => {
+                if (err) {
+                    console.error("Greška prilikom kopiranja PDF izveštaja:", err);
+                } else {
+                    console.log("PDF izveštaj je uspešno kopiran na host mašinu");
+                }
+         });
+        });
+
+        doc.end();
 
         return {message: "Uspešno kreiran izveštaj"};
     }
