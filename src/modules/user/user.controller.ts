@@ -20,7 +20,7 @@ export class UserController {
     @Roles("administrator")
     @UseGuards(JwtAuthGuards, RoleGuards)
     async getAll(@Req() req: Request): Promise<UserInfoDto[] | ApiResponse>{
-        console.log("Request header" + JSON.stringify(req.headers));
+        //console.log("Request header" + JSON.stringify(req.headers));
         return await this.userServices.getAllUsers(req.user.id);
     }
 
