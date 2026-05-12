@@ -6,6 +6,7 @@ import { Users } from "entitets/entities/Users";
 import { Administrator } from "entitets/entities/Administrator";
 import { Superadministrator } from "entitets/entities/Superadministrator";
 import { ApiResponse } from "src/misc/api.response.dto";
+import { SuperadministratorInfoDto } from "../superadministrator/dtos/superadministrator.info.dto";
 
 @Injectable()
 export class AuthUserServices{
@@ -15,7 +16,7 @@ export class AuthUserServices{
         private readonly superadministratorsServices: SuperadministratorService,
     ){}
 
-    async getUserByEmail(email: string):Promise<Users | Administrator | Superadministrator |  ApiResponse | null>{
+    async getUserByEmail(email: string):Promise<Users | Administrator | Superadministrator |  ApiResponse | null>{//refactoring for role, implement switch case for role and return only user info dto for all of them
         const user = await this.userServices.getByEmail(email);
         if(user) return user
 

@@ -5,31 +5,38 @@ import { Repository } from 'typeorm';
 import { AddSuperadministratorsDto } from './dtos/add.superadministrators.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import * as bcrypt from 'bcrypt';
+import { SuperadministratorInfoDto } from './dtos/superadministrator.info.dto';
 
 @Injectable()
 export class SuperadministratorService {
     constructor(@InjectRepository(Superadministrator) private readonly superadministrators: Repository<Superadministrator>) {}
 
     async getUserById(id): Promise<Superadministrator | ApiResponse> {
-        
         const superadminisGetById = await this.superadministrators.findOne({ where: { superAdmistratorId: id }});
 
         if(!superadminisGetById){
             return new ApiResponse('error', -2000, 'Superadministrator not found');
         }
 
-        return superadminisGetById
+        return superadminisGetById;
     }
 
 
-    async getByEmail(email: string): Promise<Superadministrator | null> {
+    async getByEmail(email: string): Promise<Superadministrator  | null> {
         const superadminisGetByEmail = await this.superadministrators.findOne({ where: { email: email }});
 
         if(!superadminisGetByEmail){
             return null;
         }
 
-        return superadminisGetByEmail
+        /* const superadministratorInfo = new SuperadministratorInfoDto(
+            superadminisGetByEmail.superAdmistratorId,
+            superadminisGetByEmail.username,
+            superadminisGetByEmail.email,
+            superadminisGetByEmail.phoneNumber? superadminisGetByEmail.phoneNumber : ''
+        ); */
+
+        return superadminisGetByEmail;
     }
 
     async addSuperAdministrators(superadmins: AddSuperadministratorsDto): Promise<Superadministrator | ApiResponse> {
@@ -56,6 +63,8 @@ export class SuperadministratorService {
         if(!saveSuprtAdministrators){
             return new ApiResponse('error', -2002, 'Could not save new superadministrator');
         }
+
+       
 
         return saveSuprtAdministrators;
     }
