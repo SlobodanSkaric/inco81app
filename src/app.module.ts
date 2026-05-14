@@ -26,15 +26,20 @@ import { ItemsModule } from './modules/items/items.module';
   imports: [
     EventEmitterModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forRoot({
-      type: "mysql",
-      host: process.env.DATABASE_HOST,
-      username: process.env.DATABASE_USERNAME,
-      password: process.env.DATABASE_PASSWORD,
-      database: process.env.DATABASE_NAME,
-      autoLoadEntities: true,
-      synchronize: true,
-      logging:false
+    TypeOrmModule.forRootAsync({
+      //imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: "mysql",
+        host: configService.get<string>("DATABASE_HOST"),
+        username: configService.get<string>("DATABASE_USERNAME"),
+        password: configService.get<string>("DATABASE_PASSWORD"),
+        database: configService.get<string>("DATABASE_NAME"),
+        autoLoadEntities: true,
+        synchronize: true,
+        logging:false
+      })
+     
     }),
     UserModule,
     AdministratorModule,
