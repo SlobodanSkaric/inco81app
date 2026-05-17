@@ -5,6 +5,7 @@ import * as jwt from "jsonwebtoken";
 
 import "express";
 import { GetUserHostInfo } from "src/misc/get.user.host.info";
+import { ConfigService } from "@nestjs/config";
 declare module "express" {
     interface Request {
         fingerprint?:{
@@ -87,8 +88,9 @@ export class FingerprintMiddleware implements NestMiddleware {
     }
 
     private validationToken(req: Request): JwtPaload | null |any{
+        const configService = new ConfigService();
         const token = req.cookies?.access_token;
-        const secret = process.env.SECRET_TOKEN_KEY;
+        const secret = configService.get<string>("SECRET_TOKEN_KEY");
 
         if(!token) throw new UnauthorizedException("Unauthorized - No token provided");
         if(!secret) throw new Error("Server configuration error - Missing secret key");

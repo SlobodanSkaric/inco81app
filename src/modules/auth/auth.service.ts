@@ -14,12 +14,14 @@ import { UserInfoDto } from '../user/dto/user.info.dto';
 import { SuperadministratorInfoDto } from '../superadministrator/dtos/superadministrator.info.dto';
 import { AuthUserServices } from './auth.user.services';
 import { Superadministrator } from 'entitets/entities/Superadministrator';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
     constructor(
         private readonly jwtService: JwtService,
         private readonly authUserServices: AuthUserServices,
+        private readonly configService: ConfigService
     ){}
 
     async adminstratorLogin(data: AuthDto, ipuaData): Promise<AuthLoginDto | ApiResponse | Administrator | any>{
@@ -62,8 +64,8 @@ export class AuthService {
             ua: ua
         }
 
-        const accessToken = await this.jwtService.signAsync(payload, { secret:  process.env.SECRET_TOKEN_KEY ,expiresIn: '15m' });
-        const refreshToken = await this.jwtService.signAsync(payloadRefershToken, { secret: process.env.SECRET_REFRESH_TOKEN_KEY ,expiresIn: '7d' });
+        const accessToken = await this.jwtService.signAsync(payload, { secret:  this.configService.get<string>("SECRET_TOKEN_KEY") ,expiresIn: '15m' });
+        const refreshToken = await this.jwtService.signAsync(payloadRefershToken, { secret: this.configService.get<string>("SECRET_REFRESH_TOKEN_KEY"),expiresIn: '7d' });
 
         const administratorInfo = new AdministratorInfoDto(checkedAdministrator.adminId, checkedAdministrator.name, checkedAdministrator.lastname, checkedAdministrator.email, checkedAdministrator.phonenumber);
 
@@ -110,8 +112,8 @@ export class AuthService {
         }
 
 
-        const accessToken = await this.jwtService.signAsync(payload, { secret: process.env.SECRET_TOKEN_KEY, expiresIn: "15min"});
-        const refreshToken = await this.jwtService.signAsync(payloadRefreshToken, { secret: process.env.SECRET_REFRESH_TOKEN_KEY, expiresIn: "7d"});    
+        const accessToken = await this.jwtService.signAsync(payload, { secret: this.configService.get<string>("SECRET_TOKEN_KEY"), expiresIn: "15min"});
+        const refreshToken = await this.jwtService.signAsync(payloadRefreshToken, { secret: this.configService.get<string>("SECRET_REFRESH_TOKEN_KEY"), expiresIn: "7d"});    
 
         const userInfo = new UserInfoDto(checkedUser.userId, checkedUser.name, checkedUser.lastname, checkedUser.email, checkedUser.phonenumber);
 
@@ -158,8 +160,8 @@ export class AuthService {
             ua: ua
         }
 
-        const accessToken =  await this.jwtService.signAsync(payload, { secret:process.env.SECRET_TOKEN_KEY, expiresIn: "15min"});
-        const refreshToken = await this.jwtService.signAsync(payloadRefrshToken, { secret: process.env.SECRET_REFRESH_TOKEN_KEY, expiresIn: "7d"});
+        const accessToken =  await this.jwtService.signAsync(payload, { secret:this.configService.get<string>("SECRET_TOKEN_KEY"), expiresIn: "15min"});
+        const refreshToken = await this.jwtService.signAsync(payloadRefrshToken, { secret: this.configService.get<string>("SECRET_REFRESH_TOKEN_KEY"), expiresIn: "7d"});
 
         const superadministrastorsInfo = new SuperadministratorInfoDto(checkedSuperadmistrators.superAdmistratorId,checkedSuperadmistrators.username ,checkedSuperadmistrators.email ,checkedSuperadmistrators.phoneNumber ?? "");
      

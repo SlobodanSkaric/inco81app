@@ -4,6 +4,7 @@ import { RequestLogs } from 'entitets/entities/RequestLogs';
 import { Repository } from 'typeorm';
 
 import { createClient } from 'redis';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class RequestlogService implements OnModuleInit,OnModuleDestroy{
@@ -11,11 +12,12 @@ export class RequestlogService implements OnModuleInit,OnModuleDestroy{
 
     constructor(
         @InjectRepository(RequestLogs) private readonly logRepository: Repository<RequestLogs>,
+        private readonly configService: ConfigService
     ) {}
 
     async onModuleInit(): Promise<void> {
         
-            this.client = createClient({url: process.env.REDIS_URL || undefined});
+            this.client = createClient({url: this.configService.get<string>("REDIS_URL") || undefined});
             this.client.on('error', (err: Error) => { console.error('Redis error in RequestlogService:', err.message || err);});
 
             await this.client.connect();

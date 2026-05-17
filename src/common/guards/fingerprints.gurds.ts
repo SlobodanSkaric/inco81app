@@ -1,10 +1,15 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { Cons } from "rxjs";
 import { RequestlogService } from "src/modules/requestlog/requestlog.service";
 
 @Injectable()
 export class FingerprintGuard implements CanActivate {
 
-    constructor(private readonly requestLogServices: RequestlogService) {}
+    constructor(
+        private readonly requestLogServices: RequestlogService,
+        private readonly configService: ConfigService
+    ) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const req = context.switchToHttp().getRequest();
@@ -18,13 +23,13 @@ export class FingerprintGuard implements CanActivate {
             });
         }
         
-        const n = Number(process.env.REDIS_RECENT_COUNT ?? 10);
+        const n = Number(this.configService.get<number>("REDIS_RECENT_COUNT") ?? 10);
         const recent = await this.requestLogServices.loadLogs(userId);
         const riskScore = this.calculateRiskScore(recent, fingerprint);
 
 
-        const soft = Number(process.env.FP_SOFT_THRESHOLD ?? 30);
-        const hard = Number(process.env.FP_HARD_THRESHOLD ?? 70);
+        const soft = Number(this.configService.get<number>("FP_SOFT_THRESHOLD") ?? 30);
+        const hard = Number(this.configService.get<number>("FP_HARD_THRESHOLD") ?? 70);
 
         if(riskScore >= soft){
             console.warn(`FingerprintGuard: Risk score ${riskScore} exceeds soft threshold ${soft} for user ${userId}`);

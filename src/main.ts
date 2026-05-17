@@ -38,6 +38,6 @@ async function bootstrap() {
 
   const server = app.getHttpAdapter().getInstance();  
   server.set('trust proxy', true);
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(configService.get<number>("APP_PORT") ?? 3000);
 }
 bootstrap();
