@@ -123,4 +123,43 @@ export class AuthController {
         res.clearCookie("refresh_token");
         return { message: "Superadministrators Logout successful" };
     }
+
+    @Post("customers/login")
+    async loginCustomers(@Body() customersData: AuthDto, @Req() req: Request, @GetIp() ip: string, @Res({ passthrough: true }) res: Response): Promise<{message: string} | any>{
+        const ua = req.headers["user-agent"]?req.headers["user-agent"] : "unknown";
+
+        const ipuaData = {
+            ip: ip,
+            ua: ua
+        }
+
+        const token = await this.authService.loginCutomers(customersData, ipuaData);
+
+        if(token instanceof ApiResponse){
+            return token;
+        }
+
+        res.cookie("access_token", token.accessToken,{
+            httpOnly: true,
+            secure: true,
+            sameSite: "strict",
+            maxAge: 15 * 60 * 1000
+        })
+
+        res.cookie("refresh_token", token.refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        })
+
+        return { message: "Customers Login successful", customers: token.customersInfo };
+    }
+
+    @Post("customers/logout")
+    async logoutCustomers(@Res({ passthrough: true }) res: Response): Promise<{message: string}>{
+        res.clearCookie("access_token");
+        res.clearCookie("refresh_token");
+        return { message: "Customers Logout successful" };
+    }
 }

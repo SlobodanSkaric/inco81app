@@ -15,6 +15,8 @@ import { SuperadministratorInfoDto } from '../superadministrator/dtos/superadmin
 import { AuthUserServices } from './auth.user.services';
 import { Superadministrator } from 'entitets/entities/Superadministrator';
 import { ConfigService } from '@nestjs/config';
+import { Customers } from 'entitets/entities/Customers';
+import { GetCustomersDto } from '../customers/dtos/get.customers.dto';
 
 @Injectable()
 export class AuthService {
@@ -166,6 +168,52 @@ export class AuthService {
         const superadministrastorsInfo = new SuperadministratorInfoDto(checkedSuperadmistrators.superAdmistratorId,checkedSuperadmistrators.username ,checkedSuperadmistrators.email ,checkedSuperadmistrators.phoneNumber ?? "");
      
         return { accessToken, refreshToken, superadministrastorsInfo };
+    }
+
+    
+    async loginCutomers(data: AuthDto, ipuaData): Promise<AuthLoginDto | ApiResponse | any>{
+        const checkedCustomers = await this.authUserServices.getUserByEmail(data.email) as Customers;
+
+        if(!checkedCustomers){
+            return new ApiResponse("error", -1013, "Email is not exists");  
+        }
+
+        const checkedPassword = await bcrypt.compare(data.password, checkedCustomers.password);
+
+        if(!checkedPassword){
+            return new ApiResponse("error", -1014, "Password is not correct");
+        }
+
+        const ip = ipuaData.ip;
+        const ua = ipuaData.ua;
+        
+        const payload = {
+            id: checkedCustomers.customerId,
+            email: checkedCustomers.contactEmail,
+            phonenumber: checkedCustomers.phoneNumber,
+            role: "customer",
+            permissions: ["create","update","delete","manage"],
+            ip: ip,
+            ua: ua
+
+        }
+
+        const payloadRefrshToken = {
+            id: checkedCustomers.customerId,
+            email: checkedCustomers.contactEmail,
+            phonenumber: checkedCustomers.phoneNumber,
+            role: "customer",
+            permissions: ["create","update","delete","manage"],
+            ip: ip,
+            ua: ua
+        }
+
+        const accessToken =  await this.jwtService.signAsync(payload, { secret:this.configService.get<string>("SECRET_TOKEN_KEY"), expiresIn: "15min"});
+        const refreshToken = await this.jwtService.signAsync(payloadRefrshToken, { secret: this.configService.get<string>("SECRET_REFRESH_TOKEN_KEY"), expiresIn: "7d"});
+
+        const customersInfo = new GetCustomersDto(checkedCustomers.customerId, checkedCustomers.customerName, checkedCustomers.isActive, checkedCustomers.contactEmail, checkedCustomers.phoneNumber ?? "", checkedCustomers.address ?? "");
+     
+        return { accessToken, refreshToken, customersInfo };
     }
 
 }

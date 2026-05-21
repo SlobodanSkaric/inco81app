@@ -9,6 +9,9 @@ export class Customers {
     @Column("varchar", { name: "customer_name", length: 255 })
     customerName: string;
 
+    @Column("varchar", { name:"password", length: 255 })
+    password: string;
+
     @Column("boolean", { name: "is_active", default: true })
     isActive: boolean;
 

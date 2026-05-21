@@ -15,6 +15,8 @@ import { SuperadministratorModule } from 'src/modules/superadministrator/superad
 import { JwtRefreshStrategy } from './jwt.refresh.strategy';
 import { TimeOfWorke } from 'entitets/entities/TimeOfWorke';
 import { AuthUserServices } from './auth.user.services';
+import { CustomersModule } from '../customers/customers.module';
+import { Customers } from 'entitets/entities/Customers';
 
 @Module({
   controllers: [AuthController],
@@ -29,10 +31,11 @@ import { AuthUserServices } from './auth.user.services';
         signOptions: { expiresIn: '15m' },
       }),
     }),
-    TypeOrmModule.forFeature([Users, Administrator, Superadministrator, TimeOfWorke]),
+    TypeOrmModule.forFeature([Users, Administrator, Superadministrator, TimeOfWorke,Customers]),
     AdministratorModule,
     UserModule,
-    SuperadministratorModule
+    SuperadministratorModule,
+    CustomersModule
   ]
 })
 export class AuthModule {}

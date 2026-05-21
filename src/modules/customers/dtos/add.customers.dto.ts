@@ -8,6 +8,10 @@ export class AddCustomersDto {
     @IsString()
     @IsNotEmpty()
     contactEmail: string;
+
+    @IsString()
+    @IsNotEmpty()
+    password: string;
     
     @IsBoolean()
     @IsNotEmpty()

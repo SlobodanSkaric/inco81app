@@ -5,6 +5,7 @@ import { ApiResponse } from 'src/misc/api.response.dto';
 import { Repository } from 'typeorm';
 import { GetCustomersDto } from './dtos/get.customers.dto';
 import { AddCustomersDto } from './dtos/add.customers.dto';
+import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class CustomersService {
@@ -26,6 +27,20 @@ export class CustomersService {
             ));
         }catch(error){
             return new ApiResponse("error", -1102, "Database query failed");
+        }
+    }
+
+    async getByEmail(email: string): Promise<Customers | ApiResponse>{
+        try{
+            const customers = await this.customersRepository.findOne({ where : { contactEmail: email}});
+
+            if(!customers){
+                return new ApiResponse("error", -1107, "Customer not found");
+            }
+            
+            return customers;
+        }catch(error){
+            return new ApiResponse("error", -1108, "Database query failed");
         }
     }
 
@@ -51,9 +66,12 @@ export class CustomersService {
 
     async addCustomers(customer: AddCustomersDto): Promise<GetCustomersDto | ApiResponse>{
         try{
+
+            const salt = 10;
             const cusromerEntity = new Customers();
 
             cusromerEntity.customerName = customer.customerName;
+            cusromerEntity.password = await bcrypt.hash(customer.password, salt);
             cusromerEntity.isActive = customer.isActive;
             cusromerEntity.contactEmail = customer.contactEmail;
             cusromerEntity.phoneNumber = customer.phoneNumber;

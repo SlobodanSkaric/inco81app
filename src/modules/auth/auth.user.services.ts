@@ -7,6 +7,8 @@ import { Administrator } from "entitets/entities/Administrator";
 import { Superadministrator } from "entitets/entities/Superadministrator";
 import { ApiResponse } from "src/misc/api.response.dto";
 import { SuperadministratorInfoDto } from "../superadministrator/dtos/superadministrator.info.dto";
+import { CustomersService } from "../customers/customers.service";
+import { Customers } from "entitets/entities/Customers";
 
 @Injectable()
 export class AuthUserServices{
@@ -14,9 +16,10 @@ export class AuthUserServices{
         private readonly userServices: UserService,
         private readonly administratorService: AdministratorService,
         private readonly superadministratorsServices: SuperadministratorService,
+        private readonly customersServices: CustomersService
     ){}
 
-    async getUserByEmail(email: string):Promise<Users | Administrator | Superadministrator |  ApiResponse | null>{//refactoring for role, implement switch case for role and return only user info dto for all of them
+    async getUserByEmail(email: string):Promise<Users | Administrator | Superadministrator | Customers |  ApiResponse | null>{//refactoring for role, implement switch case for role and return only user info dto for all of them
         const user = await this.userServices.getByEmail(email);
         if(user) return user
 
@@ -26,6 +29,9 @@ export class AuthUserServices{
 
         const superadministrator = await this.superadministratorsServices.getByEmail(email);
         if(superadministrator) return superadministrator;
+
+        const customers = await this.customersServices.getByEmail(email);
+        if(customers) return customers;
 
         return null;
     }
