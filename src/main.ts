@@ -38,6 +38,7 @@ async function bootstrap() {
 
   const server = app.getHttpAdapter().getInstance();  
   server.set('trust proxy', true);
+  app.enableShutdownHooks();
   await app.listen(configService.get<number>("APP_PORT") ?? 3000);
 }
 bootstrap();

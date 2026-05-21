@@ -1,6 +1,5 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Cons } from "rxjs";
 import { RequestlogService } from "src/modules/requestlog/requestlog.service";
 
 @Injectable()

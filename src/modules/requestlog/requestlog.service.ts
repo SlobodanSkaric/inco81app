@@ -2,7 +2,6 @@ import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RequestLogs } from 'entitets/entities/RequestLogs';
 import { Repository } from 'typeorm';
-
 import { createClient } from 'redis';
 import { ConfigService } from '@nestjs/config';
 
@@ -15,8 +14,7 @@ export class RequestlogService implements OnModuleInit,OnModuleDestroy{
         private readonly configService: ConfigService
     ) {}
 
-    async onModuleInit(): Promise<void> {
-        
+    async onModuleInit(): Promise<void> {        
             this.client = createClient({url: this.configService.get<string>("REDIS_URL") || undefined});
             this.client.on('error', (err: Error) => { console.error('Redis error in RequestlogService:', err.message || err);});
 
@@ -30,7 +28,6 @@ export class RequestlogService implements OnModuleInit,OnModuleDestroy{
     }
 
     async logRequest(userId: number, event: any): Promise<void> {
-        //console.log(`Logging event for user`, event);
         const key = `user:${userId}:events`;
         await this.client.lPush(key, JSON.stringify(event));
         await this.client.lTrim(key, 0, 49);

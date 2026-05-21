@@ -21,7 +21,7 @@ declare module "express" {
     }
 }
 
-interface JwtPaload {
+interface JwtPayload {
     id: number;
     email: string;
     phonenumber: string;
@@ -38,10 +38,10 @@ export class FingerprintMiddleware implements NestMiddleware {
 
         const decodeToken = this.validationToken(req);
        
-        const userId = decodeToken.id || null;
+        const userId = decodeToken.id;
         
         req.userIdreq = userId;
-        req.role = decodeToken.role || null;
+        req.role = decodeToken.role;
         next();
     }
 
@@ -87,7 +87,7 @@ export class FingerprintMiddleware implements NestMiddleware {
         return (req.socket.remoteAddress || "").toString();
     }
 
-    private validationToken(req: Request): JwtPaload | null |any{
+    private validationToken(req: Request): JwtPayload | null |any{
         const configService = new ConfigService();
         const token = req.cookies?.access_token;
         const secret = configService.get<string>("SECRET_TOKEN_KEY");
@@ -98,12 +98,12 @@ export class FingerprintMiddleware implements NestMiddleware {
         
         if(token && secret){
             try{
-                const decode = jwt.verify(token, secret) as JwtPaload;
+                const decode = jwt.verify(token, secret) as JwtPayload;
                 if(!decode.id && !decode.role){
                     throw new UnauthorizedException("Unauthorized - Invalid token payload");
                 }
 
-                return decode as JwtPaload;
+                return decode as JwtPayload;
             }catch(err){
                 if(err instanceof jwt.TokenExpiredError) throw new UnauthorizedException("Unauthorized - Token expired");
                 if(err instanceof jwt.JsonWebTokenError) throw new UnauthorizedException("Unauthorized - Invalid token");
