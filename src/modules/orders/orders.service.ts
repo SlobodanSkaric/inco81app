@@ -6,10 +6,17 @@ import { ApiResponse } from 'src/misc/api.response.dto';
 import { Repository } from 'typeorm';
 import { OrderGetAllDto } from './dtos/order.get.all.dto';
 import { OrderAddDto } from './dtos/orders.add.dto';
+import { DataSource } from 'typeorm';
+import { OrderItems } from 'entitets/entities/OrderItems';
+import { Items } from 'entitets/entities/Items';
 
 @Injectable()
 export class OrdersService {
-    constructor(@InjectRepository(Orders) private readonly ordersEntitets: Repository<Orders>){}
+    constructor(
+        @InjectRepository(Orders) private readonly ordersEntitets: Repository<Orders>,
+        @InjectRepository(Items) private readonly itemsEntitets: Repository<Items>,
+        private dataSource: DataSource
+    ){}
 
 
     async getAllOrders(): Promise<OrderGetAllDto[] | ApiResponse>{
@@ -22,7 +29,7 @@ export class OrdersService {
         const orders: OrderGetAllDto[] = [];
 
         getOrders.forEach((data) =>{
-            orders.push(new OrderGetAllDto(data.orderId, data.customerId, data.orderStatus, data.totalAmount));
+            orders.push(new OrderGetAllDto(data.orderId, data.customerId, data.orderStatus,));
         });
 
         return orders;
@@ -35,7 +42,7 @@ export class OrdersService {
             return new ApiResponse("error", -7009, "No Order");
         }
 
-        return new OrderGetAllDto(getOrder.orderId, getOrder.customerId, getOrder.orderStatus, getOrder.totalAmount);
+        return new OrderGetAllDto(getOrder.orderId, getOrder.customerId, getOrder.orderStatus);
     }
 
 
@@ -49,7 +56,7 @@ export class OrdersService {
         const orders: OrderGetAllDto[] = [];
 
         getOrders.forEach((data) =>{
-            orders.push(new OrderGetAllDto(data.orderId, data.customerId, data.orderStatus, data.totalAmount));
+            orders.push(new OrderGetAllDto(data.orderId, data.customerId, data.orderStatus));
         });
 
         return orders;
@@ -70,7 +77,7 @@ export class OrdersService {
             return new ApiResponse("error", -7013, "Cannot change order status");
         }
 
-        return new OrderGetAllDto(savedOrder.orderId, savedOrder.customerId, savedOrder.orderStatus, savedOrder.totalAmount);
+        return new OrderGetAllDto(savedOrder.orderId, savedOrder.customerId, savedOrder.orderStatus);
     }
 
     async getOrdersByCustomerId(customerId: number): Promise<OrderGetAllDto[] | ApiResponse>{
@@ -83,26 +90,59 @@ export class OrdersService {
         const orders: OrderGetAllDto[] = [];
 
         getOrders.forEach((data) =>{
-            orders.push(new OrderGetAllDto(data.orderId, data.customerId, data.orderStatus, data.totalAmount));
+            orders.push(new OrderGetAllDto(data.orderId, data.customerId, data.orderStatus));
         });
 
         return orders;
     }
 
-    async addOrder(order: OrderAddDto): Promise<OrderGetAllDto | ApiResponse>{
-        const orderEntitet = new Orders();
-        orderEntitet.customerId = order.customerId;
-        orderEntitet.orderStatus = order.orderStatus;
-        orderEntitet.totalAmount = order.totalAmount;
+    async addOrder(order: OrderAddDto): Promise<OrderGetAllDto | ApiResponse | any>{
+        return await this.dataSource.transaction(async(transactionalEntityManager) => {
+            const itemsId = order.items.map(item => item.itemId);
 
-        const savedOrder = await this.ordersEntitets.save(orderEntitet);
+            const items = await transactionalEntityManager.find(Items, {
+                where: itemsId.map(id => ({ itemId: id }))  
+            });
 
-        if(!savedOrder){
-            return new ApiResponse("error", -7014, "Cannot add order");
+            if(items.length !== order.items.length){
+                return new ApiResponse("error", -7014, "One or more items not found");
+            }
+
+            const itemsById = new Map(items.map(item => [item.itemId, item]));
+
+            
+            const orderCreate = transactionalEntityManager.create(Orders, {
+                customerId: order.customerId,
+                orderStatus: order.orderStatus
+            });
+
+            const savedOrder = await transactionalEntityManager.save(orderCreate);
+
+            const orderItems = order.items.map(item => {
+                const dbItem = itemsById.get(item.itemId);
+                const orderItemsObjects = new OrderItems();
+                orderItemsObjects.orders = savedOrder.orderId;
+                orderItemsObjects.items = item.itemId;
+                orderItemsObjects.quantity = item.quantity;
+                // dbItem is guaranteed to exist because we checked lengths above
+                orderItemsObjects.price = dbItem!.price;
+                return orderItemsObjects;
+            });
+
+            await transactionalEntityManager.save(OrderItems, orderItems);
+            return savedOrder;
+        });
+    }
+
+   /* async checkedItemPrice(itemId: number, customersPrice: number): Promise<boolean>{
+        const itemsRepository = await this.itemsEntitets.findOne({ where: { itemId: itemId }});
+
+        if(!itemsRepository){
+            return false
         }
 
-        return new OrderGetAllDto(savedOrder.orderId, savedOrder.customerId, savedOrder.orderStatus, savedOrder.totalAmount);
-    }
+        return itemsRepository.price === customersPrice;
+    }*/
 
     async orderSnapshotJSON(orderId: number): Promise<string | ApiResponse | null>{ return null;}//implement order snapshot in json format
     async orderSnapshotPDF(orderId: number): Promise<Buffer | ApiResponse | null>{ return null;}//implement order snapshot in pdf format

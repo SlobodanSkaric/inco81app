@@ -28,7 +28,7 @@ export class OrdersController {
     }
 
     @Post("/createorders")
-    @Roles("administrator")
+    @Roles("administrator", "customer")
     @UseGuards(JwtAuthGuards, RoleGuards)
     async createOrder(@Body() order: OrderAddDto): Promise<OrderGetAllDto | ApiResponse>{
         return await this.ordersService.addOrder(order);

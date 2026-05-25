@@ -10,14 +10,14 @@ export class Orders {
     @Column("int", { name: "customer_id" })
     customerId: number;
 
-    @Column("varchar", { name: "order_status", length: 50 })
+    @Column("enum", { name: "order_status", enum: ["active", "pending","completed", "cancelled"], default: "active" })
     orderStatus: string;
-
-    @Column("decimal", { name: "total_amount", precision: 10, scale: 2 })
-    totalAmount: number;
 
     @Column("datetime", { name: "created_at", default: () => "CURRENT_TIMESTAMP" })
     createdAt: Date;
+
+    @Column("enum", { name: "payment_method", enum: ["cards", "delivirs", "paypal"], default: "cards" })
+    paymentmethod: "cards" | "delivirs" | "paypal";
 
     @Column("datetime", { name: "updated_at", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP" })
     updatedAt: Date;

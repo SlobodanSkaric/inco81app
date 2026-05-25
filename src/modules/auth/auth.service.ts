@@ -173,7 +173,7 @@ export class AuthService {
     
     async loginCutomers(data: AuthDto, ipuaData): Promise<AuthLoginDto | ApiResponse | any>{
         const checkedCustomers = await this.authUserServices.getUserByEmail(data.email) as Customers;
-
+        
         if(!checkedCustomers){
             return new ApiResponse("error", -1013, "Email is not exists");  
         }

@@ -5,13 +5,7 @@ import { Items } from "./Items";
 @Entity("orders_items")
 export class OrderItems {
     @PrimaryGeneratedColumn({ type: "int", name: "order_item_id" })
-    orderItemId: number;
-
-   /*  @Column("int", { name: "order_id" })
-    orderId: number;
-
-    @Column("int", { name: "item_id" })
-    itemId: number; */
+    orderItemId: number;  
 
     @Column("int", { name: "quantity" })
     quantity: number;
@@ -27,9 +21,9 @@ export class OrderItems {
 
     @ManyToOne(() => Orders, orders => orders.orderItems, { cascade: true, onDelete: "RESTRICT", onUpdate: "CASCADE", nullable: false })
     @JoinColumn([{ name: "order_id", referencedColumnName: "orderId" }])
-    orders: Orders[];
+    orders: number;
 
     @ManyToOne(() => Items, items => items.orderItems, { cascade: true, onDelete: "RESTRICT", onUpdate: "CASCADE", nullable: false })
     @JoinColumn([{ name: "item_id", referencedColumnName:"itemId" }])
-    items: Items[];
+    items: number;
 }

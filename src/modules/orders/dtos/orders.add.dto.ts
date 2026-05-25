@@ -1,5 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString } from "class-validator";
-
+import { IsArray, IsNotEmpty, IsNumber, IsObject, IsString } from "class-validator";
 export class OrderAddDto {
     @IsNumber()
     @IsNotEmpty()
@@ -7,9 +6,11 @@ export class OrderAddDto {
 
     @IsString()
     @IsNotEmpty()
-    orderStatus: string;
+    orderStatus: string = "active";
 
-    @IsNumber()
-    @IsNotEmpty()
-    totalAmount: number;
+    @IsArray()
+    items:[{
+        itemId: number;
+        quantity: number;
+    }];
 }
