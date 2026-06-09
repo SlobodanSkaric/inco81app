@@ -28,7 +28,7 @@ export class Users {
   @Column("varchar", {name: "email",unique: true,length: 128,default: 0,})
   email: string;
 
-   @Column("varchar", {name: "password",unique: false,length: 256,default: 0,select: false})
+   @Column("varchar", {name: "password",unique: false,length: 256,default: 0})
   password: string;
 
   @Column("varchar", {name: "phonenumber",unique: true,length: 128,default: 0,})

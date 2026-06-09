@@ -64,6 +64,19 @@ export class CustomersService {
         }
     }
 
+    async findCiustomersOrdes(custimersId: number): Promise<Customers | ApiResponse>{
+        try{
+            const customer = await this.customersRepository.findOne({ where : { customerId: custimersId }, relations: ["orders"] });
+            if(!customer){
+                return new ApiResponse("error", -1103, "Customer not found");
+            }
+
+           return customer;
+        }catch(error){
+            return new ApiResponse("error", -1104, "Database query failed");
+        }
+    }
+
     async addCustomers(customer: AddCustomersDto): Promise<GetCustomersDto | ApiResponse>{
         try{
 

@@ -56,7 +56,9 @@ export class AuthController {
 
     @Post("user")
     async userLogin(@Body() data: AuthDto, @Req() req: Request, @Res({ passthrough: true}) res: Response): Promise<AuthLoginDto | ApiResponse | any>{
+        console.log("User login attempt with email: " + data.email);
         const token = await this.authService.userLogin(data, req);
+        console.log("User login result: ", token);  
 
         res.cookie("access_token", token.accessToken,{
             httpOnly: true,
