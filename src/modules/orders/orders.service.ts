@@ -9,6 +9,7 @@ import { OrderAddDto } from './dtos/orders.add.dto';
 import { DataSource } from 'typeorm';
 import { OrderItems } from 'entitets/entities/OrderItems';
 import { Items } from 'entitets/entities/Items';
+import { Request } from 'express';
 
 @Injectable()
 export class OrdersService {
@@ -132,6 +133,32 @@ export class OrdersService {
             await transactionalEntityManager.save(OrderItems, orderItems);
             return savedOrder;
         });
+    }
+
+    async delteOrder(orderId: number, status: string, userId: number): Promise<ApiResponse>{
+        const order = await this.ordersEntitets.findOne({ where: { orderId: orderId } });
+
+        if(!order){
+            return new ApiResponse("error", -7015, "Order not found");        
+        }
+
+        if(order.customerId !== userId){
+            return new ApiResponse("error", -7016, "You can only delete your own orders");
+        }
+
+        if(order.orderStatus !== "active"){
+            return new ApiResponse("error", -7017, "Only active orders can be deleted");
+        }
+
+        order.orderStatus = status;
+
+        const savedOrder = await this.ordersEntitets.save(order);
+
+        if(!savedOrder){
+            return new ApiResponse("error", -7018, "Cannot delete order");
+        }
+
+        return new ApiResponse("success", 7001, "Order deleted successfully");
     }
 
    /* async checkedItemPrice(itemId: number, customersPrice: number): Promise<boolean>{
