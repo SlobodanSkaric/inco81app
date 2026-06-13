@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { GetCustomersDto } from './dtos/get.customers.dto';
 import { AddCustomersDto } from './dtos/add.customers.dto';
 import * as bcrypt from "bcrypt";
+import { OrdersStatus } from '../orders/dtos/order.status,.enum';
 
 @Injectable()
 export class CustomersService {
@@ -64,14 +65,20 @@ export class CustomersService {
         }
     }
 
-    async findCiustomersOrdes(custimersId: number): Promise<Customers | ApiResponse>{
+    async findCustomersOrdes(customersId: number): Promise<Customers | ApiResponse>{
         try{
-            const customer = await this.customersRepository.findOne({ where : { customerId: custimersId }, relations: ["orders"] });
-            if(!customer){
+            
+            const customers = await this.customersRepository.createQueryBuilder("customers")
+                .leftJoinAndSelect("customers.orders", "orders")
+                .where("customers.customerId = :id", { id: customersId})
+                .andWhere("orders.orderStatus = :statuses", { statuses: OrdersStatus.ACTIVE })
+                .getOne();
+
+            if(!customers){
                 return new ApiResponse("error", -1103, "Customer not found");
             }
 
-           return customer;
+            return customers;
         }catch(error){
             return new ApiResponse("error", -1104, "Database query failed");
         }

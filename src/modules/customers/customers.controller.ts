@@ -31,7 +31,7 @@ export class CustomersController {
     @Roles("customer")
     @UseGuards(JwtAuthGuards, RoleGuards)
     async getCustomerWithOrders(@Req() req: Request): Promise<Customers | ApiResponse | any>{
-        return await this.customersService.findCiustomersOrdes(req.user.id);
+        return await this.customersService.findCustomersOrdes(req.user.id);
     }
 
     @Get(":id")
