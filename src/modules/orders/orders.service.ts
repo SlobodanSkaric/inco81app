@@ -10,6 +10,7 @@ import { DataSource } from 'typeorm';
 import { OrderItems } from 'entitets/entities/OrderItems';
 import { Items } from 'entitets/entities/Items';
 import { Request } from 'express';
+import { GetCustomersDto } from '../customers/dtos/get.customers.dto';
 
 @Injectable()
 export class OrdersService {
@@ -21,7 +22,9 @@ export class OrdersService {
 
 
     async getAllOrders(): Promise<OrderGetAllDto[] | ApiResponse>{
-        const getOrders = await this.ordersEntitets.find(); //implement all relations and change dto
+        const getOrders = await this.ordersEntitets.find({ relations: ["customers", "orderItems"] }); 
+
+        //console.log(getOrders);
 
         if(getOrders.length === 0){
             return new ApiResponse("error", -7008, "No Orders");
@@ -30,7 +33,7 @@ export class OrdersService {
         const orders: OrderGetAllDto[] = [];
 
         getOrders.forEach((data) =>{
-            orders.push(new OrderGetAllDto(data.orderId, data.customerId, data.orderStatus,));
+            orders.push(new OrderGetAllDto(data.orderId, data.customerId, data.orderStatus, new GetCustomersDto(data.customers["customerId"], data.customers["customerName"], data.customers["isActive"], data.customers["contactEmail"], data.customers["phoneNumber"], data.customers["address"])));
         });
 
         return orders;

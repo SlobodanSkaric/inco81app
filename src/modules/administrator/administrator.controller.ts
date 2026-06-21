@@ -10,10 +10,14 @@ import { EditUserTimeOfWorkDto } from './dto/edit.user.timeofwork.dto';
 import { JwtAuthGuards } from 'src/modules/auth/jwtAuthGuards';
 import { DeleteUserTimeOfWorkDto } from './dto/delete.user.timeofwork';
 import { JwtRefreshGuards } from 'src/modules/auth/jwtRefreshGuards';
+import { OrdersService } from '../orders/orders.service';
 
 @Controller('administrator')
 export class AdministratorController {
-    constructor(private readonly admiServices: AdministratorService){}
+    constructor(
+        private readonly admiServices: AdministratorService,
+        private readonly OrdersServices: OrdersService
+    ){}
 
     @Get("all")
     @Roles("administrator")
@@ -48,6 +52,13 @@ export class AdministratorController {
     @UseGuards(JwtAuthGuards,JwtRefreshGuards,RoleGuards)
     async deleteUserTimeOfWork(@Body() data: DeleteUserTimeOfWorkDto){
         return await this.admiServices.deleteUserTimeOfWork(data);
+    }
+
+    @Get("get/allorders")
+    @Roles("administrator")
+    @UseGuards(JwtAuthGuards,JwtRefreshGuards,RoleGuards)
+    async getAllOrders(@Req() req: Request){
+        return await this.OrdersServices.getAllOrders();
     }
 
 

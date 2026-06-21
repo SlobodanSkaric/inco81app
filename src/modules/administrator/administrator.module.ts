@@ -4,9 +4,10 @@ import { AdministratorService } from './administrator.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Administrator } from 'entitets/entities/Administrator';
 import { TimeOfWorke } from 'entitets/entities/TimeOfWorke';
+import { OrdersModule } from '../orders/orders.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Administrator,TimeOfWorke])],
+  imports: [TypeOrmModule.forFeature([Administrator,TimeOfWorke]), OrdersModule],
   controllers: [AdministratorController],
   providers: [AdministratorService],
   exports:[AdministratorService]
