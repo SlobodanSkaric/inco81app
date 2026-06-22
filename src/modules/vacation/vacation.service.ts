@@ -5,12 +5,15 @@ import { ApiResponse } from 'src/misc/api.response.dto';
 import { Repository } from 'typeorm';
 import { AddVacationsDto } from './dtos/add.vacations.dto';
 import { dataUtils } from 'src/utils/data.utils';
-import { Users } from 'entitets/entities/Users';
-import { Administrator } from 'entitets/entities/Administrator';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { VactionRequestCreatedEvent } from './events/vaction.events.def';
 
 @Injectable()
 export class VacationService {
-    constructor(@InjectRepository(Vacations) private readonly vacation: Repository<Vacations>){}
+    constructor(
+        @InjectRepository(Vacations) private readonly vacation: Repository<Vacations>,
+        private readonly eventEmitter: EventEmitter2
+    ){}
 
     async findAll(): Promise<Vacations[] | ApiResponse> {
         const alllVacations = await this.vacation.find();
@@ -48,6 +51,8 @@ export class VacationService {
         if(!savedVacation){
             return new ApiResponse("error", -1003, "Cannot add vacation!");
         }
+
+        this.eventEmitter.emit('vacation.request.created', new VactionRequestCreatedEvent(savedVacation.vacationId, savedVacation.user));
 
         return savedVacation;
     }

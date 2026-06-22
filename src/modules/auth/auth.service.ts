@@ -76,14 +76,12 @@ export class AuthService {
 
     async userLogin(data: AuthDto, ipuaData): Promise<AuthLoginDto | ApiResponse | Users | any>{
         const checkedUser = await this.authUserServices.getUserByEmail(data.email) as Users;
-        console.log("Checked user: ", checkedUser); 
 
         if(!checkedUser){
             return new ApiResponse("error", -1022, "Email is not exites");
         }
 
         const checkedPassword = await bcrypt.compare(data.password, checkedUser.password);
-        console.log("Checked password: " + checkedPassword);    
 
         if(!checkedPassword){
             return new ApiResponse("error", -1023, "Password is not correct");

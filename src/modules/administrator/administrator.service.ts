@@ -102,7 +102,7 @@ export class AdministratorService {
     }
 
     async updateUserTimeOfWork(userId:number, result: any, udateDataAndTime: any){
-        console.log( userId, result, udateDataAndTime);
+        //console.log( userId, result, udateDataAndTime);
     }
 
     async deleteUserTimeOfWork(data: DeleteUserTimeOfWorkDto): Promise<TimeOfWorke | ApiResponse | any>{

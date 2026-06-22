@@ -20,11 +20,39 @@ import { VacationModule } from './modules/vacation/vacation.module';
 import { CustomersModule } from './modules/customers/customers.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { ItemsModule } from './modules/items/items.module';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.adapter';
+import { EmailModule } from './modules/email/email.module';
+import { existsSync } from 'fs';
+import { join } from 'path';
 
+const templatesDir = existsSync(join(process.cwd(), 'dist/templates'))
+  ? join(process.cwd(), 'dist/templates')
+  : join(process.cwd(), 'src/templates');
+const mailPort = Number(process.env.MAIL_PORT);
+const mailSecure = process.env.MAIL_SECURE
+  ? process.env.MAIL_SECURE === 'true'
+  : mailPort === 465;
 
 @Module({
   imports: [
     EventEmitterModule.forRoot(),
+    MailerModule.forRoot({
+      transport:{
+        host: process.env.MAIL_HOST,
+        port: mailPort,
+        secure: mailSecure,
+        auth:{
+          user: process.env.MAIL_USERNAME,
+          pass: process.env.MAIL_PASSWORD
+        }
+      },
+      template: {
+        dir: templatesDir,
+        adapter: new HandlebarsAdapter(),
+        options: {strict: true}
+      }
+    }),
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
       //imports: [ConfigModule],
@@ -53,7 +81,8 @@ import { ItemsModule } from './modules/items/items.module';
     VacationModule,
     CustomersModule,
     OrdersModule,
-    ItemsModule
+    ItemsModule,
+    EmailModule
   ],
 
   providers:[
@@ -67,6 +96,8 @@ import { ItemsModule } from './modules/items/items.module';
       useClass: RequestLogInterceptor
     },
   ],
+
+  controllers: [],
 
 })
 export class AppModule implements NestModule{

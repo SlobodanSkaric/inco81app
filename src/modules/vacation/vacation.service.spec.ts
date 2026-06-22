@@ -6,6 +6,7 @@ import { find } from 'rxjs';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import e from 'express';
 import { AddVacationsDto } from './dtos/add.vacations.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 describe('VacationService', () => {
   let service: VacationService;
@@ -18,13 +19,23 @@ describe('VacationService', () => {
     find: jest.fn()
   }
 
+  let mockEventEmitter = {
+    emit: jest.fn()
+  }
+
   beforeEach(async () => {
+    jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         VacationService,
         {
           provide: getRepositoryToken(Vacations),
           useValue: mockVacationRepository
+        },
+        {
+          provide: EventEmitter2,
+          useValue: mockEventEmitter
         }
       ],
     }).compile();
@@ -105,7 +116,7 @@ describe('VacationService', () => {
     const result = await service.findById(1);
 
     expect(mockVacationRepository.findOne).toHaveBeenCalledWith({ where: { vacationId: 1 } });
-    expect(result).toEqual
+    expect(result).toEqual(mockVacation);
   });
 
   it("should add vacation", async () => {
@@ -147,5 +158,9 @@ describe('VacationService', () => {
     }));
 
     expect(result).toEqual(returnedVacation);
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('vacation.request.created', {
+      requestId: returnedVacation.vacationId,
+      userId: returnedVacation.user
+    });
   });
 });
