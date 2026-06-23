@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { VacationService } from './vacation.service';
-import { AddVacationsDto } from './dtos/add.vacations.dto';
+import { AddVacationsDto } from './dto/add.vacations.dto';
 import { Vacations } from 'entitets/entities/Vacations';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { Roles } from 'src/common/decorators/role.decorators';

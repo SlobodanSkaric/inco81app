@@ -1,0 +1,39 @@
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+
+export class RequestVacationDto {
+        @IsNumber()
+        @IsNotEmpty()
+        vacationId: number;
+        
+        @IsString()
+        @IsNotEmpty()    
+        vacation_start: string;
+    
+        @IsString()
+        @IsNotEmpty()
+        vacation_end: string;
+    
+        @IsNumber()
+        @IsNotEmpty()
+        userId: number;
+    
+        @IsNumber()
+        @IsNotEmpty()
+        admin: number;
+    
+        @IsString()
+        @IsNotEmpty()
+        reason: string;
+    
+        @IsNumber()
+        @IsNotEmpty()
+        status: number;
+    
+        @IsString()
+        @IsOptional()
+        admin_comment?: string;
+    
+        @IsString()
+        @IsOptional()
+        user_comment?: string;
+}

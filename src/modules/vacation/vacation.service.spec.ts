@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { find } from 'rxjs';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import e from 'express';
-import { AddVacationsDto } from './dtos/add.vacations.dto';
+import { AddVacationsDto } from './vactions.request.dto.ts/add.vacations.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 describe('VacationService', () => {

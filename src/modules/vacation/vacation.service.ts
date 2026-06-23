@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Vacations } from 'entitets/entities/Vacations';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { Repository } from 'typeorm';
-import { AddVacationsDto } from './dtos/add.vacations.dto';
+import { AddVacationsDto } from './dto/add.vacations.dto';
 import { dataUtils } from 'src/utils/data.utils';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { VactionRequestCreatedEvent } from './events/vaction.events.def';
@@ -36,15 +36,16 @@ export class VacationService {
     }
 
     async addVactions(vacactionsData: AddVacationsDto): Promise<Vacations | ApiResponse>{
-        const newVacations = new Vacations();
-        newVacations.vacation_start = dataUtils(vacactionsData.vacation_start);
-        newVacations.vacation_end = dataUtils(vacactionsData.vacation_end);
-        newVacations.user = vacactionsData.userId;
-        newVacations.admin = vacactionsData.admin;
-        newVacations.reason = vacactionsData.reason;
-        newVacations.status = vacactionsData.status;
-        newVacations.admin_comment = vacactionsData.admin_comment ?? null;
-        newVacations.user_comment = vacactionsData.user_comment ?? null;
+        const newVacations = this.vacation.create({
+            vacation_start: dataUtils(vacactionsData.vacation_start),
+            vacation_end: dataUtils(vacactionsData.vacation_end),
+            user: { userId: vacactionsData.userId },
+            admin: { adminId: vacactionsData.admin },
+            reason: vacactionsData.reason,
+            status: vacactionsData.status,
+            admin_comment: vacactionsData.admin_comment ?? null,
+            user_comment: vacactionsData.user_comment ?? null
+        });
 
         const savedVacation = await this.vacation.save(newVacations);
 
@@ -52,7 +53,7 @@ export class VacationService {
             return new ApiResponse("error", -1003, "Cannot add vacation!");
         }
 
-        this.eventEmitter.emit('vacation.request.created', new VactionRequestCreatedEvent(savedVacation.vacationId, savedVacation.user));
+        this.eventEmitter.emit('vacation.request.created', new VactionRequestCreatedEvent(savedVacation.vacationId, vacactionsData.userId));
 
         return savedVacation;
     }

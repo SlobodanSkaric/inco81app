@@ -11,12 +11,16 @@ import { TimeOfWorke } from 'entitets/entities/TimeOfWorke';
 import { dataUtils } from 'src/utils/data.utils';
 import { DeleteUserTimeOfWorkDto } from './dto/delete.user.timeofwork';
 import { Users } from 'entitets/entities/Users';
+import { Vacations } from 'entitets/entities/Vacations';
+import { RequestVacationDto } from '../vacation/dto/rewquest.vactions.dto';
+import { DecideVacationDto } from '../vacation/dto/decide.vactions.dto';
 
 @Injectable()
 export class AdministratorService {
     constructor(
         @InjectRepository(Administrator) private readonly administratorEntitets: Repository<Administrator>,
         @InjectRepository(TimeOfWorke) private readonly timeOfWorkeEntitets: Repository<TimeOfWorke>,
+        @InjectRepository(Vacations) private readonly vacationsEntitets: Repository<Vacations>
     ){}
 
     async getAllAdmin(): Promise<AdministratorInfoDto[] | ApiResponse>{
@@ -125,5 +129,57 @@ export class AdministratorService {
         const getUpdateTimeOfWork = await this.timeOfWorkeEntitets.findOne({ where: { timeOfWorkeId: data.timeOfWorkeId } });
 
         return getUpdateTimeOfWork;
+    }
+
+    async administratrosDecideUserVaction(adminId: number): Promise<RequestVacationDto[] | ApiResponse>{
+        const getAllserVactionRequests = await this.vacationsEntitets.find({
+            where: { status: 1, admin: { adminId } },
+            relations: { user: true, admin: true }
+        });
+        
+        const curentRquestsUserVactions: RequestVacationDto[] = [];
+
+        for(const requests of getAllserVactionRequests){
+            curentRquestsUserVactions.push({
+                vacationId: requests.vacationId,
+                vacation_start: requests.vacation_start.toISOString(),
+                vacation_end: requests.vacation_end.toISOString(),
+                userId: requests.user.userId,
+                admin: requests.admin.adminId,
+                reason: requests.reason,
+                status: requests.status,
+                admin_comment: requests.admin_comment ?? undefined,
+                user_comment: requests.user_comment ?? undefined
+            });
+        }
+
+        if(curentRquestsUserVactions.length === 0){
+            return new ApiResponse("error", -1012, "No vacation requests found!");
+        }
+
+        return curentRquestsUserVactions;
+    }
+
+    async editUserVactionbyAdmin(data:DecideVacationDto): Promise<Vacations | ApiResponse>{
+        const getVacationRequest = await this.vacationsEntitets.findOne({ where: { vacationId: data.vacationId } });
+
+        if(!getVacationRequest){
+            return new ApiResponse("error", -1013, "Vacation request not found!");
+        }
+
+        if(getVacationRequest.status === data.status){
+            return new ApiResponse("error", -1014, "Vacation request is already in this status!");
+        }
+
+        getVacationRequest.status = data.status;
+        getVacationRequest.admin_comment = data.admin_comment ?? null;
+
+        const updateVacationRequest = await this.vacationsEntitets.save(getVacationRequest);
+
+        if(!updateVacationRequest){
+            return new ApiResponse("error", -1015, "Failed to update vacation request!");
+        }
+
+        return updateVacationRequest;
     }
 }
