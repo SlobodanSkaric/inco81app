@@ -11,6 +11,7 @@ import { OrderItems } from 'entitets/entities/OrderItems';
 import { Items } from 'entitets/entities/Items';
 import { Request } from 'express';
 import { GetCustomersDto } from '../customers/dtos/get.customers.dto';
+import { OrdersStatus } from './dtos/order.status.enum';
 
 @Injectable()
 export class OrdersService {
@@ -71,6 +72,10 @@ export class OrdersService {
 
         if(!order){
             return new ApiResponse("error", -7012, "No Order");
+        }
+
+        if(!Object.values(OrdersStatus).includes(orderStatus as OrdersStatus)){
+            return new ApiResponse("error", -7011, "Invalid order status");
         }
 
         order.orderStatus = orderStatus;

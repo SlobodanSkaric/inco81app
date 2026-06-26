@@ -6,7 +6,7 @@ import { Repository } from 'typeorm';
 import { GetCustomersDto } from './dtos/get.customers.dto';
 import { AddCustomersDto } from './dtos/add.customers.dto';
 import * as bcrypt from "bcrypt";
-import { OrdersStatus } from '../orders/dtos/order.status,.enum';
+import { OrdersStatus } from '../orders/dtos/order.status.enum';
 
 @Injectable()
 export class CustomersService {

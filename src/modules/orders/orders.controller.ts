@@ -8,6 +8,7 @@ import { ApiResponse } from 'src/misc/api.response.dto';
 import { OrderAddDto } from './dtos/orders.add.dto';
 import { OrderDeleteDto } from './dtos/orders.delete';
 import { Request } from 'express';
+import { EditOrdersStatusDto } from './dtos/edit.orders.status.dto';
 
 @Controller('orders')
 export class OrdersController {
@@ -41,5 +42,12 @@ export class OrdersController {
     @UseGuards(JwtAuthGuards, RoleGuards)
     async deleteOrder(@Body() deleteData: OrderDeleteDto, @Req() req: Request): Promise<ApiResponse>{
         return await this.ordersService.delteOrder(deleteData.orderId, deleteData.status, req.user.id);
+    }
+
+    @Post("/changestatus/")
+    @Roles("administrator")
+    @UseGuards(JwtAuthGuards, RoleGuards)
+    async changeOrderStatus(@Body() order: EditOrdersStatusDto): Promise<OrderGetAllDto | ApiResponse>{
+        return await this.ordersService.changeOrderStatus(order.orderId, order.orderStatus);
     }
 }
