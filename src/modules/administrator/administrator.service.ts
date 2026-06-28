@@ -160,21 +160,33 @@ export class AdministratorService {
         return curentRquestsUserVactions;
     }
 
-    async editUserVactionbyAdmin(data:DecideVacationDto): Promise<Vacations | ApiResponse>{
-        const getVacationRequest = await this.vacationsEntitets.findOne({ where: { vacationId: data.vacationId } });
+    async editUserVactionbyAdmin(data:DecideVacationDto, adminId: number): Promise<Vacations | ApiResponse>{
+        const vactionResutl = await this.vacationsEntitets.createQueryBuilder("vacations")
+                             .leftJoinAndSelect("vacations.admin", "admin")
+                             .select([
+                                "vacations",
+                                "admin.adminId"
+                            ])
+                             .where("vacations.vacationId = :vacationId", { vacationId: data.vacationId })
+                             .getOne();
+                             
 
-        if(!getVacationRequest){
+        if(!vactionResutl){
             return new ApiResponse("error", -1013, "Vacation request not found!");
         }
 
-        if(getVacationRequest.status === data.status){
+        if(vactionResutl.status === data.status){
             return new ApiResponse("error", -1014, "Vacation request is already in this status!");
         }
 
-        getVacationRequest.status = data.status;
-        getVacationRequest.admin_comment = data.admin_comment ?? null;
+        if(vactionResutl.admin.adminId !== adminId){
+            return new ApiResponse("error", -1016, "You are not authorized to update this vacation request!");
+        }
 
-        const updateVacationRequest = await this.vacationsEntitets.save(getVacationRequest);
+        vactionResutl.status = data.status;
+        vactionResutl.admin_comment = data.admin_comment ?? null;
+
+        const updateVacationRequest = await this.vacationsEntitets.save(vactionResutl);
 
         if(!updateVacationRequest){
             return new ApiResponse("error", -1015, "Failed to update vacation request!");

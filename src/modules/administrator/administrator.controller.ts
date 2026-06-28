@@ -12,6 +12,7 @@ import { DeleteUserTimeOfWorkDto } from './dto/delete.user.timeofwork';
 import { JwtRefreshGuards } from 'src/modules/auth/jwtRefreshGuards';
 import { OrdersService } from '../orders/orders.service';
 import { DecideVacationDto } from '../vacation/dto/decide.vactions.dto';
+import { Vacations } from 'entitets/entities/Vacations';
 
 @Controller('administrator')
 export class AdministratorController {
@@ -75,20 +76,14 @@ export class AdministratorController {
     @UseGuards(JwtAuthGuards,JwtRefreshGuards,RoleGuards)
     async deleteAdministrator(@Param("id") id: number, @Req() req: Request): Promise<AdministratorInfoDto | ApiResponse | void>{
         /* return await this.admiServices.deleteAdministrator(id, req); */
-    }
-
-    @Post("decide/vacation")
-    @Roles("administrator")
-    @UseGuards(JwtAuthGuards,JwtRefreshGuards,RoleGuards)
-    async administratrosDecideUserVaction(@Req() req: Request){
-        const adminId = req.user.id;
-       return await this.admiServices.administratrosDecideUserVaction(adminId);
-    }
+    }    
 
     @Post("vactios/decides")
     @Roles("administrator")
     @UseGuards(JwtAuthGuards,JwtRefreshGuards,RoleGuards)
-    async administratrosDecideUserVaction2(@Body() data: DecideVacationDto){
-        return await this.admiServices.editUserVactionbyAdmin(data);
+    async administratrosDecideUserVaction2(@Body() data: DecideVacationDto, @Req() req: Request): Promise<Vacations | ApiResponse>{
+
+        const adminId = req.user.id;
+        return await this.admiServices.editUserVactionbyAdmin(data, adminId);
     }
 }
