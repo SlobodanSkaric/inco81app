@@ -9,7 +9,6 @@ import { Request } from 'express';
 import { EditUserTimeOfWorkDto } from './dto/edit.user.timeofwork.dto';
 import { JwtAuthGuards } from 'src/modules/auth/jwtAuthGuards';
 import { DeleteUserTimeOfWorkDto } from './dto/delete.user.timeofwork';
-import { JwtRefreshGuards } from 'src/modules/auth/jwtRefreshGuards';
 import { OrdersService } from '../orders/orders.service';
 import { DecideVacationDto } from '../vacation/dto/decide.vactions.dto';
 import { Vacations } from 'entitets/entities/Vacations';
@@ -30,35 +29,35 @@ export class AdministratorController {
 
     @Get("")
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards,JwtRefreshGuards,RoleGuards)
+    @UseGuards(JwtAuthGuards,RoleGuards)
     async getAdminstratorById(@Req() req: Request): Promise<AdministratorInfoDto | ApiResponse>{
         return await this.admiServices.getById(req.user.id);
     }
 
     @Post("add")//add role and gurds of superadmin
     @Roles("superadministrator")
-    @UseGuards(JwtAuthGuards,JwtRefreshGuards,RoleGuards)
+    @UseGuards(JwtAuthGuards,RoleGuards)
     async addAdministrator(@Body() data: AdministratorAddDto): Promise<AdministratorInfoDto | ApiResponse>{
         return await this.admiServices.addAdministratorServices(data);
     }
 
     @Post("edit/timeofwork/")
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards,JwtRefreshGuards,RoleGuards)
+    @UseGuards(JwtAuthGuards,RoleGuards)
     async editUserTimeOfWork(@Body() data: EditUserTimeOfWorkDto, @Param("optional") optional: string){
         return await this.admiServices.editUserTimeOfWork(data);
     }
 
     @Post("delete/timeofwork")
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards,JwtRefreshGuards,RoleGuards)
+    @UseGuards(JwtAuthGuards,RoleGuards)
     async deleteUserTimeOfWork(@Body() data: DeleteUserTimeOfWorkDto){
         return await this.admiServices.deleteUserTimeOfWork(data);
     }
 
     @Get("get/allorders")
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards,JwtRefreshGuards,RoleGuards)
+    @UseGuards(JwtAuthGuards,RoleGuards)
     async getAllOrders(@Req() req: Request){
         return await this.OrdersServices.getAllOrders();
     }
@@ -66,21 +65,21 @@ export class AdministratorController {
 
     @Post("edit/adminstator")//This is methods to move superadministrator
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards,JwtRefreshGuards,RoleGuards)
+    @UseGuards(JwtAuthGuards,RoleGuards)
     async editAdministrator(@Body() data: AdministratorAddDto, @Req() req: Request): Promise<AdministratorInfoDto | ApiResponse | void>{
         /* return await this.admiServices.editAdministrator(data, req); */
     }
 
     @Post("delete/administrator/:id")//This is methods to move superadministrator
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards,JwtRefreshGuards,RoleGuards)
+    @UseGuards(JwtAuthGuards,RoleGuards)
     async deleteAdministrator(@Param("id") id: number, @Req() req: Request): Promise<AdministratorInfoDto | ApiResponse | void>{
         /* return await this.admiServices.deleteAdministrator(id, req); */
     }    
 
     @Post("vactios/decides")
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards,JwtRefreshGuards,RoleGuards)
+    @UseGuards(JwtAuthGuards,RoleGuards)
     async administratrosDecideUserVaction2(@Body() data: DecideVacationDto, @Req() req: Request): Promise<Vacations | ApiResponse>{
 
         const adminId = req.user.id;

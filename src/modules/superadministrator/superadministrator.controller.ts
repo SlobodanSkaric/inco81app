@@ -3,7 +3,6 @@ import { SuperadministratorService } from './superadministrator.service';
 import { AddSuperadministratorsDto } from './dtos/add.superadministrators.dto';
 import { Roles } from 'src/common/decorators/role.decorators';
 import { RoleGuards } from 'src/common/guards/roles.guards';
-import { JwtRefreshGuards } from '../auth/jwtRefreshGuards';
 import { JwtAuthGuards } from '../auth/jwtAuthGuards';
 import { Request } from 'express';
 import { SuperadministratorInfoDto } from './dtos/superadministrator.info.dto';
@@ -16,7 +15,7 @@ export class SuperadministratorController {
 
     @Get("")
     @Roles("superadministrator")
-    @UseGuards(JwtAuthGuards,JwtRefreshGuards,RoleGuards)
+    @UseGuards(JwtAuthGuards,RoleGuards)
     async getSuperAdministrators( @Req() req: Request): Promise<SuperadministratorInfoDto | ApiResponse> {
         const superadministratorGetById = await this.superadmins.getUserById(req.user.id);
 
