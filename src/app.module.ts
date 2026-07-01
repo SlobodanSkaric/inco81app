@@ -10,7 +10,7 @@ import { RequestlogModule } from './modules/requestlog/requestlog.module';
 import { FingerprintMiddleware } from './middlewares/fingerprint.middleware';
 import { RequestlogService } from './modules/requestlog/requestlog.service';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { FingerprintGuard } from './common/guards/fingerprints.gurds';
+import { FingerprintGuard } from './common/guards/fingerprint.guard';
 import { JobinformationsModule } from './modules/jobinformations/jobinformations.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { RequestLogInterceptor } from './common/interceptors/request.log.interceptors';

@@ -9,7 +9,7 @@ import { UserModule } from 'src/modules/user/user.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtStrategy } from './jwr.strategy';
+import { JwtStrategy } from './jwt.strategy';
 import { Superadministrator } from 'entitets/entities/Superadministrator';
 import { SuperadministratorModule } from 'src/modules/superadministrator/superadministrator.module';
 import { JwtRefreshStrategy } from './jwt.refresh.strategy';

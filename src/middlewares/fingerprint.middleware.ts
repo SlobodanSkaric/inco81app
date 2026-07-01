@@ -35,12 +35,13 @@ export class FingerprintMiddleware implements NestMiddleware {
     use(req: Request, res: Response, next: NextFunction){
         this.attachedFingerprint(req);
 
-        const decodeToken = this.validationToken(req);
-       
-        const userId = decodeToken.id;
+        // Extract user ID from token if available (set by Passport guards)
+        // Don't validate token here - let guards handle that
+        if (req.user?.id) {
+            req.userIdreq = req.user.id;
+            req.role = req.user.role;
+        }
         
-        req.userIdreq = userId;
-        req.role = decodeToken.role;
         next();
     }
 
@@ -86,28 +87,9 @@ export class FingerprintMiddleware implements NestMiddleware {
         return (req.socket.remoteAddress || "").toString();
     }
 
-    private validationToken(req: Request): JwtPayload | null |any{
-        const configService = new ConfigService();
-        const token = req.cookies?.access_token;
-        const secret = configService.get<string>("SECRET_TOKEN_KEY");
-
-        if(!token) throw new UnauthorizedException("Unauthorized - No token provided");
-        if(!secret) throw new Error("Server configuration error - Missing secret key");
-
-        
-        if(token && secret){
-            try{
-                const decode = jwt.verify(token, secret) as JwtPayload;
-                if(!decode.id && !decode.role){
-                    throw new UnauthorizedException("Unauthorized - Invalid token payload");
-                }
-
-                return decode as JwtPayload;
-            }catch(err){
-                if(err instanceof jwt.TokenExpiredError) throw new UnauthorizedException("Unauthorized - Token expired");
-                if(err instanceof jwt.JsonWebTokenError) throw new UnauthorizedException("Unauthorized - Invalid token");
-                throw new UnauthorizedException("Unauthorized - Token verification failed");
-            }
-        }
+    private validationToken(req: Request): JwtPayload | null | any {
+        // Token validation is now handled by JwtAuthGuards (Passport)
+        // This method is kept for backward compatibility but should not be called
+        return null;
     }
 }

@@ -87,26 +87,52 @@ export class AdministratorService {
         }
     }
 
-    async editUserTimeOfWork(data: EditUserTimeOfWorkDto):Promise<TimeOfWorke[] | ApiResponse>{
+    async editUserTimeOfWork(data: EditUserTimeOfWorkDto): Promise<TimeOfWorke[] | ApiResponse> {
         const getDate = data.dateEndTime.split(" ")[0];
         const excangeDate = dataUtils(data.dateEndTime);
         const checkedInDate = new Date(getDate);
         
-       const result = await this.timeOfWorkeEntitets.createQueryBuilder("time_of_works")
-                        .where("DATE(time_of_works.checked_in) = :checked_in", { checked_in: checkedInDate.toISOString().split('T')[0] })
-                        .andWhere("time_of_works.userId = :userId", { userId: data.userId })
-                        .andWhere("time_of_works.status = :status", { status: 0 })
-                        .getMany();
+        try {
+            const result = await this.timeOfWorkeEntitets.createQueryBuilder("time_of_works")
+                .where("DATE(time_of_works.checked_in) = :checked_in", { checked_in: checkedInDate.toISOString().split('T')[0] })
+                .andWhere("time_of_works.userId = :userId", { userId: data.userId })
+                .andWhere("time_of_works.status = :status", { status: 0 })
+                .getMany();
 
-        if(!result){
-            return new ApiResponse("error", -1009, "Time of work for this user is not exists");
+            if (!result || result.length === 0) {
+                return new ApiResponse("error", -1009, "Time of work for this user is not exists");
+            }
+
+            return result;
+        } catch (err: any) {
+            return new ApiResponse("error", -1009, `Failed to fetch time of work: ${err.message}`);
         }
-
-        return result;
     }
 
-    async updateUserTimeOfWork(userId:number, result: any, udateDataAndTime: any){
-        //console.log( userId, result, udateDataAndTime);
+    async updateUserTimeOfWork(userId: number, data: EditUserTimeOfWorkDto): Promise<TimeOfWorke | ApiResponse> {
+        try {
+            const getDate = data.dateEndTime.split(" ")[0];
+            const excangeDate = dataUtils(data.dateEndTime);
+            const checkedInDate = new Date(getDate);
+            
+            const result = await this.timeOfWorkeEntitets.createQueryBuilder("time_of_works")
+                .where("DATE(time_of_works.checked_in) = :checked_in", { checked_in: checkedInDate.toISOString().split('T')[0] })
+                .andWhere("time_of_works.userId = :userId", { userId: userId })
+                .getOne();
+
+            if (!result) {
+                return new ApiResponse("error", -1009, "Time of work for this user is not found");
+            }
+
+            // Update the checked_out time
+            result.checked_out = excangeDate;
+            result.status = 1; // Mark as completed
+
+            const updated = await this.timeOfWorkeEntitets.save(result);
+            return updated;
+        } catch (err: any) {
+            return new ApiResponse("error", -1009, `Failed to update time of work: ${err.message}`);
+        }
     }
 
     async deleteUserTimeOfWork(data: DeleteUserTimeOfWorkDto): Promise<TimeOfWorke | ApiResponse | any>{
