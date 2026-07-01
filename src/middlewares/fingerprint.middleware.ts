@@ -86,10 +86,4 @@ export class FingerprintMiddleware implements NestMiddleware {
 
         return (req.socket.remoteAddress || "").toString();
     }
-
-    private validationToken(req: Request): JwtPayload | null | any {
-        // Token validation is now handled by JwtAuthGuards (Passport)
-        // This method is kept for backward compatibility but should not be called
-        return null;
-    }
 }
