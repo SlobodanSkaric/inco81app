@@ -25,7 +25,6 @@ export class OrdersService {
     async getAllOrders(): Promise<OrderGetAllDto[] | ApiResponse>{
         const getOrders = await this.ordersEntitets.find({ relations: ["customers", "orderItems"] }); 
 
-        //console.log(getOrders);
 
         if(getOrders.length === 0){
             return new ApiResponse("error", -7008, "No Orders");

@@ -33,7 +33,6 @@ interface JwtPayload {
 
 export class FingerprintMiddleware implements NestMiddleware {
     use(req: Request, res: Response, next: NextFunction){
-       
         this.attachedFingerprint(req);
 
         const decodeToken = this.validationToken(req);
