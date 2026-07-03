@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SuperadministratorService } from './superadministrator.service';
 import { Repository } from 'typeorm';
-import { Superadministrator } from 'entitets/entities/Superadministrator';
+import { Superadministrator } from 'src/entitets/entities/Superadministrator';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { mock } from 'node:test';
 

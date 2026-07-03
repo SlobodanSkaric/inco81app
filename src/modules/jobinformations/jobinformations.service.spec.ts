@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JobinformationsService } from './jobinformations.service';
 import { Repository } from 'typeorm';
-import { JobInformations } from 'entitets/entities/JobInformations';
+import { JobInformations } from 'src/entitets/entities/JobInformations';
 import { getRepositoryToken } from '@nestjs/typeorm';
 
 const mockJobinformationsRepositopry = {

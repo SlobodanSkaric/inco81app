@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Superadministrator } from 'entitets/entities/Superadministrator';
+import { Superadministrator } from 'src/entitets/entities/Superadministrator';
 import { Repository } from 'typeorm';
 import { AddSuperadministratorsDto } from './dtos/add.superadministrators.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';

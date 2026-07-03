@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Customers } from 'entitets/entities/Customers';
+import { Customers } from 'src/entitets/entities/Customers';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { Repository } from 'typeorm';
 import { GetCustomersDto } from './dtos/get.customers.dto';

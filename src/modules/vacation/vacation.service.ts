@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Vacations } from 'entitets/entities/Vacations';
+import { Vacations } from 'src/entitets/entities/Vacations';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { Repository } from 'typeorm';
 import { AddVacationsDto } from './dto/add.vacations.dto';

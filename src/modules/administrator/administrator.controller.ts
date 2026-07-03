@@ -11,7 +11,7 @@ import { JwtAuthGuards } from 'src/modules/auth/jwtAuthGuards';
 import { DeleteUserTimeOfWorkDto } from './dto/delete.user.timeofwork';
 import { OrdersService } from '../orders/orders.service';
 import { DecideVacationDto } from '../vacation/dto/decide.vactions.dto';
-import { Vacations } from 'entitets/entities/Vacations';
+import { Vacations } from 'src/entitets/entities/Vacations';
 
 @Controller('administrator')
 export class AdministratorController {

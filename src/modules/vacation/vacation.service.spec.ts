@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { VacationService } from './vacation.service';
-import { Vacations } from 'entitets/entities/Vacations';
+import { Vacations } from 'src/entitets/entities/Vacations';
 import { Repository } from 'typeorm';
 import { find } from 'rxjs';
 import { getRepositoryToken } from '@nestjs/typeorm';

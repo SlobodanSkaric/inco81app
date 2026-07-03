@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { TimeOfWorke } from 'entitets/entities/TimeOfWorke';
+import { TimeOfWorke } from 'src/entitets/entities/TimeOfWorke';
 import { Repository } from 'typeorm';
 import * as fs from 'fs';
 import * as PDFDocument from 'pdfkit';
-import { Users } from 'entitets/entities/Users';
+import { Users } from 'src/entitets/entities/Users';
 import { ReportDto } from './dto/report.dto';
 import { generateRandomDocName } from 'src/misc/random.docname';
 import { ConfigService } from '@nestjs/config';

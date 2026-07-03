@@ -11,6 +11,7 @@ import { TimeOfWorke } from "./TimeOfWorke";
 import { RequestLogs } from "./RequestLogs";
 import { JobInformations } from "./JobInformations";
 import { Vacations } from "./Vacations";
+import { Payments } from "./Payments";
 
 @Index("email", ["email"], { unique: true })
 @Index("phonenumber", ["phonenumber"], { unique: true })
@@ -58,5 +59,8 @@ export class Users {
 
   @OneToOne(() => Vacations, (vacations) => vacations.user)
   vacations: Vacations[];
+
+  @OneToMany(() => Payments, (payments) => payments.user)
+  payments: Payments[];
 
 }

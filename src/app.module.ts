@@ -25,6 +25,8 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.ad
 import { EmailModule } from './modules/email/email.module';
 import { existsSync } from 'fs';
 import { join } from 'path';
+import { GetDatabaseConfig } from './config/database.config';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 const templatesDir = existsSync(join(process.cwd(), 'dist/templates'))
   ? join(process.cwd(), 'dist/templates')
@@ -55,19 +57,9 @@ const mailSecure = process.env.MAIL_SECURE
     }),
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
-      //imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: "mysql",
-        host: configService.get<string>("DATABASE_HOST"),
-        username: configService.get<string>("DATABASE_USERNAME"),
-        password: configService.get<string>("DATABASE_PASSWORD"),
-        database: configService.get<string>("DATABASE_NAME"),
-        autoLoadEntities: true,
-        synchronize: true,//only for development, in production use migrations
-        logging:false
-      })
-     
+      useFactory: (configService: ConfigService) => 
+        GetDatabaseConfig(configService)
     }),
     UserModule,
     AdministratorModule,
@@ -82,7 +74,8 @@ const mailSecure = process.env.MAIL_SECURE
     CustomersModule,
     OrdersModule,
     ItemsModule,
-    EmailModule
+    EmailModule,
+    PaymentsModule
   ],
 
   providers:[

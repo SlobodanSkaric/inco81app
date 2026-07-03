@@ -1,11 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserService } from './user.service';
 import { Repository } from 'typeorm';
-import { Users } from 'entitets/entities/Users';
+import { Users } from 'src/entitets/entities/Users';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { mock } from 'node:test';
-import { Customers } from 'entitets/entities/Customers';
-import { Administrator } from 'entitets/entities/Administrator';
+import { Customers } from 'src/entitets/entities/Customers';
+import { Administrator } from 'src/entitets/entities/Administrator';
 import { identity } from 'rxjs';
 import e from 'express';
 

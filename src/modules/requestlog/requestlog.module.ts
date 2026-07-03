@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { RequestlogService } from './requestlog.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { RequestLogs } from 'entitets/entities/RequestLogs';
+import { RequestLogs } from 'src/entitets/entities/RequestLogs';
 
 @Module({
   providers: [RequestlogService],

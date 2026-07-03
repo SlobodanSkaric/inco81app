@@ -2,21 +2,21 @@ import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Users } from 'entitets/entities/Users';
-import { Administrator } from 'entitets/entities/Administrator';
+import { Users } from 'src/entitets/entities/Users';
+import { Administrator } from 'src/entitets/entities/Administrator';
 import { AdministratorModule } from 'src/modules/administrator/administrator.module';
 import { UserModule } from 'src/modules/user/user.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './jwt.strategy';
-import { Superadministrator } from 'entitets/entities/Superadministrator';
+import { Superadministrator } from 'src/entitets/entities/Superadministrator';
 import { SuperadministratorModule } from 'src/modules/superadministrator/superadministrator.module';
 import { JwtRefreshStrategy } from './jwt.refresh.strategy';
-import { TimeOfWorke } from 'entitets/entities/TimeOfWorke';
+import { TimeOfWorke } from 'src/entitets/entities/TimeOfWorke';
 import { AuthUserServices } from './auth.user.services';
 import { CustomersModule } from '../customers/customers.module';
-import { Customers } from 'entitets/entities/Customers';
+import { Customers } from 'src/entitets/entities/Customers';
 
 @Module({
   controllers: [AuthController],

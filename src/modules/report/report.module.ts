@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ReportService } from './report.service';
 import { ReportController } from './report.controller';
-import { TimeOfWorke } from 'entitets/entities/TimeOfWorke';
-import { Users } from 'entitets/entities/Users';
-import { Administrator } from 'entitets/entities/Administrator';
+import { TimeOfWorke } from 'src/entitets/entities/TimeOfWorke';
+import { Users } from 'src/entitets/entities/Users';
+import { Administrator } from 'src/entitets/entities/Administrator';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 

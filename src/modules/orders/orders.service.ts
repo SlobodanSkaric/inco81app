@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Orders } from 'entitets/entities/Orders';
+import { Orders } from 'src/entitets/entities/Orders';
 import { get } from 'http';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { Repository } from 'typeorm';
 import { OrderGetAllDto } from './dtos/order.get.all.dto';
 import { OrderAddDto } from './dtos/orders.add.dto';
 import { DataSource } from 'typeorm';
-import { OrderItems } from 'entitets/entities/OrderItems';
-import { Items } from 'entitets/entities/Items';
+import { OrderItems } from 'src/entitets/entities/OrderItems';
+import { Items } from 'src/entitets/entities/Items';
 import { Request } from 'express';
 import { GetCustomersDto } from '../customers/dtos/get.customers.dto';
 import { OrdersStatus } from './dtos/order.status.enum';

@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { JobinformationsService } from './jobinformations.service';
-import { JobInformations } from 'entitets/entities/JobInformations';
+import { JobInformations } from 'src/entitets/entities/JobInformations';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { RoleGuards } from 'src/common/guards/roles.guards';
 import { Roles } from 'src/common/decorators/role.decorators';

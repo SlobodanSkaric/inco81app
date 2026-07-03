@@ -1,12 +1,12 @@
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Users } from 'entitets/entities/Users';
+import { Users } from 'src/entitets/entities/Users';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { Not, Repository } from 'typeorm';
 import { UserInfoDto } from './dto/user.info.dto';
 import { UserAddDto } from './dto/user.add.dto';
 import * as bcrypt from "bcrypt";
-import { Administrator } from 'entitets/entities/Administrator';
+import { Administrator } from 'src/entitets/entities/Administrator';
 import { UserVisibilityDto } from './dto/user.visibility.dto';
 import { UserEditDto } from './dto/user.edit.dto';
 

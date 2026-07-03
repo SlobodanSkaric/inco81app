@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { InjectRepository } from "@nestjs/typeorm";
-import { RequestLogs } from "entitets/entities/RequestLogs";
+import { RequestLogs } from "src/entitets/entities/RequestLogs";
 import { Repository } from "typeorm";
 
 @Injectable()

@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RequestLogs } from 'entitets/entities/RequestLogs';
+import { RequestLogs } from 'src/entitets/entities/RequestLogs';
 import { Repository } from 'typeorm';
 import { createClient } from 'redis';
 import { ConfigService } from '@nestjs/config';

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { SuperadministratorController } from './superadministrator.controller';
 import { SuperadministratorService } from './superadministrator.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Superadministrator } from 'entitets/entities/Superadministrator';
+import { Superadministrator } from 'src/entitets/entities/Superadministrator';
 
 @Module({
   controllers: [SuperadministratorController],

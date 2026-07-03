@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Administrator } from 'entitets/entities/Administrator';
-import { Users } from 'entitets/entities/Users';
+import { Administrator } from 'src/entitets/entities/Administrator';
+import { Users } from 'src/entitets/entities/Users';
 import { AuthDto } from './dto/auth.dto';
 import { AuthLoginDto } from './dto/auth.login.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
@@ -13,9 +13,9 @@ import { AdministratorInfoDto } from '../administrator/dto/administrator.info.dt
 import { UserInfoDto } from '../user/dto/user.info.dto';
 import { SuperadministratorInfoDto } from '../superadministrator/dtos/superadministrator.info.dto';
 import { AuthUserServices } from './auth.user.services';
-import { Superadministrator } from 'entitets/entities/Superadministrator';
+import { Superadministrator } from 'src/entitets/entities/Superadministrator';
 import { ConfigService } from '@nestjs/config';
-import { Customers } from 'entitets/entities/Customers';
+import { Customers } from 'src/entitets/entities/Customers';
 import { GetCustomersDto } from '../customers/dtos/get.customers.dto';
 
 @Injectable()

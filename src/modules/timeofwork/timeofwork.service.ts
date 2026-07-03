@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { TimeOfWorke } from 'entitets/entities/TimeOfWorke';
+import { TimeOfWorke } from 'src/entitets/entities/TimeOfWorke';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { Between, IsNull, Repository } from 'typeorm';
 import { UserCheckedInDto } from './dtos/user.checkedin.dto';
 import { GetHorseDto } from './dtos/get.horse.dto';
 import { UdateTimeOfWorkUserDto } from './dtos/udate.timeofwork.user.dto';
 import { dataUtils } from 'src/utils/data.utils';
-import { Administrator } from 'entitets/entities/Administrator';
-import { Users } from 'entitets/entities/Users';
+import { Administrator } from 'src/entitets/entities/Administrator';
+import { Users } from 'src/entitets/entities/Users';
 
 @Injectable()
 export class TimeofworkService {

@@ -2,8 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { ReportService } from './report.service';
-import { TimeOfWorke } from 'entitets/entities/TimeOfWorke';
-import { Users } from 'entitets/entities/Users';
+import { TimeOfWorke } from 'src/entitets/entities/TimeOfWorke';
+import { Users } from 'src/entitets/entities/Users';
 
 var mockWriteStream = {
   on: jest.fn(),

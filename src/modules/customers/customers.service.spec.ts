@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CustomersService } from './customers.service';
 import { Repository } from 'typeorm';
-import { Customers } from 'entitets/entities/Customers';
+import { Customers } from 'src/entitets/entities/Customers';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { mock } from 'node:test';
 import { GetCustomersDto } from './dtos/get.customers.dto';

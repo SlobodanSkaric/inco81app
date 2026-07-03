@@ -7,7 +7,7 @@ import { AddCustomersDto } from './dtos/add.customers.dto';
 import { GetCustomersDto } from './dtos/get.customers.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import {Request} from 'express';
-import { Customers } from 'entitets/entities/Customers';
+import { Customers } from 'src/entitets/entities/Customers';
 
 @Controller('customers')
 export class CustomersController {

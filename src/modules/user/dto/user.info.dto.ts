@@ -1,4 +1,4 @@
-import { TimeOfWorke } from "entitets/entities/TimeOfWorke";
+import { TimeOfWorke } from "src/entitets/entities/TimeOfWorke";
 
 export class UserInfoDto{
     userId: number;

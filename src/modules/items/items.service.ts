@@ -1,6 +1,6 @@
 import { Get, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Items } from 'entitets/entities/Items';
+import { Items } from 'src/entitets/entities/Items';
 import { Repository } from 'typeorm';
 import { GetItemsDto } from './dtos/get.itmes.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';

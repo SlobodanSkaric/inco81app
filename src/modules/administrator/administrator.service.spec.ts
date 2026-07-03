@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AdministratorService } from './administrator.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Administrator } from 'entitets/entities/Administrator';
+import { Administrator } from 'src/entitets/entities/Administrator';
 import { Repository } from 'typeorm';
-import { TimeOfWorke } from 'entitets/entities/TimeOfWorke';
+import { TimeOfWorke } from 'src/entitets/entities/TimeOfWorke';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { AdministratorInfoDto } from './dto/administrator.info.dto';
 

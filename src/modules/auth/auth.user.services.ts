@@ -2,13 +2,13 @@ import { Injectable } from "@nestjs/common";
 import { UserService } from "../user/user.service";
 import { AdministratorService } from "../administrator/administrator.service";
 import { SuperadministratorService } from "../superadministrator/superadministrator.service";
-import { Users } from "entitets/entities/Users";
-import { Administrator } from "entitets/entities/Administrator";
-import { Superadministrator } from "entitets/entities/Superadministrator";
+import { Users } from "src/entitets/entities/Users";
+import { Administrator } from "src/entitets/entities/Administrator";
+import { Superadministrator } from "src/entitets/entities/Superadministrator";
 import { ApiResponse } from "src/misc/api.response.dto";
 import { SuperadministratorInfoDto } from "../superadministrator/dtos/superadministrator.info.dto";
 import { CustomersService } from "../customers/customers.service";
-import { Customers } from "entitets/entities/Customers";
+import { Customers } from "src/entitets/entities/Customers";
 
 @Injectable()
 export class AuthUserServices{

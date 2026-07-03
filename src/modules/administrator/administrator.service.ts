@@ -1,17 +1,17 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Administrator } from 'entitets/entities/Administrator';
+import { Administrator } from 'src/entitets/entities/Administrator';
 import { Repository } from 'typeorm';
 import { AdministratorInfoDto } from './dto/administrator.info.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { AdministratorAddDto } from './dto/administrator.add.dto';
 import * as bcrypt from "bcrypt";
 import { EditUserTimeOfWorkDto } from './dto/edit.user.timeofwork.dto';
-import { TimeOfWorke } from 'entitets/entities/TimeOfWorke';
+import { TimeOfWorke } from 'src/entitets/entities/TimeOfWorke';
 import { dataUtils } from 'src/utils/data.utils';
 import { DeleteUserTimeOfWorkDto } from './dto/delete.user.timeofwork';
-import { Users } from 'entitets/entities/Users';
-import { Vacations } from 'entitets/entities/Vacations';
+import { Users } from 'src/entitets/entities/Users';
+import { Vacations } from 'src/entitets/entities/Vacations';
 import { RequestVacationDto } from '../vacation/dto/rewquest.vactions.dto';
 import { DecideVacationDto } from '../vacation/dto/decide.vactions.dto';
 
