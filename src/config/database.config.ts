@@ -6,8 +6,8 @@ export const GetDatabaseConfig = (configService: ConfigService): TypeOrmModuleOp
 
     return {
         type: "mysql",
-        host: configService.get<string>("DATABASE_HOST"),
-        port: configService.get<number>("DATABASE_PORT"),
+        host: configService.get<string>("DATABASE_HOST") || "db",
+        port: parseInt(configService.get<string>("DATABASE_PORT") || "3306", 10) || 3306,
         username: configService.get<string>("DATABASE_USERNAME"),
         password: configService.get<string>("DATABASE_PASSWORD"),
         database: configService.get<string>("DATABASE_NAME"),
@@ -19,6 +19,8 @@ export const GetDatabaseConfig = (configService: ConfigService): TypeOrmModuleOp
 
         autoLoadEntities: true,
         synchronize: false, 
+        retryAttempts: 10,
+        retryDelay: 3000,
         logging: nodeEnv === "development" ? true : false,
 
         extra: nodeEnv === "production" ? {

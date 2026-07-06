@@ -1,12 +1,10 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class InitialSchemes1783103667898 implements MigrationInterface {
-    name = 'InitialSchemes1783103667898'
+export class InitialSchames1783184453789 implements MigrationInterface {
+    name = 'InitialSchames1783184453789'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`CREATE TABLE \`superadministrator\` (\`superadministrator_id\` int NOT NULL AUTO_INCREMENT, \`username\` varchar(255) NOT NULL, \`password\` varchar(255) NOT NULL, \`email\` varchar(255) NOT NULL, \`phone_number\` varchar(20) NULL, \`created_at\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updated_at\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (\`superadministrator_id\`)) ENGINE=InnoDB`);
-        await queryRunner.query(`CREATE TABLE \`request_log\` (\`request_log_id\` int NOT NULL AUTO_INCREMENT, \`ip\` varchar(255) NULL, \`user_agent\` text NULL, \`accept_language\` varchar(255) NULL, \`device_fingerprint\` text NULL, \`route\` varchar(255) NULL, \`response_status\` int NULL, \`response_time\` int NULL, \`request_method\` varchar(255) NULL, \`ts\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, \`user_id\` int NULL, \`admin_id\` int NULL, \`superadministrator_id\` int NULL, PRIMARY KEY (\`request_log_id\`)) ENGINE=InnoDB`);
-        await queryRunner.query(`CREATE TABLE \`payments\` (\`id\` int NOT NULL AUTO_INCREMENT, \`user_id\` int NOT NULL, \`amount\` decimal(10,2) NOT NULL, \`descriptions\` varchar(255) NULL, \`payment_date\` date NOT NULL, \`status\` enum ('pending', 'completed', 'failed', 'refunded') NOT NULL DEFAULT 'pending', \`note\` varchar(255) NULL, \`created_at\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updated_at\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`userUserId\` int NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`payments\` (\`id\` int NOT NULL AUTO_INCREMENT, \`user_id\` int NOT NULL, \`amount\` decimal(10,2) NOT NULL, \`descriptions\` varchar(255) NULL, \`payment_date\` date NOT NULL, \`status\` enum ('pending', 'completed', 'failed', 'refunded') NOT NULL DEFAULT 'pending', \`note\` varchar(255) NULL, \`created_at\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updated_at\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`userUserId\` int NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`users\` (\`user_id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(128) NOT NULL DEFAULT '0', \`lastname\` varchar(128) NOT NULL DEFAULT '0', \`email\` varchar(128) NOT NULL DEFAULT '0', \`password\` varchar(256) NOT NULL DEFAULT '0', \`phonenumber\` varchar(128) NOT NULL DEFAULT '0', \`role\` varchar(128) NULL DEFAULT '0', \`token\` varchar(256) NULL DEFAULT '0', \`visibility\` int NOT NULL DEFAULT '0', \`created_at\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, UNIQUE INDEX \`phonenumber\` (\`phonenumber\`), UNIQUE INDEX \`email\` (\`email\`), UNIQUE INDEX \`IDX_97672ac88f789774dd47f7c8be\` (\`email\`), UNIQUE INDEX \`IDX_3e8a76e8712c22e796f60e6351\` (\`phonenumber\`), PRIMARY KEY (\`user_id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`time_of_worke\` (\`time_of_worke_id\` int NOT NULL AUTO_INCREMENT, \`date_and_time\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, \`checked_in\` datetime NULL, \`checked_out\` datetime NULL, \`status\` int NOT NULL DEFAULT '0', \`admin_id\` int NULL, \`user_id\` int NULL, PRIMARY KEY (\`time_of_worke_id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`job_information\` (\`job_information_id\` int NOT NULL AUTO_INCREMENT, \`job_title\` varchar(255) NOT NULL, \`company_name\` varchar(255) NOT NULL, \`location\` varchar(255) NULL, \`start_date\` date NOT NULL, \`end_date\` date NULL, \`job_description\` text NULL, \`created_at\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updated_at\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`admin_id\` int NULL, PRIMARY KEY (\`job_information_id\`)) ENGINE=InnoDB`);
@@ -62,8 +60,6 @@ export class InitialSchemes1783103667898 implements MigrationInterface {
         await queryRunner.query(`DROP INDEX \`phonenumber\` ON \`users\``);
         await queryRunner.query(`DROP TABLE \`users\``);
         await queryRunner.query(`DROP TABLE \`payments\``);
-        await queryRunner.query(`DROP TABLE \`request_log\``);
-        await queryRunner.query(`DROP TABLE \`superadministrator\``);
     }
 
 }
