@@ -27,6 +27,7 @@ import { existsSync } from 'fs';
 import { join } from 'path';
 import { GetDatabaseConfig } from './config/database.config';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { RedisModule } from './modules/redis/redis.module';
 
 const templatesDir = existsSync(join(process.cwd(), 'dist/templates'))
   ? join(process.cwd(), 'dist/templates')
@@ -75,7 +76,8 @@ const mailSecure = process.env.MAIL_SECURE
     OrdersModule,
     ItemsModule,
     EmailModule,
-    PaymentsModule
+    PaymentsModule,
+    RedisModule
   ],
 
   providers:[
