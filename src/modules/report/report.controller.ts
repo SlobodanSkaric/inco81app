@@ -1,6 +1,6 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { ReportService } from './report.service';
-import { Roles } from 'src/common/decorators/role.decorators';
+import { Roles } from 'src/common/decorators/role.decorator';
 import { RoleGuards } from 'src/common/guards/roles.guards';
 import { JwtAuthGuards } from 'src/modules/auth/jwtAuthGuards';
 

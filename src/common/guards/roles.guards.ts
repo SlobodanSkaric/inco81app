@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { ROLE_KEYS } from "../decorators/role.decorators";
+import { ROLE_KEYS } from "../decorators/role.decorator";
 
 
 @Injectable()
@@ -20,11 +20,7 @@ export class RoleGuards implements CanActivate {
 
         const request = context.switchToHttp().getRequest();
         const user = request.user;
-
-        if(request.fingerprint?.suspicious){
-            throw new ForbiddenException("Suspicious login detected");
-        }
-
+        
         if(!user ||!user.role){
             throw new ForbiddenException("User role not found");
         }

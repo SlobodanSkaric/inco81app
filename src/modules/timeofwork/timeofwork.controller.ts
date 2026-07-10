@@ -5,7 +5,7 @@ import { ApiResponse } from 'src/misc/api.response.dto';
 import { UserCheckedInDto } from './dtos/user.checkedin.dto';
 import { UserCheckedOutDto } from './dtos/usercheckedout.dto';
 import { GetHorseDto } from './dtos/get.horse.dto';
-import { Roles } from 'src/common/decorators/role.decorators';
+import { Roles } from 'src/common/decorators/role.decorator';
 import { RoleGuards } from 'src/common/guards/roles.guards';
 import { UdateTimeOfWorkUserDto } from './dtos/udate.timeofwork.user.dto';
 import { JwtAuthGuards } from 'src/modules/auth/jwtAuthGuards';

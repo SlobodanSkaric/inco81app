@@ -4,7 +4,7 @@ import { AuthLoginDto } from './dto/auth.login.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
-import { GetIp } from 'src/common/decorators/ip.decorators';
+import { GetIp } from 'src/common/decorators/ip.decorator';
 
 @Controller('auth')
 export class AuthController {

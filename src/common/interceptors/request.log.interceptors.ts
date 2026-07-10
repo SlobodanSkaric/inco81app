@@ -14,12 +14,12 @@ export class RequestLogInterceptor implements NestInterceptor{
         const path: string = request.originalUrl || request.url || "";
 
         const start = process.hrtime.bigint();
-
+        
         const basePayload = {
             method: request.method,
             path: path,
             role: request.role || null, 
-            user_id: request.userIdreq || null,
+            user_id: request.user ? request.user.id : null,
             fingerprint: "fingerprint_value" ,//request.fingerprint || request.headers["x-fingerprint"] || null, 
             coleration_id: request.headers["x-request-id"] || null,
             ip: ((request.ip || request.headers["x-forwarded-for"] || request.socket.remoteAddress || "").toString().split(",")[0].trim()) as string,
@@ -27,6 +27,8 @@ export class RequestLogInterceptor implements NestInterceptor{
             accept_language: (request.headers["accept-language"] as string) || null,            
             ts: new Date(),
         }
+
+        console.log("Payload" + JSON.stringify(basePayload));
 
         return next.handle().pipe(
             tap(() => {

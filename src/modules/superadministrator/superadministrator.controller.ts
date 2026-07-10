@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { SuperadministratorService } from './superadministrator.service';
 import { AddSuperadministratorsDto } from './dtos/add.superadministrators.dto';
-import { Roles } from 'src/common/decorators/role.decorators';
+import { Roles } from 'src/common/decorators/role.decorator';
 import { RoleGuards } from 'src/common/guards/roles.guards';
 import { JwtAuthGuards } from '../auth/jwtAuthGuards';
 import { Request } from 'express';

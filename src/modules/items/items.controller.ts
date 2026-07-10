@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ItemsService } from './items.service';
 import { RoleGuards } from 'src/common/guards/roles.guards';
-import { Roles } from 'src/common/decorators/role.decorators';
+import { Roles } from 'src/common/decorators/role.decorator';
 import { JwtAuthGuards } from '../auth/jwtAuthGuards';
 import { GetItemsDto } from './dtos/get.itmes.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';

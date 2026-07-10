@@ -3,7 +3,7 @@ import { VacationService } from './vacation.service';
 import { AddVacationsDto } from './dto/add.vacations.dto';
 import { Vacations } from 'src/entitets/entities/Vacations';
 import { ApiResponse } from 'src/misc/api.response.dto';
-import { Roles } from 'src/common/decorators/role.decorators';
+import { Roles } from 'src/common/decorators/role.decorator';
 import { JwtAuthGuards } from 'src/modules/auth/jwtAuthGuards';
 import { RoleGuards } from 'src/common/guards/roles.guards';
 

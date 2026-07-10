@@ -8,12 +8,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ReportModule } from './modules/report/report.module';
 import { RequestlogModule } from './modules/requestlog/requestlog.module';
 import { FingerprintMiddleware } from './middlewares/fingerprint.middleware';
-import { RequestlogService } from './modules/requestlog/requestlog.service';
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { FingerprintGuard } from './common/guards/fingerprint.guard';
 import { JobinformationsModule } from './modules/jobinformations/jobinformations.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { RequestLogInterceptor } from './common/interceptors/request.log.interceptors';
 import { LogsModule } from './logs/logs.module';
 import { SuperadministratorModule } from './modules/superadministrator/superadministrator.module';
 import { VacationModule } from './modules/vacation/vacation.module';
@@ -67,7 +63,7 @@ const mailSecure = process.env.MAIL_SECURE
     TimeofworkModule,
     AuthModule,
     ReportModule,
-    RequestlogModule,
+    //RequestlogModule,
     JobinformationsModule,
     LogsModule,
     SuperadministratorModule,
@@ -80,7 +76,7 @@ const mailSecure = process.env.MAIL_SECURE
     RedisModule
   ],
 
-  providers:[
+ /* providers:[
     RequestlogService,
     {
       provide: APP_GUARD,
@@ -88,9 +84,9 @@ const mailSecure = process.env.MAIL_SECURE
     },
     {
       provide: APP_INTERCEPTOR,
-      useClass: RequestLogInterceptor
+      useClass: RequestLogInterceptor,
     },
-  ],
+  ],*/
 
   controllers: [],
 

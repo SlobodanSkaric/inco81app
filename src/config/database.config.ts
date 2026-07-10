@@ -21,7 +21,7 @@ export const GetDatabaseConfig = (configService: ConfigService): TypeOrmModuleOp
         synchronize: false, 
         retryAttempts: 10,
         retryDelay: 3000,
-        logging: nodeEnv === "development" ? true : false,
+        /*logging: nodeEnv === "development" ? true : false,*/
 
         extra: nodeEnv === "production" ? {
             max: 10,

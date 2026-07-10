@@ -3,13 +3,14 @@ import { UserService } from './user.service';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { UserInfoDto } from './dto/user.info.dto';
 import { UserAddDto } from './dto/user.add.dto';
-import { Roles } from 'src/common/decorators/role.decorators';
+import { Roles } from 'src/common/decorators/role.decorator';
 import { Request } from 'express';
-import { Permissions } from 'src/common/decorators/permissions.decorators';
+import { Permissions } from 'src/common/decorators/permissions.decorator';
 import { JwtAuthGuards } from 'src/modules/auth/jwtAuthGuards';
 import { UserVisibilityDto } from './dto/user.visibility.dto';
 import { RoleGuards } from 'src/common/guards/roles.guards';
 import { UserEditDto } from './dto/user.edit.dto';
+import { RedisRiskGuards } from 'src/common/guards/redis.risk.guars';
 
 
 @Controller('user')
@@ -18,7 +19,7 @@ export class UserController {
 
     @Get("/all")
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards, RoleGuards)
+    @UseGuards(JwtAuthGuards, RoleGuards, RedisRiskGuards)
     async getAll(@Req() req: Request): Promise<UserInfoDto[] | ApiResponse>{
         return await this.userServices.getAllUsers(req.user.id);
     }

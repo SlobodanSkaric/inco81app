@@ -5,7 +5,7 @@ import * as jwt from "jsonwebtoken";
 
 import "express";
 import { GetUserHostInfo } from "src/misc/get.user.host.info";
-import { ConfigService } from "@nestjs/config";
+
 declare module "express" {
     interface Request {
         fingerprint?:{
@@ -21,22 +21,10 @@ declare module "express" {
     }
 }
 
-interface JwtPayload {
-    id: number;
-    email: string;
-    phonenumber: string;
-    role: string;
-    permissions: string[];
-    ip: string;
-    ua: string;
-}
-
 export class FingerprintMiddleware implements NestMiddleware {
-    use(req: Request, res: Response, next: NextFunction){
+    use(req: Request, res: Response , next: NextFunction){
         this.attachedFingerprint(req);
 
-        // Extract user ID from token if available (set by Passport guards)
-        // Don't validate token here - let guards handle that
         if (req.user?.id) {
             req.userIdreq = req.user.id;
             req.role = req.user.role;
@@ -55,7 +43,6 @@ export class FingerprintMiddleware implements NestMiddleware {
         const hostInfo = userInfo.getUserHostInfo(req);
 
         let fingerprintDatas = {};
-
 
         if(deviceFingerprint === "unknown"){
             fingerprintDatas ={
