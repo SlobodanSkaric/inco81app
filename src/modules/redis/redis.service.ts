@@ -87,7 +87,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
          return url.replace(/(:.*@)/, ':****@');
     }
 
-    async set(key: string, value: any, options?: CacheOptions): Promise<boolean> {
+    async setCache(key: string, value: any, options?: CacheOptions): Promise<boolean> {
         const ttl = options?.ttl || 3600; // Default TTL of 1 hour
         const prefix = "set:";
         const fullKey = `${prefix}${key}`;
@@ -102,12 +102,17 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         return true;
     }
 
-    async get<T>(key: string, options?: CacheOptions): Promise<T | null> {
+    async get<T>(key: string, options?: CacheOptions): Promise<T | T[] | null> {
         const prefix = options?.prefix || '';
         const fullKey = `${prefix}${key}`;
 
-        const value = await this.redisClient.get(fullKey);
-        return value ? JSON.parse(value) as T : null;
+        const values = await this.redisClient.lRange(fullKey, 0, 49);
+        if (!values || values.length === 0) {
+            return null;
+        }
+
+        const parsedValues = values.map((item) => JSON.parse(item) as T);
+        return parsedValues.length === 1 ? parsedValues[0] : (parsedValues as T[]);
     }
 
     async delete(key: string, options?: CacheOptions): Promise<void> {
@@ -119,12 +124,16 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
     async setRiskScore(data: RiskScoreData): Promise<void> {
         const key = `risk_score:${data.userId}`;
-        await this.set(key, data, { ttl: 3600 }); // Store for 1 hour
+        await this.redisClient.lPush(key, JSON.stringify(data));
     }
 
     async getRiskScore(userId: string): Promise<RiskScoreData | null> {
         const key = `risk_score:${userId}`;
-        return await this.get<RiskScoreData>(key);
+        const values = await this.redisClient.lRange(key, 0, 0);
+        if (!values || values.length === 0) {
+            return null;
+        }
+        return JSON.parse(values[0]) as RiskScoreData;
     }
 
 }
