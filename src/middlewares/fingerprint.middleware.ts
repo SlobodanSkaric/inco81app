@@ -24,11 +24,6 @@ declare module "express" {
 export class FingerprintMiddleware implements NestMiddleware {
     use(req: Request, res: Response , next: NextFunction){
         this.attachedFingerprint(req);
-
-        if (req.user?.id) {
-            req.userIdreq = req.user.id;
-            req.role = req.user.role;
-        }
         
         next();
     }

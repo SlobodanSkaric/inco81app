@@ -18,7 +18,7 @@ export class RedisRiskGuards implements CanActivate{
             ua: request.headers["user-agent"]
         }
 
-        const setRedisData = await this.redisService.set(userId, payload, {ttl: 3600, prefix: "risk:"});
+        const setRedisData = await this.redisService.setCache(userId, payload);
 
         if(!setRedisData){
             return false;

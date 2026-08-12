@@ -89,7 +89,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
     async setCache(key: string, value: any, options?: CacheOptions): Promise<boolean> {
         const ttl = options?.ttl || 3600; // Default TTL of 1 hour
-        const prefix = "set:";
+        const prefix = "set:cache:";
         const fullKey = `${prefix}${key}`;
 
         const result = await this.redisClient.lPush(fullKey, JSON.stringify(value));

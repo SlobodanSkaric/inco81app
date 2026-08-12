@@ -19,7 +19,7 @@ export class UserController {
 
     @Get("/all")
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards, RoleGuards, RedisRiskGuards)
+    @UseGuards(JwtAuthGuards, RoleGuards)
     async getAll(@Req() req: Request): Promise<UserInfoDto[] | ApiResponse>{
         return await this.userServices.getAllUsers(req.user.id);
     }

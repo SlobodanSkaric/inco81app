@@ -13,8 +13,8 @@ export const GetDatabaseConfig = (configService: ConfigService): TypeOrmModuleOp
         database: configService.get<string>("DATABASE_NAME"),
 
 
-        entities: [__dirname + "/../entitets/entities/*.{ts,js}"],
-        migrations: [__dirname + "/../migrations/*.{ts,js}"],
+        entities: [__dirname + "../entitets/entities/*.{ts,js}"],
+        migrations: [__dirname + "../migrations/*.{ts,js}"],
 
 
         autoLoadEntities: true,

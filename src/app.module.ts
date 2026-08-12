@@ -24,6 +24,8 @@ import { join } from 'path';
 import { GetDatabaseConfig } from './config/database.config';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { RedisModule } from './modules/redis/redis.module';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { RequestLogInterceptor } from './common/interceptors/request.log.interceptors';
 
 const templatesDir = existsSync(join(process.cwd(), 'dist/templates'))
   ? join(process.cwd(), 'dist/templates')
@@ -76,19 +78,12 @@ const mailSecure = process.env.MAIL_SECURE
     RedisModule
   ],
 
- /* providers:[
-    RequestlogService,
-    {
-      provide: APP_GUARD,
-      useClass: FingerprintGuard
-    },
+ providers:[
     {
       provide: APP_INTERCEPTOR,
       useClass: RequestLogInterceptor,
-    },
-  ],*/
-
-  controllers: [],
+    }
+  ]
 
 })
 export class AppModule implements NestModule{
