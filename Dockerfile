@@ -21,4 +21,4 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/tsconfig*.json ./
 
 EXPOSE 3000
-CMD ["node", "/app/dist/src/main.js"]
+CMD ["node", "/app/dist/main.js"]
