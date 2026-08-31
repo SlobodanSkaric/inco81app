@@ -28,6 +28,8 @@ export class RequestLogInterceptor implements NestInterceptor{
             ts: new Date(),
         }
 
+        console.log("RequestLogInterceptor: ", basePayload);
+
         return next.handle().pipe(
             tap(() => {
                 const duration = Number((process.hrtime.bigint() - start) / 1000000n) //ms

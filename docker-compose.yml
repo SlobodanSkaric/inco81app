@@ -49,9 +49,10 @@ services:
       - /app/node_modules
       - /app/dist
     depends_on:
-      - db:
+      db:
         condition: service_healthy
-      - redis
+      redis:
+        condition: service_started
 
 volumes:
   db_data:
