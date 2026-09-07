@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards,Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards,Req, UseInterceptors } from '@nestjs/common';
 import { CustomersService } from './customers.service';
 import { Roles } from 'src/common/decorators/role.decorator';
 import { JwtAuthGuards } from '../auth/jwtAuthGuards';
@@ -8,11 +8,13 @@ import { GetCustomersDto } from './dtos/get.customers.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import {Request} from 'express';
 import { Customers } from 'src/entitets/entities/Customers';
+import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptors';
 
 @Controller('customers')
 export class CustomersController {
     constructor(private readonly customersService: CustomersService) {}
     
+    @UseInterceptors(CacheRedisIntrceptor)
     @Get("all")
     @Roles("administrator", "superadministrator")
     @UseGuards(JwtAuthGuards, RoleGuards)
@@ -20,6 +22,8 @@ export class CustomersController {
         return await this.customersService.findAllCustomers();
     }
 
+
+    @UseInterceptors(CacheRedisIntrceptor)
     @Get("")
     @Roles("customer")
     @UseGuards(JwtAuthGuards, RoleGuards)
@@ -34,6 +38,7 @@ export class CustomersController {
         return await this.customersService.findCustomersOrdes(req.user.id);
     }
 
+    @UseInterceptors(CacheRedisIntrceptor)
     @Get(":id")
     @Roles("administrator", "superadministrator")
     @UseGuards(JwtAuthGuards, RoleGuards)

@@ -26,6 +26,8 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { RequestLogInterceptor } from './common/interceptors/request.log.interceptors';
+import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-yet';
 
 const templatesDir = existsSync(join(process.cwd(), 'dist/templates'))
   ? join(process.cwd(), 'dist/templates')
@@ -37,6 +39,18 @@ const mailSecure = process.env.MAIL_SECURE
 
 @Module({
   imports: [
+    /*CacheModule.registerAsync({
+      isGlobal: true,
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => {
+           return {
+            store: await redisStore({
+              url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
+              ttl: 60 * 1000
+            })
+           }
+      }
+    }),*/
     EventEmitterModule.forRoot(),
     MailerModule.forRoot({
       transport:{

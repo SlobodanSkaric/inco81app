@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Post, Req, UseGuards, UseInterceptors } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { UserInfoDto } from './dto/user.info.dto';
@@ -10,25 +10,41 @@ import { JwtAuthGuards } from 'src/modules/auth/jwtAuthGuards';
 import { UserVisibilityDto } from './dto/user.visibility.dto';
 import { RoleGuards } from 'src/common/guards/roles.guards';
 import { UserEditDto } from './dto/user.edit.dto';
-import { RedisRiskGuards } from 'src/common/guards/redis.risk.guars';
+import { RedisService } from '../redis/redis.service';
+import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptors';
 
 
 @Controller('user')
 export class UserController {
-    constructor(private readonly userServices: UserService){}
+    constructor(
+        private readonly userServices: UserService, 
+        private readonly RedisService: RedisService,
+    ){}
 
+    @UseInterceptors(CacheRedisIntrceptor)
     @Get("/all")
     @Roles("administrator")
     @UseGuards(JwtAuthGuards, RoleGuards)
-    async getAll(@Req() req: Request): Promise<UserInfoDto[] | ApiResponse>{
-        return await this.userServices.getAllUsers(req.user.id);
+    async getAll(@Req() req: Request): Promise<UserInfoDto[] | ApiResponse | any >{
+        const adminId = req.user.id;
+
+      
+        const usersDatas = await this.userServices.getAllUsers(adminId);
+
+        if(usersDatas instanceof ApiResponse && usersDatas.code === -1002){
+            return usersDatas;
+        }
+
+        return usersDatas;
     }
 
+    @UseInterceptors(CacheRedisIntrceptor)
     @Get("")
     @Roles("user")
     @UseGuards(JwtAuthGuards)
-    async getById(@Req() req: Request): Promise<UserInfoDto | ApiResponse>{
-        return this.userServices.getUserById(req.user.id);
+    async getById(@Req() req: Request): Promise<UserInfoDto | ApiResponse>{     
+        const userData = await this.userServices.getUserById(req.user.id);
+        return userData;
     }
 
 

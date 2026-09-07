@@ -28,7 +28,7 @@ export class RequestLogInterceptor implements NestInterceptor{
             ts: new Date(),
         }
 
-        console.log("RequestLogInterceptor: ", basePayload);
+        
 
         return next.handle().pipe(
             tap(() => {

@@ -93,6 +93,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         const fullKey = `${prefix}${key}`;
 
         const result = await this.redisClient.lPush(fullKey, JSON.stringify(value));
+        await this.redisClient.expire(fullKey, ttl);
 
         if (result <= 0) {
             this.logger.error(`Failed to set key ${fullKey} in Redis.`);

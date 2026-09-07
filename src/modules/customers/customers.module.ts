@@ -4,9 +4,10 @@ import { Type } from 'class-transformer';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Customers } from 'src/entitets/entities/Customers';
 import { CustomersController } from './customers.controller';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Customers])],
+  imports: [TypeOrmModule.forFeature([Customers]), RedisModule],
   providers: [CustomersService],
   controllers: [CustomersController],
   exports: [CustomersService]

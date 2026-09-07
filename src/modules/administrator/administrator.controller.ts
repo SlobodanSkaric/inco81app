@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, UseGuards, UseInterceptors } from '@nestjs/common';
 import { AdministratorService } from './administrator.service';
 import { AdministratorInfoDto } from './dto/administrator.info.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
@@ -12,26 +12,36 @@ import { DeleteUserTimeOfWorkDto } from './dto/delete.user.timeofwork';
 import { OrdersService } from '../orders/orders.service';
 import { DecideVacationDto } from '../vacation/dto/decide.vactions.dto';
 import { Vacations } from 'src/entitets/entities/Vacations';
+import { RedisService } from '../redis/redis.service';
+import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptors';
 
 @Controller('administrator')
 export class AdministratorController {
     constructor(
         private readonly admiServices: AdministratorService,
-        private readonly OrdersServices: OrdersService
+        private readonly OrdersServices: OrdersService,
+        private readonly RedisService: RedisService
     ){}
 
+    @UseInterceptors(CacheRedisIntrceptor)
     @Get("all")
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards,RoleGuards)
-    async getAllAdministrator(): Promise<AdministratorInfoDto[] | ApiResponse>{
-        return await this.admiServices.getAllAdmin();
+    @UseGuards(JwtAuthGuards,RoleGuards)    
+    async getAllAdministrator(): Promise<AdministratorInfoDto[] | ApiResponse>{   
+        const adminstratorsData =  await this.admiServices.getAllAdmin();
+        return adminstratorsData;
     }
 
+    @UseInterceptors(CacheRedisIntrceptor)
     @Get("")
     @Roles("administrator")
     @UseGuards(JwtAuthGuards,RoleGuards)
     async getAdminstratorById(@Req() req: Request): Promise<AdministratorInfoDto | ApiResponse>{
-        return await this.admiServices.getById(req.user.id);
+        const administratorId = req.user.id;
+
+        const adminData = await this.admiServices.getById(administratorId);
+        return adminData;
+   
     }
 
     @Post("add")//add role and guards of superadmin

@@ -6,9 +6,10 @@ import { Administrator } from 'src/entitets/entities/Administrator';
 import { TimeOfWorke } from 'src/entitets/entities/TimeOfWorke';
 import { OrdersModule } from '../orders/orders.module';
 import { Vacations } from 'src/entitets/entities/Vacations';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Administrator,TimeOfWorke,Vacations]), OrdersModule],
+  imports: [TypeOrmModule.forFeature([Administrator,TimeOfWorke,Vacations]), OrdersModule, RedisModule],
   controllers: [AdministratorController],
   providers: [AdministratorService],
   exports:[AdministratorService]
