@@ -7,6 +7,7 @@ import { TimeOfWorke } from 'src/entitets/entities/TimeOfWorke';
 import { OrdersModule } from '../orders/orders.module';
 import { Vacations } from 'src/entitets/entities/Vacations';
 import { RedisModule } from '../redis/redis.module';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Administrator,TimeOfWorke,Vacations]), OrdersModule, RedisModule],

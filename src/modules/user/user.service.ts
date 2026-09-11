@@ -9,12 +9,15 @@ import * as bcrypt from "bcrypt";
 import { Administrator } from 'src/entitets/entities/Administrator';
 import { UserVisibilityDto } from './dto/user.visibility.dto';
 import { UserEditDto } from './dto/user.edit.dto';
+import {EventEmitter2} from '@nestjs/event-emitter';
+import { CacheIvalidationEvent } from 'src/common/events/cahce.events';
 
 @Injectable()
 export class UserService {
     constructor(
         @InjectRepository(Users) private readonly userEntitets: Repository<Users>,
-        @InjectRepository(Administrator) private readonly adminRepository: Repository<Administrator>
+        @InjectRepository(Administrator) private readonly adminRepository: Repository<Administrator>,
+        private readonly eventEmmiter: EventEmitter2
     ){}
 
     async getAllUsers(userId): Promise<UserInfoDto[] | ApiResponse>{
@@ -156,21 +159,21 @@ export class UserService {
             return new ApiResponse("errot", -1003, "No user");
         }
 
-        const checkedEmail = await this.userEntitets.findOne({ where : { email: userData.email, userId: Not(userId)}});
+        const checkedEmail = userData.email ? await this.userEntitets.findOne({ where : { email: userData.email, userId: Not(userId)}}) : null;
 
-        if(!checkedEmail){//This condition is checked
+        if(checkedEmail){//This condition is checked
             return new ApiResponse("error", -1006, "Email already in use");
         }
 
-        const checkedPhonenumber = await this.userEntitets.findOne({ where : { phonenumber: userData.phonenumber, userId: Not(userId)}});
+        const checkedPhonenumber = await this.userEntitets.findOne({ where : { phonenumber: userData.phonenumber, userId: Not(userId)}}) ;
 
         if(checkedPhonenumber){// This condition is checked
             return new ApiResponse("error", -1007, "Phone number already in use");
         }
 
-        user.name = userData.name? userData.name : user.name;
-        user.lastname = userData.lastname? userData.lastname : user.lastname;
-        user.email = userData.email? userData.email : user.email;
+        user.name = userData.name ? userData.name : user.name;
+        user.lastname = userData.lastname ? userData.lastname : user.lastname;
+        user.email = userData.email ? userData.email : user.email;
         user.phonenumber = userData.phonenumber? userData.phonenumber : user.phonenumber;
 
         if(userData.password){
@@ -181,7 +184,24 @@ export class UserService {
 
         try{
             const saveUser = await this.userEntitets.save(user);
-            return await this.getUserByIdLocal(saveUser.userId)
+
+            const redisRmmmiter = this.eventEmmiter.emit("cache.invalidate",
+                new CacheIvalidationEvent(
+                    [
+                        `user:${saveUser.userId}:/user/`,
+                        `user:${saveUser.userId}:/user/all/`,
+                        `user:${saveUser.userId}:/user/`,
+                    ],
+                    [
+                        "set:cache:interceptor:administrator:*:/user/all",
+                    ],
+                    "Users",
+                    "update"
+                )
+            )
+            //console.log("redisRmmmiter", redisRmmmiter);
+
+            return await this.getUserByIdLocal(saveUser.userId);
         }catch(e){
             return new ApiResponse("error", -1008, "Cant update user");
         }

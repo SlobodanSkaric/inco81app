@@ -92,10 +92,10 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         const prefix = "set:cache:";
         const fullKey = `${prefix}${key}`;
 
-        const result = await this.redisClient.lPush(fullKey, JSON.stringify(value));
-        await this.redisClient.expire(fullKey, ttl);
+        const result = await this.redisClient.set(fullKey, JSON.stringify(value), );
+       
 
-        if (result <= 0) {
+        if (result != "OK") {
             this.logger.error(`Failed to set key ${fullKey} in Redis.`);
             return false;
         }
@@ -107,13 +107,18 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         const prefix = options?.prefix || '';
         const fullKey = `${prefix}${key}`;
 
-        const values = await this.redisClient.lRange(fullKey, 0, 49);
-        if (!values || values.length === 0) {
+        const values = await this.redisClient.get(fullKey);
+       
+        if (!values) {
             return null;
         }
 
-        const parsedValues = values.map((item) => JSON.parse(item) as T);
-        return parsedValues.length === 1 ? parsedValues[0] : (parsedValues as T[]);
+        try {
+            return JSON.parse(values) as T | T[];
+        } catch (error) {
+            this.logger.error(`Failed to parse value for key ${fullKey}: ${error}`);
+            return null;
+        }
     }
 
     async delete(key: string, options?: CacheOptions): Promise<void> {
@@ -121,6 +126,22 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         const fullKey = `${prefix}${key}`;
 
         await this.redisClient.del(fullKey);
+    }
+
+    async clearCacheByPattern(pattern: string, prefix?: CacheOptions): Promise<number> {
+        let deleteCount = 0;
+        console.log("prefix" + prefix )
+        console.log(pattern)
+
+
+        for await (const key of this.redisClient.scanIterator({
+            MATCH: pattern,
+            COUNT: 100,
+        })) {
+            deleteCount += await this.redisClient.del(key);
+        }
+
+        return deleteCount;
     }
 
     async setRiskScore(data: RiskScoreData): Promise<void> {

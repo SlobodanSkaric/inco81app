@@ -12,15 +12,21 @@ export class CacheRedisIntrceptor implements NestInterceptor{
         const request = context.switchToHttp().getRequest();
         if(request.method !== "GET"){
             return next.handle();
+        }       
+
+        const userId = request.user?.id || null;
+        const role = request.user?.role || null;
+
+        if(userId === null || role === null){
+            return next.handle();
         }
-
-        const redisKey = `interceptor:${request.originalUrl || request.url}`;
-
+        const path = request.originalUrl || request.url || "";
+        const redisKey = `interceptor:${role}:${userId}:${path}`;
         try{
-            const redisData = await this.redisService.get(redisKey, {ttl: 60 * 60 * 24, prefix: "set:cache:"});
+            const redisData = await this.redisService.get(redisKey, { prefix: "set:cache:" });
             if(redisData){
                 return of(redisData);
-            }
+            }    
         }catch(err){
             console.error(`Error retrieving data from Redis: ${err}`);
         }
