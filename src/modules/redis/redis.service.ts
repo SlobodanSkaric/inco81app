@@ -128,14 +128,20 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         await this.redisClient.del(fullKey);
     }
 
-    async clearCacheByPattern(pattern: string, prefix?: CacheOptions): Promise<number> {
+    async clearCacheByPattern(pattern: string, options?: CacheOptions): Promise<number> {
         let deleteCount = 0;
-        console.log("prefix" + prefix )
-        console.log(pattern)
+        const prefix = options?.prefix || null;
+        let fullKey: string | null = null;
+
+        if(prefix == null){
+            fullKey = pattern;
+        }else{
+            fullKey = `${prefix}${pattern}`
+        }
 
 
         for await (const key of this.redisClient.scanIterator({
-            MATCH: pattern,
+            MATCH: fullKey,
             COUNT: 100,
         })) {
             deleteCount += await this.redisClient.del(key);

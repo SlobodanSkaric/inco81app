@@ -185,7 +185,7 @@ export class UserService {
         try{
             const saveUser = await this.userEntitets.save(user);
 
-            const redisRmmmiter = this.eventEmmiter.emit("cache.invalidate",
+            this.eventEmmiter.emit("cache.invalidate",
                 new CacheIvalidationEvent(
                     [
                         `user:${saveUser.userId}:/user/`,
@@ -193,13 +193,13 @@ export class UserService {
                         `user:${saveUser.userId}:/user/`,
                     ],
                     [
-                        "set:cache:interceptor:administrator:*:/user/all",
+                        "administrator:*:/user/all",
                     ],
                     "Users",
                     "update"
                 )
             )
-            //console.log("redisRmmmiter", redisRmmmiter);
+            
 
             return await this.getUserByIdLocal(saveUser.userId);
         }catch(e){

@@ -13,7 +13,7 @@ export class CacheInvalidateService{
 
     @OnEvent("cache.invalidate", {async: true})
     async handleCacheInvalidateEvent(event: CacheIvalidationEvent){
-        this.logger.log(`Invalidate cache data: ${event.keys.join(", ")} and ${event.entity} and ${event.actions}`);
+        this.logger.log(`Invalidate cache data: ${event.keys.join(", ")} and ${event.entity} and ${event.actions} and prefix is ${event.patterns}`);
 
         try{
             for(const key of event.keys){
@@ -22,7 +22,7 @@ export class CacheInvalidateService{
             }
 
             for(const pattern of event.patterns){
-                await this.redisServices.clearCacheByPattern(pattern);
+                await this.redisServices.clearCacheByPattern(pattern ,{ prefix: "set:cache:interceptor:"});
                
                 this.logger.log(`Cache data invalidated for pattern: ${pattern}`);
             }
