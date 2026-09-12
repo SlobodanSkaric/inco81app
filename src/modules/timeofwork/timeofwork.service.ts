@@ -67,14 +67,19 @@ export class TimeofworkService {
     }
 
     async getTiemOfWorkByUserId(data: GetHorseDto): Promise<{getOfTime: string}>{
+        const checkedUser = await this.timeOfWorksRepository.find({ where: { user : { userId: data.userId }} });
+
+        if(checkedUser.length === 0){
+            return { getOfTime: "Undefind user" }
+        }
         const timeOfWork = await this.timeOfWorksRepository.find({
             where: {
                 user: { userId: data.userId } as Users,
                 checked_in: Between(new Date(data.stratDate), new Date(data.endDate))
             }
         });
-
-        if(!timeOfWork){
+        
+        if(timeOfWork.length === 0){
             return {getOfTime: "0"}
         }
 
