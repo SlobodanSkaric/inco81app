@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Administrator } from 'src/entitets/entities/Administrator';
 import { Repository } from 'typeorm';
@@ -86,6 +86,27 @@ export class AdministratorService {
             return new ApiResponse("error", -1008, "Failed to add administrator");
         }
     }
+
+    async editAministators(id: number):Promise<boolean>{
+        try{
+            const result: Administrator | null = await this.administratorEntitets.createQueryBuilder("admiistrator_visibility")
+                                 .where("admiistrator_visibility.adminId = :adminId", { adminId: id})
+                                 .andWhere("admiistrator_visibility.visibility = :visibility", { visibility: 0})
+                                 .getOne()
+
+            if(result){
+                result.visibility = 1;
+                await this.administratorEntitets.save(result);
+                return true;
+            }
+
+            return false;
+           
+            }catch(error){
+                throw new InternalServerErrorException("Database is not respone")
+            }
+        }
+        
 
     async editUserTimeOfWork(data: EditUserTimeOfWorkDto): Promise<TimeOfWorke[] | ApiResponse> {
         const getDate = data.dateEndTime.split(" ")[0];

@@ -14,6 +14,8 @@ import { DecideVacationDto } from '../vacation/dto/decide.vactions.dto';
 import { Vacations } from 'src/entitets/entities/Vacations';
 import { RedisService } from '../redis/redis.service';
 import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptors';
+import { ChildProcessWithoutNullStreams } from 'child_process';
+import { RequestVacationDto } from '../vacation/dto/rewquest.vactions.dto';
 
 @Controller('administrator')
 export class AdministratorController {
@@ -80,18 +82,19 @@ export class AdministratorController {
         /* return await this.admiServices.editAdministrator(data, req); */
     }
 
-    @Post("delete/administrator/:id")//This is methods to move superadministrator
+    @Get("getallvactions")
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards,RoleGuards)
-    async deleteAdministrator(@Param("id") id: number, @Req() req: Request): Promise<AdministratorInfoDto | ApiResponse | void>{
-        /* return await this.admiServices.deleteAdministrator(id, req); */
-    }    
+    @UseGuards(JwtAuthGuards, RoleGuards)
+    async getAllVactionsByAdministrators(@Req() req: Request):Promise<RequestVacationDto[] | ApiResponse>{
+        const getAllVactions: RequestVacationDto[] | ApiResponse = await this.admiServices.administratrosDecideUserVaction(req.user.id);
+        return getAllVactions;
+    }
 
-    @Post("vactios/decides")
+
+    @Post("vactions/decides")
     @Roles("administrator")
     @UseGuards(JwtAuthGuards,RoleGuards)
     async administratrosDecideUserVaction2(@Body() data: DecideVacationDto, @Req() req: Request): Promise<Vacations | ApiResponse>{
-
         const adminId = req.user.id;
         return await this.admiServices.editUserVactionbyAdmin(data, adminId);
     }

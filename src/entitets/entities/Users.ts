@@ -57,7 +57,7 @@ export class Users {
   @JoinColumn({ name: "user_id", referencedColumnName: "userId" })
   requestLogs: RequestLogs[];
 
-  @OneToOne(() => Vacations, (vacations) => vacations.user)
+  @OneToMany(() => Vacations, (vacations) => vacations.user)
   vacations: Vacations[];
 
   @OneToMany(() => Payments, (payments) => payments.user)

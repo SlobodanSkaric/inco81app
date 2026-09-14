@@ -9,41 +9,17 @@ import { SuperadministratorInfoDto } from './dtos/superadministrator.info.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { RedisService } from '../redis/redis.service';
 import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptors';
+import { AdministratorService } from '../administrator/administrator.service';
 
 @Controller('superadministrator')
 export class SuperadministratorController {
     constructor(
         private readonly superadmins: SuperadministratorService,
-        private readonly RedisService: RedisService
+        private readonly administrator: AdministratorService,
     ) {}
 
 
-    @UseInterceptors(CacheRedisIntrceptor)
-    @Get("")
-    @Roles("superadministrator")
-    @UseGuards(JwtAuthGuards,RoleGuards)
-    async getSuperAdministrators( @Req() req: Request): Promise<SuperadministratorInfoDto | ApiResponse> {
-        const superadministratorGetById = await this.superadmins.getUserById(req.user.id);
-
-      
-
-       if(superadministratorGetById instanceof ApiResponse){
-            return superadministratorGetById;
-        }
-
-        const superadministratorInfo = new SuperadministratorInfoDto(
-            superadministratorGetById.superAdmistratorId,
-            superadministratorGetById.username,
-            superadministratorGetById.email,
-            superadministratorGetById.phoneNumber? superadministratorGetById.phoneNumber : ''
-        );
-
-
-
-        return superadministratorInfo;
-    }
-
-    @Post("add")
+    @Post("add")//This route is very imoprtent, resove how is request aprocehe this
     async addSuperAdministrators(@Body() superadminsData: AddSuperadministratorsDto): Promise<SuperadministratorInfoDto | ApiResponse> {
         const addSuperadministrator = await this.superadmins.addSuperAdministrators(superadminsData);
 
@@ -59,9 +35,41 @@ export class SuperadministratorController {
         );
 
         return superadmistratorInfo;
-
     }
 
+
+
+    @UseInterceptors(CacheRedisIntrceptor)
+    @Get("")
+    @Roles("superadministrator")
+    @UseGuards(JwtAuthGuards,RoleGuards)
+    async getSuperAdministrators( @Req() req: Request): Promise<SuperadministratorInfoDto | ApiResponse> {
+        const superadministratorGetById = await this.superadmins.getUserById(req.user.id);
+      
+
+       if(superadministratorGetById instanceof ApiResponse){
+            return superadministratorGetById;
+        }
+
+        const superadministratorInfo = new SuperadministratorInfoDto(
+            superadministratorGetById.superAdmistratorId,
+            superadministratorGetById.username,
+            superadministratorGetById.email,
+            superadministratorGetById.phoneNumber? superadministratorGetById.phoneNumber : ''
+        );
+
+        return superadministratorInfo;
+    }
+
+   
+    @Get("delete/administrator/:id")
+    @Roles("superadministrator")
+    @UseGuards(JwtAuthGuards, RoleGuards)
+    async deleteAdministrator(@Param("id") id: number){
+        const deleteResult = await this.administrator.editAministators(id);
+
+        return deleteResult;
+    }
 
 
 

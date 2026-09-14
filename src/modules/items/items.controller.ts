@@ -7,7 +7,6 @@ import { GetItemsDto } from './dtos/get.itmes.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { AddItemsDto } from './dtos/add.items.dto';
 import { RedisService } from '../redis/redis.service';
-import { LessThan } from 'typeorm';
 import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptors';
 
 @Controller('items')
