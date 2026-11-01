@@ -19,26 +19,6 @@ export class SuperadministratorController {
     ) {}
 
 
-    @Post("add")//This route is very imoprtent, resove how is request aprocehe this
-    async addSuperAdministrators(@Body() superadminsData: AddSuperadministratorsDto): Promise<SuperadministratorInfoDto | ApiResponse> {
-        const addSuperadministrator = await this.superadmins.addSuperAdministrators(superadminsData);
-
-        if(addSuperadministrator instanceof ApiResponse){
-            return addSuperadministrator;
-        }
-
-        const superadmistratorInfo = new SuperadministratorInfoDto(
-            addSuperadministrator.superAdmistratorId,
-            addSuperadministrator.username,
-            addSuperadministrator.email,
-            addSuperadministrator.phoneNumber? addSuperadministrator.phoneNumber : ''
-        );
-
-        return superadmistratorInfo;
-    }
-
-
-
     @UseInterceptors(CacheRedisIntrceptor)
     @Get("")
     @Roles("superadministrator")
