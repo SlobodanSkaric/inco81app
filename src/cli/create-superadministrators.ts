@@ -70,7 +70,7 @@ async function bootstrap(): Promise<void> {
             process.exitCode = 1;
             return;
         }
-        console.log(`Superadministrator created successfully: ${result.username}`);
+        console.log(`Superadministrator created successfully: ${result.name}`);
     }finally{
         await app.close();
     }

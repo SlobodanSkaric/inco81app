@@ -10,7 +10,10 @@ import { ApiResponse } from 'src/misc/api.response.dto';
 import { RedisService } from '../redis/redis.service';
 import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptors';
 import { AdministratorService } from '../administrator/administrator.service';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiAuth, ApiResult } from 'src/common/decorators/swagger.decorator';
 
+@ApiTags('superadministrator')
 @Controller('superadministrator')
 export class SuperadministratorController {
     constructor(
@@ -19,6 +22,9 @@ export class SuperadministratorController {
     ) {}
 
 
+    @ApiOperation({ summary: 'Get logged-in superadministrator profile' })
+    @ApiAuth("superadministrator")
+    @ApiResult(SuperadministratorInfoDto)
     @UseInterceptors(CacheRedisIntrceptor)
     @Get("")
     @Roles("superadministrator")
@@ -32,16 +38,19 @@ export class SuperadministratorController {
         }
 
         const superadministratorInfo = new SuperadministratorInfoDto(
-            superadministratorGetById.superAdmistratorId,
-            superadministratorGetById.username,
+            superadministratorGetById.userId,
+            superadministratorGetById.name,
             superadministratorGetById.email,
-            superadministratorGetById.phoneNumber? superadministratorGetById.phoneNumber : ''
+            superadministratorGetById.phonenumber? superadministratorGetById.phonenumber : ''
         );
 
         return superadministratorInfo;
     }
 
    
+    @ApiOperation({ summary: 'Deactivate administrator by id' })
+    @ApiAuth("superadministrator")
+    @ApiOkResponse({ type: Boolean })
     @Get("delete/administrator/:id")
     @Roles("superadministrator")
     @UseGuards(JwtAuthGuards, RoleGuards)

@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Administrator } from 'src/entitets/entities/Administrator';
 import { Users } from 'src/entitets/entities/Users';
 import { AuthDto } from './dto/auth.dto';
 import { AuthLoginDto } from './dto/auth.login.dto';
@@ -10,7 +9,6 @@ import { AdministratorInfoDto } from '../administrator/dto/administrator.info.dt
 import { UserInfoDto } from '../user/dto/user.info.dto';
 import { SuperadministratorInfoDto } from '../superadministrator/dtos/superadministrator.info.dto';
 import { AuthUserServices } from './auth.user.services';
-import { Superadministrator } from 'src/entitets/entities/Superadministrator';
 import { ConfigService } from '@nestjs/config';
 import { Customers } from 'src/entitets/entities/Customers';
 import { GetCustomersDto } from '../customers/dtos/get.customers.dto';
@@ -23,8 +21,8 @@ export class AuthService {
         private readonly configService: ConfigService
     ){}
 
-    async adminstratorLogin(data: AuthDto, ipuaData): Promise<AuthLoginDto | ApiResponse | Administrator | any>{
-        const checkedAdministrator = await this.authUserServices.getUserByEmail(data.email) as Administrator;
+    async adminstratorLogin(data: AuthDto, ipuaData): Promise<AuthLoginDto | ApiResponse | Users | any>{
+        const checkedAdministrator = await this.authUserServices.getUserByEmail(data.email) as Users;
         
         if(!checkedAdministrator){
             return new ApiResponse("error", -1010, "Email is not exites");
@@ -44,7 +42,7 @@ export class AuthService {
         const ua = ipuaData.ua;
 
         const payload = {
-            id: checkedAdministrator.adminId,
+            id: checkedAdministrator.userId,
             email: checkedAdministrator.email,
             phonenumber: checkedAdministrator.phonenumber,
             role: "administrator",
@@ -54,7 +52,7 @@ export class AuthService {
         }
 
         const payloadRefershToken = {
-            id: checkedAdministrator.adminId,
+            id: checkedAdministrator.userId,
             email: checkedAdministrator.email,
             phonenumber: checkedAdministrator.phonenumber,
             role: "administrator",
@@ -66,7 +64,7 @@ export class AuthService {
         const accessToken = await this.jwtService.signAsync(payload, { secret:  this.configService.get<string>("SECRET_TOKEN_KEY") ,expiresIn: '15m' });
         const refreshToken = await this.jwtService.signAsync(payloadRefershToken, { secret: this.configService.get<string>("SECRET_REFRESH_TOKEN_KEY"),expiresIn: '7d' });
 
-        const administratorInfo = new AdministratorInfoDto(checkedAdministrator.adminId, checkedAdministrator.name, checkedAdministrator.lastname, checkedAdministrator.email, checkedAdministrator.phonenumber);
+        const administratorInfo = new AdministratorInfoDto(checkedAdministrator.userId, checkedAdministrator.name, checkedAdministrator.lastname, checkedAdministrator.email, checkedAdministrator.phonenumber ?? "");
 
         return { accessToken, refreshToken, administratorInfo };       
     }
@@ -114,7 +112,7 @@ export class AuthService {
         const accessToken = await this.jwtService.signAsync(payload, { secret: this.configService.get<string>("SECRET_TOKEN_KEY"), expiresIn: "15min"});
         const refreshToken = await this.jwtService.signAsync(payloadRefreshToken, { secret: this.configService.get<string>("SECRET_REFRESH_TOKEN_KEY"), expiresIn: "7d"});    
 
-        const userInfo = new UserInfoDto(checkedUser.userId, checkedUser.name, checkedUser.lastname, checkedUser.email, checkedUser.phonenumber);
+        const userInfo = new UserInfoDto(checkedUser.userId, checkedUser.name, checkedUser.lastname, checkedUser.email, checkedUser.phonenumber ?? "");
 
 
 
@@ -123,7 +121,7 @@ export class AuthService {
 
 
     async loginSuperAdministrators(data: AuthDto, ipuaData): Promise<AuthLoginDto | ApiResponse | any>{
-        const checkedSuperadmistrators = await this.authUserServices.getUserByEmail(data.email) as Superadministrator;
+        const checkedSuperadmistrators = await this.authUserServices.getUserByEmail(data.email) as Users;
 
         if(!checkedSuperadmistrators){
             return new ApiResponse("error", -1013, "Email is not exists");  
@@ -139,9 +137,9 @@ export class AuthService {
         const ua = ipuaData.ua;
         
         const payload = {
-            id: checkedSuperadmistrators.superAdmistratorId,
+            id: checkedSuperadmistrators.userId,
             email: checkedSuperadmistrators.email,
-            phonenumber: checkedSuperadmistrators.phoneNumber,
+            phonenumber: checkedSuperadmistrators.phonenumber,
             role: "superadministrator",
             permissions: ["create","update","delete","manage"],
             ip: ip,
@@ -150,9 +148,9 @@ export class AuthService {
         }
 
         const payloadRefrshToken = {
-            id: checkedSuperadmistrators.superAdmistratorId,
+            id: checkedSuperadmistrators.userId,
             email: checkedSuperadmistrators.email,
-            phonenumber: checkedSuperadmistrators.phoneNumber,
+            phonenumber: checkedSuperadmistrators.phonenumber,
             role: "superadministrator",
             permissions: ["create","update","delete","manage"],
             ip: ip,
@@ -162,7 +160,7 @@ export class AuthService {
         const accessToken =  await this.jwtService.signAsync(payload, { secret:this.configService.get<string>("SECRET_TOKEN_KEY"), expiresIn: "15min"});
         const refreshToken = await this.jwtService.signAsync(payloadRefrshToken, { secret: this.configService.get<string>("SECRET_REFRESH_TOKEN_KEY"), expiresIn: "7d"});
 
-        const superadministrastorsInfo = new SuperadministratorInfoDto(checkedSuperadmistrators.superAdmistratorId,checkedSuperadmistrators.username ,checkedSuperadmistrators.email ,checkedSuperadmistrators.phoneNumber ?? "");
+        const superadministrastorsInfo = new SuperadministratorInfoDto(checkedSuperadmistrators.userId,checkedSuperadmistrators.name ,checkedSuperadmistrators.email ,checkedSuperadmistrators.phonenumber ?? "");
      
         return { accessToken, refreshToken, superadministrastorsInfo };
     }

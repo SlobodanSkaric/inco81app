@@ -1,10 +1,23 @@
-import { IsNotEmpty, IsString, Matches, MaxLength, MinLength } from "class-validator";
+import { IsEnum, IsNotEmpty, IsString, Matches, MaxLength, MinLength } from "class-validator";
+import { Role } from "../../../common/enums/role.enum";
 
 export class AddSuperadministratorsDto {
     @IsString()
     @IsNotEmpty()
     @MaxLength(255)
-    username: string;
+    name: string;
+
+    @IsString()
+    @IsNotEmpty()
+    @MaxLength(255)
+    lastname: string;
+
+    @IsEnum(Role)
+    @IsNotEmpty()
+    role: Role;
+
+    @IsString()
+    token: string;
 
     @IsString()
     @IsNotEmpty()

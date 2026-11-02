@@ -8,7 +8,11 @@ import { ApiResponse } from 'src/misc/api.response.dto';
 import { AddItemsDto } from './dtos/add.items.dto';
 import { RedisService } from '../redis/redis.service';
 import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptors';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiAuth, ApiResult } from 'src/common/decorators/swagger.decorator';
 
+@ApiTags('items')
+@ApiAuth("administrator", "superadministrator")
 @Controller('items')
 export class ItemsController {
     constructor(
@@ -16,6 +20,8 @@ export class ItemsController {
         private readonly RedisService: RedisService
     ){}
 
+    @ApiOperation({ summary: 'Get all items' })
+    @ApiResult(GetItemsDto, { isArray: true })
     @UseInterceptors(CacheRedisIntrceptor)
     @Get("all")
     @UseGuards(JwtAuthGuards,RoleGuards)
@@ -25,6 +31,8 @@ export class ItemsController {
         return items;
     }
 
+    @ApiOperation({ summary: 'Get item by id' })
+    @ApiResult(GetItemsDto)
     @UseInterceptors(CacheRedisIntrceptor)
     @Get(":id")
     @UseGuards(JwtAuthGuards,RoleGuards)
@@ -34,6 +42,8 @@ export class ItemsController {
         return item;
     }
 
+    @ApiOperation({ summary: 'Create item' })
+    @ApiResult(GetItemsDto, { status: 201 })
     @Post("save")
     @UseGuards(JwtAuthGuards,RoleGuards)
     @Roles("administrator", "superadministrator")

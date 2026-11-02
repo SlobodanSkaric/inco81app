@@ -3,8 +3,6 @@ import { UserService } from "../user/user.service";
 import { AdministratorService } from "../administrator/administrator.service";
 import { SuperadministratorService } from "../superadministrator/superadministrator.service";
 import { Users } from "src/entitets/entities/Users";
-import { Administrator } from "src/entitets/entities/Administrator";
-import { Superadministrator } from "src/entitets/entities/Superadministrator";
 import { ApiResponse } from "src/misc/api.response.dto";
 import { SuperadministratorInfoDto } from "../superadministrator/dtos/superadministrator.info.dto";
 import { CustomersService } from "../customers/customers.service";
@@ -14,24 +12,11 @@ import { Customers } from "src/entitets/entities/Customers";
 export class AuthUserServices{
     constructor(
         private readonly userServices: UserService,
-        private readonly administratorService: AdministratorService,
-        private readonly superadministratorsServices: SuperadministratorService,
-        private readonly customersServices: CustomersService
     ){}
 
-    async getUserByEmail(email: string):Promise<Users | Administrator | Superadministrator | Customers |  ApiResponse | null>{//refactoring for role, implement switch case for role and return only user info dto for all of them
+    async getUserByEmail(email: string):Promise<Users | Users  | Customers |  ApiResponse | null>{//refactoring for role, implement switch case for role and return only user info dto for all of them
         const user = await this.userServices.getByEmail(email);
         if(user) return user
-
-        const administrator = await this.administratorService.getByEmail(email);
-        if(administrator) return administrator;
-        
-
-        const superadministrator = await this.superadministratorsServices.getByEmail(email);
-        if(superadministrator) return superadministrator;
-
-        const customers = await this.customersServices.getByEmail(email);
-        if(customers) return customers;
 
         return null;
     }

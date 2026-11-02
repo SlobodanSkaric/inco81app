@@ -3,7 +3,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { GetDatabaseConfig } from "../config/database.config";
 import { join } from "path";
-import { Superadministrator } from "../entitets/entities/Superadministrator";
+import { Users } from "../entitets/entities/Users";
 import { SuperadministratorService } from "../modules/superadministrator/superadministrator.service";
 
 @Module({
@@ -21,7 +21,7 @@ import { SuperadministratorService } from "../modules/superadministrator/superad
                retryDelay: 1000
             }),
         }),
-        TypeOrmModule.forFeature([Superadministrator])
+        TypeOrmModule.forFeature([Users])
     ],
     providers:[SuperadministratorService]
 })

@@ -4,6 +4,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { RequestLogs } from "src/entitets/entities/RequestLogs";
 import { RedisService } from "src/modules/redis/redis.service";
 import { Repository } from "typeorm";
+import { Role } from "../../common/enums/role.enum";
 
 @Injectable()
 export class RequestLogsListeners {
@@ -15,6 +16,7 @@ export class RequestLogsListeners {
     @OnEvent("request.log", {async: true})
     async handle(payload: any){
         const reqLogs = new RequestLogs();
+        reqLogs.role = payload.role;
         await this.saveActorsRequestLog(payload, reqLogs);
         reqLogs.ip = payload.ip;
         reqLogs.userAgent = payload.user_agent;
@@ -44,17 +46,12 @@ export class RequestLogsListeners {
 
     private async saveActorsRequestLog(payload: any, reqLogs: RequestLogs){
             const role = payload.role;
-
-            switch(role){
-                case "user":
-                    reqLogs.userId = payload.user_id;
-                    break;
-                case "administrator":
-                    reqLogs.adminId = payload.user_id;
-                    break;
-                case "superadministrator":
-                    reqLogs.superadminId = payload.user_id;
-                    break;
+            if(role === Role.USER){
+                reqLogs.userId = payload.user_id;
+            } else if(role === Role.ADMIN){
+                reqLogs.userId = payload.user_id;
+            } else if(role === Role.SUPER_ADMIN){
+                reqLogs.userId = payload.user_id;
             }
     }
 }

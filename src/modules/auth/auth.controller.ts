@@ -5,13 +5,18 @@ import { ApiResponse } from 'src/misc/api.response.dto';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { GetIp } from 'src/common/decorators/ip.decorator';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiResult } from 'src/common/decorators/swagger.decorator';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
     constructor(
         private readonly authService: AuthService,
     ){}
    
+    @ApiOperation({ summary: 'Administrator login', description: 'Sets access_token and refresh_token httpOnly cookies.' })
+    @ApiResult(undefined, { status: 201 })
     @Post("administrator")
     async administratorLogin(@Body() data: AuthDto, @Req() req: Request, @Res({ passthrough: true }) res: Response):Promise<{message: string} | AuthLoginDto | ApiResponse | any>{             
 
@@ -47,6 +52,7 @@ export class AuthController {
             return { message: "Login successful", administrators: tokens.administratorInfo };
     } 
 
+    @ApiOperation({ summary: 'Administrator logout', description: 'Clears auth cookies.' })
     @Post("administrator/logout")
     async logut(@Res({ passthrough: true }) res: Response): Promise<{message: string}>{
         res.clearCookie("access_token");
@@ -54,6 +60,8 @@ export class AuthController {
         return { message: "Logout successful"};
     }
 
+    @ApiOperation({ summary: 'User login', description: 'Sets access_token and refresh_token httpOnly cookies.' })
+    @ApiResult(undefined, { status: 201 })
     @Post("user")
     async userLogin(@Body() data: AuthDto, @Req() req: Request, @Res({ passthrough: true}) res: Response): Promise<AuthLoginDto | ApiResponse | any>{
         const token = await this.authService.userLogin(data, req);
@@ -77,6 +85,7 @@ export class AuthController {
         return { messages: "Login successful", user: token.userInfo };
     }
 
+    @ApiOperation({ summary: 'User logout', description: 'Clears auth cookies.' })
     @Post("user/logout")
     async userLogout(@Res({ passthrough:true }) res: Response): Promise<{message: string}>{
         res.clearCookie("access_token");
@@ -85,6 +94,8 @@ export class AuthController {
     }
 
 
+    @ApiOperation({ summary: 'Superadministrator login', description: 'Sets access_token and refresh_token httpOnly cookies.' })
+    @ApiResult(undefined, { status: 201 })
     @Post("superadministrators/login")
     async loginSuperAdministrators(@Body() superadminsData: AuthDto, @Req() req: Request,@GetIp() ip:string ,@Res({ passthrough: true }) res: Response): Promise<{message: string} |any> {
         const ua = req.headers["user-agent"]?req.headers["user-agent"] : "unknown"; 
@@ -117,6 +128,7 @@ export class AuthController {
         return { message: "Superadministrators Login successful", superadministrators: token.superadministrastorsInfo  };
     }
 
+    @ApiOperation({ summary: 'Superadministrator logout', description: 'Clears auth cookies.' })
     @Post("superadministrators/logout")
     async logoutSuperAdministrators(@Res({ passthrough: true }) res: Response): Promise<{message: string}> {
         res.clearCookie("access_token");
@@ -124,6 +136,8 @@ export class AuthController {
         return { message: "Superadministrators Logout successful" };
     }
 
+    @ApiOperation({ summary: 'Customer login', description: 'Sets access_token and refresh_token httpOnly cookies.' })
+    @ApiResult(undefined, { status: 201 })
     @Post("customers/login")
     async loginCustomers(@Body() customersData: AuthDto, @Req() req: Request, @GetIp() ip: string, @Res({ passthrough: true }) res: Response): Promise<{message: string} | any>{
         const ua = req.headers["user-agent"]?req.headers["user-agent"] : "unknown";
@@ -156,6 +170,7 @@ export class AuthController {
         return { message: "Customers Login successful", customers: token.customersInfo };
     }
 
+    @ApiOperation({ summary: 'Customer logout', description: 'Clears auth cookies.' })
     @Post("customers/logout")
     async logoutCustomers(@Res({ passthrough: true }) res: Response): Promise<{message: string}>{
         res.clearCookie("access_token");

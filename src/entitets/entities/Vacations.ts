@@ -1,5 +1,4 @@
 import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Administrator } from "./Administrator";
 import { Users } from "./Users";
 
 
@@ -28,10 +27,6 @@ export class Vacations {
 
     @Column({ type: "text", nullable: true })
     user_comment: string | null;
-
-    @ManyToOne(() => Administrator, (administrator) => administrator.vacations)
-    @JoinColumn({ name: "admin_id", referencedColumnName: "adminId" })
-    admin: Administrator;
 
     @ManyToOne(() => Users, (users) => users.vacations)
     @JoinColumn({ name: "user_id", referencedColumnName: "userId" })

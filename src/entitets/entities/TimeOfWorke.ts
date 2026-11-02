@@ -6,10 +6,9 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import { Administrator } from "./Administrator";
 import { Users } from "./Users";
 
-@Entity("time_of_worke", { schema: "inco81app" })
+@Entity("time_of_worke")
 export class TimeOfWorke {
   @PrimaryGeneratedColumn({ type: "int", name: "time_of_worke_id" })
   timeOfWorkeId: number;
@@ -24,16 +23,9 @@ export class TimeOfWorke {
   checked_out: Date;
 
    @Column("int", { name: "status", default: 0})
-  status: number;
-  
-  @ManyToOne(
-    () => Administrator,
-    (administrator) => administrator.timeOfWorkes,
-  )
-  @JoinColumn([{ name: "admin_id", referencedColumnName: "adminId" }])
-  admin: Administrator[];
+  status: number;  
 
   @ManyToOne(() => Users, (users) => users.timeOfWorkes)
   @JoinColumn([{ name: "user_id", referencedColumnName: "userId" }])
-  user: Users[];
+  user: Users;
 }

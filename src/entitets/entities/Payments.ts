@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Users } from "./Users";
 
 export enum PaymentStatus {
@@ -14,6 +14,7 @@ export class Payments {
     id: number;
 
     @ManyToOne(() => Users, user => user.payments)
+    @JoinColumn({ name: "user_id", referencedColumnName: "userId" })
     user: Users;
 
     @Column("int", { name: "user_id" })
