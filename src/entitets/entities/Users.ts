@@ -35,7 +35,7 @@ export class Users {
   @Column("varchar", {name: "phonenumber",unique: true,length: 128, nullable: true})
   phonenumber?: string;
 
-  @Column("enum", {name: "role", enum: Role, default: Role.USER})
+  @Column("enum", {name: "role", enum: [Role.USER, Role.ADMIN, Role.SUPER_ADMIN], default: Role.USER})
   role: Role | null;
 
   @Column("int", {name: "manager_id", nullable: true})

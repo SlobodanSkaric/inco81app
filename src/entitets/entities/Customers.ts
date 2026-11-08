@@ -1,5 +1,6 @@
 import { Column, Entity, JoinColumn, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Orders } from "./Orders";
+import { Role } from "../../common/enums/role.enum";
 
 @Entity("customers")
 export class Customers {
@@ -14,6 +15,9 @@ export class Customers {
 
     @Column("boolean", { name: "is_active", default: true })
     isActive: boolean;
+
+    @Column("enum", { name: "role", enum: [Role.CUSTOMER], default: Role.CUSTOMER })
+    role: Role;
 
     @Column("varchar", { name: "contact_email", length: 255, unique: true })
     contactEmail: string;

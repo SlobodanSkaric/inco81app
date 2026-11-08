@@ -7,6 +7,7 @@ import { ApiResponse } from "src/misc/api.response.dto";
 import { SuperadministratorInfoDto } from "../superadministrator/dtos/superadministrator.info.dto";
 import { CustomersService } from "../customers/customers.service";
 import { Customers } from "src/entitets/entities/Customers";
+import { Role } from "../../common/enums/role.enum";
 
 @Injectable()
 export class AuthUserServices{
@@ -19,5 +20,11 @@ export class AuthUserServices{
         if(user) return user
 
         return null;
+    }
+
+    async findByIdAndRole(id: number, role: Role): Promise<Users | null>{
+        const user = await this.userServices.findUserById(id);
+
+        return user && user.role === role ? user : null;
     }
 }

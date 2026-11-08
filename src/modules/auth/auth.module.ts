@@ -15,10 +15,13 @@ import { TimeOfWorke } from 'src/entitets/entities/TimeOfWorke';
 import { AuthUserServices } from './auth.user.services';
 import { CustomersModule } from '../customers/customers.module';
 import { Customers } from 'src/entitets/entities/Customers';
+import { LoginAttemptsService } from './login.attempts.service';
+import { RedisModule } from '../redis/redis.module';
+import { RefreshSessionService } from './refresh.session.service';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, JwtRefreshStrategy, JwtService, AuthUserServices],
+  providers: [AuthService, JwtStrategy, JwtRefreshStrategy, JwtService, AuthUserServices, LoginAttemptsService, RefreshSessionService],
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
@@ -33,7 +36,8 @@ import { Customers } from 'src/entitets/entities/Customers';
     AdministratorModule,
     UserModule,
     SuperadministratorModule,
-    CustomersModule
+    CustomersModule,
+    RedisModule
   ]
 })
 export class AuthModule {}

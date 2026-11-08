@@ -7,7 +7,6 @@ export class EmailService {
     constructor(private readonly mailerService: MailerService) {}
 
     async sendEmailToAdministrator(subject: string, message:string): Promise<void> {
-        console.log("Sending email to administrator");  
         this.sendEmailWithResend(subject, message);
         /*await this.mailerService.sendMail({
             from: process.env.MAIL_FROM,

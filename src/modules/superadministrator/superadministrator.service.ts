@@ -58,8 +58,6 @@ export class SuperadministratorService {
         newSuperadmin.phonenumber = superadmins.phoneNumber;
         newSuperadmin.role = Role.SUPER_ADMIN;
 
-        
-        
         const saveSuprtAdministrators = await this.superadministrators.save(newSuperadmin);
         
         if(!saveSuprtAdministrators){

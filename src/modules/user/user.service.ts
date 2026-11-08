@@ -71,6 +71,14 @@ export class UserService {
         return new UserInfoDto(user.userId, user.name, user.lastname, user.email, user.phonenumber ?? "");
     }
 
+    async findUserById(id: number): Promise<Users | null>{
+        const user = await this.userEntitets.findOne({ where: { userId: id } });
+        if(!user){
+            return null;
+        }
+        return user;
+    }
+
     async getByEmail(email: string): Promise<Users | null>{
             const user = await this.userEntitets.findOne({ where : { email: email } });
     

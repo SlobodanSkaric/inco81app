@@ -4,10 +4,10 @@ export class SuperadministratorInfoDto {
     email: string;
     phoneNumber:string;
 
-    constructor(adminId: number, name: string, email: string, phonenumber: string){
-        this.superAdmistratorId = adminId;
-        this.username = name;
-        this.email = email;
-        this.phoneNumber = phonenumber;
+    constructor(adminId?: number, name?: string, email?: string, phonenumber?: string){
+        this.superAdmistratorId = adminId ?? 0;
+        this.username = name ?? "";
+        this.email = email ?? "";
+        this.phoneNumber = phonenumber ?? "";
     }
 }

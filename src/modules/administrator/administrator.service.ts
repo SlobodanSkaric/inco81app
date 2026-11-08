@@ -71,6 +71,7 @@ export class AdministratorService {
         admin.lastname = data.lastname;
         admin.email = data.email;
         admin.phonenumber = data.phonenumber;
+        admin.role = Role.ADMIN;
 
         const passwordHas = await bcrypt.hash(data.password, saltRound);
 

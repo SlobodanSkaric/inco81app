@@ -24,10 +24,9 @@ import { join } from 'path';
 import { GetDatabaseConfig } from './config/database.config';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { RedisModule } from './modules/redis/redis.module';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { RequestLogInterceptor } from './common/interceptors/request.log.interceptors';
-import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
-import { redisStore } from 'cache-manager-redis-yet';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 const templatesDir = existsSync(join(process.cwd(), 'dist/templates'))
   ? join(process.cwd(), 'dist/templates')
@@ -39,18 +38,15 @@ const mailSecure = process.env.MAIL_SECURE
 
 @Module({
   imports: [
-    /*CacheModule.registerAsync({
-      isGlobal: true,
+    ThrottlerModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => {
-           return {
-            store: await redisStore({
-              url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
-              ttl: 60 * 1000
-            })
-           }
-      }
-    }),*/
+      useFactory: (configService: ConfigService) => [
+        {
+          ttl: 60000,
+          limit: Number(configService.get<number>("THROTTLE_LIMIT")  ?? 100),
+       },
+      ]
+    }),
     EventEmitterModule.forRoot(),
     MailerModule.forRoot({
       transport:{
@@ -96,6 +92,10 @@ const mailSecure = process.env.MAIL_SECURE
     {
       provide: APP_INTERCEPTOR,
       useClass: RequestLogInterceptor,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     }
   ]
 
