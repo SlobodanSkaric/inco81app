@@ -1,6 +1,5 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Users } from "./Users";
-import { Administrator } from "./Administrator";
 
 
 @Entity("job_information")
@@ -34,7 +33,7 @@ export class JobInformations {
     updatedAt: Date;
 
 
-    @ManyToOne(() => Administrator, administrator => administrator.jobInformations,{nullable: true})
-    @JoinColumn([{ name: "admin_id", referencedColumnName: "adminId" }])
-    admin_id: number;
+    @ManyToOne(() => Users, users => users.jobInformations,{nullable: true})
+    @JoinColumn([{ name: "user_id", referencedColumnName: "userId" }])
+    userId: number;
 }

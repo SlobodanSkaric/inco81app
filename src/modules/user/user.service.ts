@@ -6,7 +6,6 @@ import { Not, Repository } from 'typeorm';
 import { UserInfoDto } from './dto/user.info.dto';
 import { UserAddDto } from './dto/user.add.dto';
 import * as bcrypt from "bcrypt";
-import { Administrator } from 'src/entitets/entities/Administrator';
 import { UserVisibilityDto } from './dto/user.visibility.dto';
 import { UserEditDto } from './dto/user.edit.dto';
 import {EventEmitter2} from '@nestjs/event-emitter';
@@ -16,14 +15,13 @@ import { CacheIvalidationEvent } from 'src/common/events/cahce.events';
 export class UserService {
     constructor(
         @InjectRepository(Users) private readonly userEntitets: Repository<Users>,
-        @InjectRepository(Administrator) private readonly adminRepository: Repository<Administrator>,
         private readonly eventEmmiter: EventEmitter2
     ){}
 
     async getAllUsers(userId): Promise<UserInfoDto[] | ApiResponse>{
         const adminId = userId;
-        const admin = await this.adminRepository.findOne({ 
-            where: { adminId: adminId }
+        const admin = await this.userEntitets.findOne({ 
+            where: { userId: adminId }
         });
 
         if(!admin){
@@ -55,7 +53,7 @@ export class UserService {
                 sufix = "min";
                 sumTimeOfWorkset = Number(sumTimeOfWorkset.toString().split(".")[1])
             }
-            userInfoDto.push(new UserInfoDto(data.userId, data.name, data.lastname, data.email, data.phonenumber,data.timeOfWorkes,sumTimeOfWorkset.toString() + sufix));
+            userInfoDto.push(new UserInfoDto(data.userId, data.name, data.lastname, data.email, data.phonenumber ?? "",data.timeOfWorkes,sumTimeOfWorkset.toString() + sufix));
             sumTimeOfWork = 0;
         });
 
@@ -70,7 +68,15 @@ export class UserService {
             return new ApiResponse("error", -1001, "No user");
         }
 
-        return new UserInfoDto(user.userId, user.name, user.lastname, user.email, user.phonenumber);
+        return new UserInfoDto(user.userId, user.name, user.lastname, user.email, user.phonenumber ?? "");
+    }
+
+    async findUserById(id: number): Promise<Users | null>{
+        const user = await this.userEntitets.findOne({ where: { userId: id } });
+        if(!user){
+            return null;
+        }
+        return user;
     }
 
     async getByEmail(email: string): Promise<Users | null>{
@@ -116,7 +122,7 @@ export class UserService {
             return new ApiResponse("error", -1003, "No user");
         }
 
-        const userIfno = new UserInfoDto(user.userId, user.name, user.lastname, user.email, user.phonenumber);
+        const userIfno = new UserInfoDto(user.userId, user.name, user.lastname, user.email, user.phonenumber ?? "");
         return userIfno;
 
     }

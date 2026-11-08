@@ -9,13 +9,13 @@ export class UserInfoDto{
     timeOfWorks: TimeOfWorke[];
     sumTimeOfWork: string;
 
-    constructor(userId: number, name: string, lasname: string, email: string, phonenumber: string, timeOfWorks: TimeOfWorke[] = [], sumTimeOfWork: string = ""){
-        this.userId = userId;
-        this.name = name;
-        this.lastname = lasname;
-        this.email = email;
-        this.phonenumber = phonenumber;
-        this.timeOfWorks = timeOfWorks;
-        this.sumTimeOfWork = sumTimeOfWork;
+    constructor(userId?: number, name?: string, lasname?: string, email?: string, phonenumber?: string, timeOfWorks?: TimeOfWorke[], sumTimeOfWork?: string){
+        this.userId = userId ?? 0;
+        this.name = name ?? "";
+        this.lastname = lasname ?? "";
+        this.email = email ?? "";
+        this.phonenumber = phonenumber ?? "";
+        this.timeOfWorks = timeOfWorks ?? [];
+        this.sumTimeOfWork = sumTimeOfWork ?? "";
     }
 }

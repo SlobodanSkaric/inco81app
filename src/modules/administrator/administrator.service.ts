@@ -1,6 +1,5 @@
 import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Administrator } from 'src/entitets/entities/Administrator';
 import { Repository } from 'typeorm';
 import { AdministratorInfoDto } from './dto/administrator.info.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
@@ -14,17 +13,18 @@ import { Users } from 'src/entitets/entities/Users';
 import { Vacations } from 'src/entitets/entities/Vacations';
 import { RequestVacationDto } from '../vacation/dto/rewquest.vactions.dto';
 import { DecideVacationDto } from '../vacation/dto/decide.vactions.dto';
+import { Role } from '../../common/enums/role.enum';
 
 @Injectable()
 export class AdministratorService {
     constructor(
-        @InjectRepository(Administrator) private readonly administratorEntitets: Repository<Administrator>,
+        @InjectRepository(Users) private readonly administratorEntitets: Repository<Users>,
         @InjectRepository(TimeOfWorke) private readonly timeOfWorkeEntitets: Repository<TimeOfWorke>,
         @InjectRepository(Vacations) private readonly vacationsEntitets: Repository<Vacations>
     ){}
 
     async getAllAdmin(): Promise<AdministratorInfoDto[] | ApiResponse>{
-        const getAdmin = await this.administratorEntitets.find();
+        const getAdmin = await this.administratorEntitets.find({ where: { role: Role.ADMIN } });
 
         if(getAdmin.length === 0){
             return new ApiResponse("error", -1006, "No Administrator");
@@ -33,15 +33,15 @@ export class AdministratorService {
         const admin: AdministratorInfoDto[] = [];
 
         getAdmin.forEach((data) =>{
-            admin.push(new AdministratorInfoDto(data.adminId, data.name, data.lastname, data.email, data.phonenumber));
+            admin.push(new AdministratorInfoDto(data.userId, data.name, data.lastname, data.email, data.phonenumber ?? ""));
         });
 
 
         return admin;
     }
 
-    async getByEmail(email: string): Promise<Administrator | null>{
-        const admins = await this.administratorEntitets.findOne({ where : { email: email } });
+    async getByEmail(email: string): Promise<Users | null>{
+        const admins = await this.administratorEntitets.findOne({ where : { email: email, role: Role.ADMIN } });
 
         if(!admins){
             return null;
@@ -52,25 +52,26 @@ export class AdministratorService {
 
 
     async getById(id): Promise<AdministratorInfoDto | ApiResponse>{
-        const getAdmin = await this.administratorEntitets.findOne({ where: { adminId: id } });
+        const getAdmin = await this.administratorEntitets.findOne({ where: { userId: id, role: Role.ADMIN } });
 
         if(!getAdmin){
             return new ApiResponse("error", -1007, "Adminstrator for this id is not exists");
         }
 
-        return new AdministratorInfoDto(getAdmin.adminId, getAdmin.name, getAdmin.lastname, getAdmin.email, getAdmin.phonenumber);
+        return new AdministratorInfoDto(getAdmin.userId, getAdmin.name, getAdmin.lastname, getAdmin.email, getAdmin.phonenumber ?? "");
     }
 
     
 
     async addAdministratorServices(data: AdministratorAddDto): Promise<AdministratorInfoDto | ApiResponse>{
-        const admin = new Administrator();
+        const admin = new Users();
         const saltRound = 10;
 
         admin.name = data.name;
         admin.lastname = data.lastname;
         admin.email = data.email;
         admin.phonenumber = data.phonenumber;
+        admin.role = Role.ADMIN;
 
         const passwordHas = await bcrypt.hash(data.password, saltRound);
 
@@ -78,7 +79,7 @@ export class AdministratorService {
 
         try{
             const saveAdministrator = await this.administratorEntitets.save(admin);
-            return await this.getById(saveAdministrator.adminId);
+            return await this.getById(saveAdministrator.userId);
         }catch(error: unknown){
             if(error instanceof Object && 'errno' in error && (error.errno === 1062 || error.errno === 23505)){
                 throw new ConflictException("Administrator for this email or phonenumber is  existes");
@@ -89,8 +90,8 @@ export class AdministratorService {
 
     async editAministators(id: number):Promise<boolean>{
         try{
-            const result: Administrator | null = await this.administratorEntitets.createQueryBuilder("admiistrator_visibility")
-                                 .where("admiistrator_visibility.adminId = :adminId", { adminId: id})
+            const result: Users | null = await this.administratorEntitets.createQueryBuilder("admiistrator_visibility")
+                                 .where("admiistrator_visibility.userId = :userId", { userId: id})
                                  .andWhere("admiistrator_visibility.visibility = :visibility", { visibility: 0})
                                  .getOne()
 
@@ -180,8 +181,8 @@ export class AdministratorService {
 
     async administratrosDecideUserVaction(adminId: number): Promise<RequestVacationDto[] | ApiResponse>{
         const getAllserVactionRequests = await this.vacationsEntitets.find({
-            where: { status: 1, admin: { adminId } },
-            relations: { user: true, admin: true }
+            where: { status: 1, user: { managerId: adminId } },
+            relations: { user: true }
         });
         
         const curentRquestsUserVactions: RequestVacationDto[] = [];
@@ -192,7 +193,7 @@ export class AdministratorService {
                 vacation_start: requests.vacation_start.toISOString(),
                 vacation_end: requests.vacation_end.toISOString(),
                 userId: requests.user.userId,
-                admin: requests.admin.adminId,
+                admin: adminId,
                 reason: requests.reason,
                 status: requests.status,
                 admin_comment: requests.admin_comment ?? undefined,
@@ -226,7 +227,7 @@ export class AdministratorService {
             return new ApiResponse("error", -1014, "Vacation request is already in this status!");
         }
 
-        if(vactionResutl.admin.adminId !== adminId){
+        if(vactionResutl.user.managerId !== adminId){
             return new ApiResponse("error", -1016, "You are not authorized to update this vacation request!");
         }
 

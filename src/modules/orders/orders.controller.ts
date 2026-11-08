@@ -9,13 +9,19 @@ import { OrderAddDto } from './dtos/orders.add.dto';
 import { OrderDeleteDto } from './dtos/orders.delete';
 import { Request } from 'express';
 import { EditOrdersStatusDto } from './dtos/edit.orders.status.dto';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiAuth, ApiResult } from 'src/common/decorators/swagger.decorator';
 
+@ApiTags('orders')
 @Controller('orders')
 export class OrdersController {
     constructor(private readonly ordersService: OrdersService){
 
     }
 
+    @ApiOperation({ summary: 'Get all orders' })
+    @ApiAuth("administrator")
+    @ApiResult(OrderGetAllDto, { isArray: true })
     @Get("/all")
     @Roles("administrator")
     @UseGuards(JwtAuthGuards, RoleGuards)
@@ -23,6 +29,9 @@ export class OrdersController {
         return await this.ordersService.getAllOrders();
     }
 
+    @ApiOperation({ summary: 'Get order by id' })
+    @ApiAuth("administrator")
+    @ApiResult(OrderGetAllDto)
     @Get("/:id")
     @Roles("administrator")
     @UseGuards(JwtAuthGuards, RoleGuards)
@@ -30,6 +39,9 @@ export class OrdersController {
         return await this.ordersService.getOrderById(id);
     }
 
+    @ApiOperation({ summary: 'Create order' })
+    @ApiAuth("administrator", "customer")
+    @ApiResult(OrderGetAllDto, { status: 201 })
     @Post("/createorders")
     @Roles("administrator", "customer")
     @UseGuards(JwtAuthGuards, RoleGuards)
@@ -37,6 +49,9 @@ export class OrdersController {
         return await this.ordersService.addOrder(order);
     }
 
+    @ApiOperation({ summary: 'Delete (cancel) order' })
+    @ApiAuth("administrator", "customer")
+    @ApiResult(undefined, { status: 201 })
     @Post("/deleteorders")
     @Roles("administrator", "customer")
     @UseGuards(JwtAuthGuards, RoleGuards)
@@ -44,6 +59,9 @@ export class OrdersController {
         return await this.ordersService.delteOrder(deleteData.orderId, deleteData.status, req.user.id);
     }
 
+    @ApiOperation({ summary: 'Change order status' })
+    @ApiAuth("administrator")
+    @ApiResult(OrderGetAllDto, { status: 201 })
     @Post("/changestatus/")
     @Roles("administrator")
     @UseGuards(JwtAuthGuards, RoleGuards)

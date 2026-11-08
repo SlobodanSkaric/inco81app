@@ -16,7 +16,12 @@ import { RedisService } from '../redis/redis.service';
 import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptors';
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import { RequestVacationDto } from '../vacation/dto/rewquest.vactions.dto';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiAuth, ApiResult } from 'src/common/decorators/swagger.decorator';
+import { OrderGetAllDto } from '../orders/dtos/order.get.all.dto';
+import { TimeOfWorke } from 'src/entitets/entities/TimeOfWorke';
 
+@ApiTags('administrator')
 @Controller('administrator')
 export class AdministratorController {
     constructor(
@@ -25,6 +30,9 @@ export class AdministratorController {
         private readonly RedisService: RedisService
     ){}
 
+    @ApiOperation({ summary: 'Get all administrators' })
+    @ApiAuth("administrator")
+    @ApiResult(AdministratorInfoDto, { isArray: true })
     @UseInterceptors(CacheRedisIntrceptor)
     @Get("all")
     @Roles("administrator")
@@ -34,6 +42,9 @@ export class AdministratorController {
         return adminstratorsData;
     }
 
+    @ApiOperation({ summary: 'Get logged-in administrator profile' })
+    @ApiAuth("administrator")
+    @ApiResult(AdministratorInfoDto)
     @UseInterceptors(CacheRedisIntrceptor)
     @Get("")
     @Roles("administrator")
@@ -46,6 +57,9 @@ export class AdministratorController {
    
     }
 
+    @ApiOperation({ summary: 'Create administrator' })
+    @ApiAuth("superadministrator")
+    @ApiResult(AdministratorInfoDto, { status: 201 })
     @Post("add")//add role and guards of superadmin
     @Roles("superadministrator")
     @UseGuards(JwtAuthGuards,RoleGuards)
@@ -53,13 +67,19 @@ export class AdministratorController {
         return await this.admiServices.addAdministratorServices(data);
     }
 
+    @ApiOperation({ summary: "Edit user's time of work end date" })
+    @ApiAuth("administrator")
+    @ApiResult(TimeOfWorke, { status: 201, isArray: true })
     @Post("edit/timeofwork/")
     @Roles("administrator")
     @UseGuards(JwtAuthGuards,RoleGuards)
-    async editUserTimeOfWork(@Body() data: EditUserTimeOfWorkDto, @Param("optional") optional: string){
+    async editUserTimeOfWork(@Body() data: EditUserTimeOfWorkDto){
         return await this.admiServices.editUserTimeOfWork(data);
     }
 
+    @ApiOperation({ summary: "Delete user's time of work entry" })
+    @ApiAuth("administrator")
+    @ApiResult(TimeOfWorke, { status: 201 })
     @Post("delete/timeofwork")
     @Roles("administrator")
     @UseGuards(JwtAuthGuards,RoleGuards)
@@ -67,6 +87,9 @@ export class AdministratorController {
         return await this.admiServices.deleteUserTimeOfWork(data);
     }
 
+    @ApiOperation({ summary: 'Get all orders' })
+    @ApiAuth("administrator")
+    @ApiResult(OrderGetAllDto, { isArray: true })
     @Get("get/allorders")
     @Roles("administrator")
     @UseGuards(JwtAuthGuards,RoleGuards)
@@ -75,6 +98,8 @@ export class AdministratorController {
     }
 
 
+    @ApiOperation({ summary: 'Edit administrator (not implemented yet)', deprecated: true })
+    @ApiAuth("administrator")
     @Post("edit/adminstator")//This is methods to move superadministrator
     @Roles("administrator")
     @UseGuards(JwtAuthGuards,RoleGuards)
@@ -82,6 +107,9 @@ export class AdministratorController {
         /* return await this.admiServices.editAdministrator(data, req); */
     }
 
+    @ApiOperation({ summary: 'Get vacation requests assigned to logged-in administrator' })
+    @ApiAuth("administrator")
+    @ApiResult(RequestVacationDto, { isArray: true })
     @Get("getallvactions")
     @Roles("administrator")
     @UseGuards(JwtAuthGuards, RoleGuards)
@@ -91,6 +119,9 @@ export class AdministratorController {
     }
 
 
+    @ApiOperation({ summary: 'Approve or reject a vacation request' })
+    @ApiAuth("administrator")
+    @ApiResult(Vacations, { status: 201 })
     @Post("vactions/decides")
     @Roles("administrator")
     @UseGuards(JwtAuthGuards,RoleGuards)

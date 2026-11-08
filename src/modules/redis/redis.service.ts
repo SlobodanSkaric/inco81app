@@ -121,6 +121,19 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         }
     }
 
+    async increment(key: string, ttlSeconds: number): Promise<number> {
+        const count = await this.redisClient.incr(key);
+        if(count == 1){
+            await this.redisClient.expire(key, ttlSeconds);
+        }
+        return count;
+    }
+
+    async setJson(key: string, value: any, ttlSeconds: number): Promise<void>{
+        await this.redisClient.set(key, JSON.stringify(value), {EX: ttlSeconds});
+    }
+
+
     async delete(key: string, options?: CacheOptions): Promise<void> {
         const prefix = options?.prefix || '';
         const fullKey = `${prefix}${key}`;

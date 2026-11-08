@@ -1,7 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Users } from "./Users";
-import { Administrator } from "./Administrator";
-import { Superadministrator } from "./Superadministrator";
+import { Role } from "../../common/enums/role.enum";
 
 @Entity("request_log")
 export class RequestLogs{
@@ -30,6 +29,9 @@ export class RequestLogs{
     @Column("int", { name:"response_time", nullable:true})
     responseTime?:number;
 
+    @Column("enum", { name: "role", enum: Role, nullable:true})
+    role?:Role;
+
     @Column("varchar", { name: "request_method", nullable:true})
     requestMethod?:string;
 
@@ -40,11 +42,4 @@ export class RequestLogs{
     @JoinColumn({ name: "user_id", referencedColumnName: "userId" })
     userId: Users[];
 
-    @ManyToOne(() => Administrator, (admin) => admin.requestLogs, { nullable: true, onDelete: "RESTRICT", onUpdate: "CASCADE" })
-    @JoinColumn({ name: "admin_id", referencedColumnName: "adminId" })
-    adminId: Administrator[];
-
-    @ManyToOne(() => Superadministrator, (superadmin) => superadmin.requestLogs, { nullable: true, onDelete: "RESTRICT", onUpdate: "CASCADE" })
-    @JoinColumn({ name: "superadministrator_id", referencedColumnName: "superAdmistratorId" })
-    superadminId: Superadministrator[];
 }

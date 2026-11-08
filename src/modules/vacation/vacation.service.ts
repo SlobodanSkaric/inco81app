@@ -40,7 +40,6 @@ export class VacationService {
             vacation_start: dataUtils(vacactionsData.vacation_start),
             vacation_end: dataUtils(vacactionsData.vacation_end),
             user: { userId: vacactionsData.userId },
-            admin: { adminId: vacactionsData.admin },
             reason: vacactionsData.reason,
             status: vacactionsData.status,
             admin_comment: vacactionsData.admin_comment ?? null,

@@ -7,7 +7,6 @@ import { UserCheckedInDto } from './dtos/user.checkedin.dto';
 import { GetHorseDto } from './dtos/get.horse.dto';
 import { UdateTimeOfWorkUserDto } from './dtos/udate.timeofwork.user.dto';
 import { dataUtils } from 'src/utils/data.utils';
-import { Administrator } from 'src/entitets/entities/Administrator';
 import { Users } from 'src/entitets/entities/Users';
 
 @Injectable()
@@ -29,8 +28,7 @@ export class TimeofworkService {
 
 
         const timeOfWork = new TimeOfWorke();
-        timeOfWork.user = [{ userId: data.userId } as Users];
-        timeOfWork.admin = [{ adminId: data.adminId } as Administrator];
+        timeOfWork.user = { userId: data.userId } as Users;
         timeOfWork.checked_in = new Date();
 
         const savedTimeOfWork = await this.timeOfWorksRepository.save(timeOfWork);

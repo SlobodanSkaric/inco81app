@@ -3,12 +3,11 @@ import { ReportService } from './report.service';
 import { ReportController } from './report.controller';
 import { TimeOfWorke } from 'src/entitets/entities/TimeOfWorke';
 import { Users } from 'src/entitets/entities/Users';
-import { Administrator } from 'src/entitets/entities/Administrator';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([TimeOfWorke,Users,Administrator]), ConfigModule.forRoot()],
+  imports:[TypeOrmModule.forFeature([TimeOfWorke,Users]), ConfigModule.forRoot()],
   providers: [ReportService],
   controllers: [ReportController]  
 })

@@ -1,17 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Superadministrator } from 'src/entitets/entities/Superadministrator';
 import { Repository } from 'typeorm';
 import { AddSuperadministratorsDto } from './dtos/add.superadministrators.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import * as bcrypt from 'bcrypt';
+import { Users } from '../../entitets/entities/Users';
+import { Role } from '../../common/enums/role.enum';
 
 @Injectable()
 export class SuperadministratorService {
-    constructor(@InjectRepository(Superadministrator) private readonly superadministrators: Repository<Superadministrator>) {}
+    constructor(@InjectRepository(Users) private readonly superadministrators: Repository<Users>) {}
 
-    async getUserById(id): Promise<Superadministrator | ApiResponse> {
-        const superadminisGetById = await this.superadministrators.findOne({ where: { superAdmistratorId: id }});
+    async getUserById(id): Promise<Users | ApiResponse> {
+        const superadminisGetById = await this.superadministrators.findOne({ where: { userId: id }});
 
         if(!superadminisGetById){
             return new ApiResponse('error', -2000, 'Superadministrator not found');
@@ -21,7 +22,7 @@ export class SuperadministratorService {
     }
 
 
-    async getByEmail(email: string): Promise<Superadministrator  | null> {
+    async getByEmail(email: string): Promise<Users  | null> {
         const superadminisGetByEmail = await this.superadministrators.findOne({ where: { email: email }});
 
         if(!superadminisGetByEmail){
@@ -38,7 +39,7 @@ export class SuperadministratorService {
         return superadminisGetByEmail;
     }
 
-    async addSuperAdministrators(superadmins: AddSuperadministratorsDto): Promise<Superadministrator | ApiResponse> {
+    async addSuperAdministrators(superadmins: AddSuperadministratorsDto): Promise<Users | ApiResponse> {
         const checkedExisted = await this.superadministrators.findOne({ where: { email: superadmins.email}});
 
         if(checkedExisted){
@@ -49,14 +50,14 @@ export class SuperadministratorService {
 
         const hashPassword = await bcrypt.hash(superadmins.password, saltRoun);
 
-        const newSuperadmin = new Superadministrator();
-        newSuperadmin.username = superadmins.username;
+        const newSuperadmin = new Users();
+        newSuperadmin.name = superadmins.name;
+        newSuperadmin.lastname = superadmins.lastname;
         newSuperadmin.password = hashPassword;
         newSuperadmin.email = superadmins.email;
-        newSuperadmin.phoneNumber = superadmins.phoneNumber;
+        newSuperadmin.phonenumber = superadmins.phoneNumber;
+        newSuperadmin.role = Role.SUPER_ADMIN;
 
-        
-        
         const saveSuprtAdministrators = await this.superadministrators.save(newSuperadmin);
         
         if(!saveSuprtAdministrators){

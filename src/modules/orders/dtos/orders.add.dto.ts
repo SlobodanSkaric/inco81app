@@ -1,4 +1,10 @@
 import { IsArray, IsNotEmpty, IsNumber, IsObject, IsString } from "class-validator";
+
+export class OrderItemDto {
+    itemId: number;
+    quantity: number;
+}
+
 export class OrderAddDto {
     @IsNumber()
     @IsNotEmpty()
@@ -9,8 +15,5 @@ export class OrderAddDto {
     orderStatus: string = "active";
 
     @IsArray()
-    items:[{
-        itemId: number;
-        quantity: number;
-    }];
+    items: OrderItemDto[];
 }

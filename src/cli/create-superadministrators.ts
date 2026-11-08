@@ -37,11 +37,12 @@ async function bootstrap(): Promise<void> {
         process.exit(1);
     }
 
-    const username = await ask("Username: ");
+    const name = await ask("name: ");
+    const lastname = await ask("lastname: ");
     const email = await ask("Email: ");
-    const phoneNumber = await ask("Phone Number: ");
     const password = await ask("Password: ", true);
-    const confirmPassword = await ask("Confirm Password: ", true);
+    const confirmPassword = await ask("Confirm Password: ", true);  
+    const phoneNumber = await ask("Phone Number: ");
     rl.close();
 
     if(password !== confirmPassword) {
@@ -49,7 +50,7 @@ async function bootstrap(): Promise<void> {
         process.exit(1);
     }
 
-    const dto = plainToInstance(AddSuperadministratorsDto, { username, email, password, phoneNumber: phoneNumber || undefined });
+    const dto = plainToInstance(AddSuperadministratorsDto, { name, lastname, email, password, phoneNumber: phoneNumber || undefined });
 
 
     const errors = await validate(dto, { whitelist: true, forbidNonWhitelisted: true });
@@ -70,7 +71,6 @@ async function bootstrap(): Promise<void> {
             process.exitCode = 1;
             return;
         }
-        console.log(`Superadministrator created successfully: ${result.username}`);
     }finally{
         await app.close();
     }

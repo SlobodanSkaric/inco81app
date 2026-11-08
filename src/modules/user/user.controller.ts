@@ -12,8 +12,11 @@ import { RoleGuards } from 'src/common/guards/roles.guards';
 import { UserEditDto } from './dto/user.edit.dto';
 import { RedisService } from '../redis/redis.service';
 import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptors';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiAuth, ApiResult } from 'src/common/decorators/swagger.decorator';
 
 
+@ApiTags('user')
 @Controller('user')
 export class UserController {
     constructor(
@@ -21,6 +24,9 @@ export class UserController {
         private readonly RedisService: RedisService,
     ){}
 
+    @ApiOperation({ summary: 'Get all users of logged-in administrator' })
+    @ApiAuth("administrator")
+    @ApiResult(UserInfoDto, { isArray: true })
     @UseInterceptors(CacheRedisIntrceptor)
     @Get("/all")
     @Roles("administrator")
@@ -38,6 +44,9 @@ export class UserController {
         return usersDatas;
     }
 
+    @ApiOperation({ summary: 'Get logged-in user profile' })
+    @ApiAuth()
+    @ApiResult(UserInfoDto)
     @UseInterceptors(CacheRedisIntrceptor)
     @Get("")
     @Roles("user")
@@ -48,6 +57,9 @@ export class UserController {
     }
 
 
+    @ApiOperation({ summary: 'Create user' })
+    @ApiAuth("administrator")
+    @ApiResult(UserInfoDto, { status: 201 })
     @Post("/add")
     @Roles("administrator")
     @Permissions("create")
@@ -56,6 +68,9 @@ export class UserController {
         return this.userServices.addUser(data);
     }
 
+    @ApiOperation({ summary: 'Change user visibility (soft delete / restore)' })
+    @ApiAuth("administrator")
+    @ApiResult(undefined, { status: 201 })
     @Post("/delete")
     @Roles("administrator")
     @Permissions("delete")
@@ -64,6 +79,9 @@ export class UserController {
         return this.userServices.deleteUser(user_data);
     }
 
+    @ApiOperation({ summary: 'Edit logged-in user profile' })
+    @ApiAuth("user")
+    @ApiResult(UserInfoDto, { status: 201 })
     @Post("/edit")
     @Roles("user")
     @UseGuards(JwtAuthGuards, RoleGuards)

@@ -5,7 +5,7 @@ export const GetDatabaseConfig = (configService: ConfigService): TypeOrmModuleOp
     const nodeEnv = configService.get<string>('NODE_ENV', "development");
 
     return {
-        type: "mysql",
+        type: (configService.get<string>("DATABASE_DIALECT") ?? "mysql") as "mysql" | "mariadb",
         host: configService.get<string>("DATABASE_HOST") || "db",
         port: parseInt(configService.get<string>("DATABASE_PORT") || "3306", 10) || 3306,
         username: configService.get<string>("DATABASE_USERNAME"),

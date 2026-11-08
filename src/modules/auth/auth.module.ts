@@ -3,24 +3,25 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Users } from 'src/entitets/entities/Users';
-import { Administrator } from 'src/entitets/entities/Administrator';
 import { AdministratorModule } from 'src/modules/administrator/administrator.module';
 import { UserModule } from 'src/modules/user/user.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './jwt.strategy';
-import { Superadministrator } from 'src/entitets/entities/Superadministrator';
 import { SuperadministratorModule } from 'src/modules/superadministrator/superadministrator.module';
 import { JwtRefreshStrategy } from './jwt.refresh.strategy';
 import { TimeOfWorke } from 'src/entitets/entities/TimeOfWorke';
 import { AuthUserServices } from './auth.user.services';
 import { CustomersModule } from '../customers/customers.module';
 import { Customers } from 'src/entitets/entities/Customers';
+import { LoginAttemptsService } from './login.attempts.service';
+import { RedisModule } from '../redis/redis.module';
+import { RefreshSessionService } from './refresh.session.service';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, JwtRefreshStrategy, JwtService, AuthUserServices],
+  providers: [AuthService, JwtStrategy, JwtRefreshStrategy, JwtService, AuthUserServices, LoginAttemptsService, RefreshSessionService],
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
@@ -31,11 +32,12 @@ import { Customers } from 'src/entitets/entities/Customers';
         signOptions: { expiresIn: '15m' },
       }),
     }),
-    TypeOrmModule.forFeature([Users, Administrator, Superadministrator, TimeOfWorke,Customers]),
+    TypeOrmModule.forFeature([Users,  TimeOfWorke,Customers]),
     AdministratorModule,
     UserModule,
     SuperadministratorModule,
-    CustomersModule
+    CustomersModule,
+    RedisModule
   ]
 })
 export class AuthModule {}

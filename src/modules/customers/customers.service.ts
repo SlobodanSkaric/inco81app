@@ -31,17 +31,17 @@ export class CustomersService {
         }
     }
 
-    async getByEmail(email: string): Promise<Customers | ApiResponse>{
+    async getByEmail(email: string): Promise<Customers | null>{
         try{
             const customers = await this.customersRepository.findOne({ where : { contactEmail: email}});
 
             if(!customers){
-                return new ApiResponse("error", -1107, "Customer not found");
+                return null;
             }
             
             return customers;
         }catch(error){
-            return new ApiResponse("error", -1108, "Database query failed");
+            return null;
         }
     }
 
@@ -112,6 +112,18 @@ export class CustomersService {
                 return new ApiResponse("error", -1105, "Customer with this email already exists");
             }
             return new ApiResponse("error", -1106, "Database query failed");
+        }
+    }
+
+    async findCustomerInActive(customerId: number): Promise<Customers | null>{
+        try{
+            const customer = await this.customersRepository.findOne({ where : { customerId: customerId, isActive: true } });
+            if(!customer){
+                return null;
+            }
+            return customer;
+        }catch(error){
+            return null;
         }
     }
 }

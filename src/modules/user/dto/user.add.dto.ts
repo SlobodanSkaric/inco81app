@@ -23,4 +23,6 @@ export class UserAddDto{
     @MinLength(8, {message: "Password is too short, minimum length is 8 characters"})
     @Matches(/^(?=.*\d)(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z0-9@$!%*?&]+$/)
     password: string;
+
+    
 }
