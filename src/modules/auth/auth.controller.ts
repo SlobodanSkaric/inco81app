@@ -11,6 +11,7 @@ import { Throttle } from '@nestjs/throttler';
 import { JwtRefreshGuards } from './jwtRefreshGuards';
 import { clearAuthCookies, setAuthCookies } from './auth.cookies';
 import { Role } from 'src/common/enums/role.enum';
+import { GetUserAgent } from '../../common/decorators/ua.decorator';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -23,12 +24,10 @@ export class AuthController {
     @ApiResult(undefined, { status: 201 })
     @Throttle({ default: { limit: 20, ttl: 60000 } })
     @Post("administrator")
-    async administratorLogin(@Body() data: AuthDto, @Req() req: Request, @Res({ passthrough: true }) res: Response):Promise<{message: string} | AuthLoginDto | ApiResponse | any>{             
-           const ip = typeof req.headers["x-forwarded-for"] === "string" ? req.headers["x-forwarded-for"].split(",")[0].trim() : null   //req.socket.remoteAddress its only for production enviroment
-           const ipSocket = req.socket.remoteAddress;
-           const ua = req.headers["user-agent"]?req.headers["user-agent"]:"Undefined user agent";
+    async administratorLogin(@Body() data: AuthDto, @Req() req: Request, @Res({ passthrough: true }) res: Response, @GetIp() ip: string, @GetUserAgent() ua: string):Promise<{message: string} | AuthLoginDto | ApiResponse | any>{             
+          
            const ipuaData = {
-            ip: ipSocket,
+            ip: ip,
             ua: ua
            }
           
@@ -42,7 +41,7 @@ export class AuthController {
 
             
            
-            return { message: "Login successful", administrators: tokens.administratorInfo };
+          return { message: "Login successful", administrators: tokens.administratorInfo };
     } 
 
     @ApiOperation({ summary: 'Administrator logout', description: 'Clears auth cookies.' })
@@ -57,9 +56,7 @@ export class AuthController {
     @ApiResult(undefined, { status: 201 })
     @Throttle({ default: { limit: 20, ttl: 60000 } })
     @Post("user")
-    async userLogin(@Body() data: AuthDto, @Req() req: Request, @Res({ passthrough: true}) res: Response): Promise<AuthLoginDto | ApiResponse | any>{
-        const ip = typeof req.headers["x-forwarded-for"] === "string" ? req.headers["x-forwarded-for"].split(",")[0].trim() : null   //req.socket.remoteAddress its only for production enviroment
-        const ua = req.headers["user-agent"]?req.headers["user-agent"]:"Undefined user agent";
+    async userLogin(@Body() data: AuthDto, @Req() req: Request, @Res({ passthrough: true}) res: Response, @GetIp() ip: string, @GetUserAgent() ua: string): Promise<AuthLoginDto | ApiResponse | any>{
         const ipuaData = {
             ip: ip,
             ua: ua
@@ -86,8 +83,7 @@ export class AuthController {
     @ApiResult(undefined, { status: 201 })
     @Throttle({ default: { limit: 20, ttl: 60000 } })
     @Post("superadministrators/login")
-    async loginSuperAdministrators(@Body() superadminsData: AuthDto, @Req() req: Request,@GetIp() ip:string ,@Res({ passthrough: true }) res: Response): Promise<{message: string} |any> {
-        const ua = req.headers["user-agent"]?req.headers["user-agent"] : "unknown"; 
+    async loginSuperAdministrators(@Body() superadminsData: AuthDto, @Req() req: Request,@GetIp() ip:string ,@GetUserAgent() ua: string, @Res({ passthrough: true }) res: Response): Promise<{message: string} |any> {
         
         const ipuaData = {
             ip: ip,
@@ -117,9 +113,8 @@ export class AuthController {
     @ApiResult(undefined, { status: 201 })
     @Throttle({ default: { limit: 5, ttl: 60000 } })
     @Post("customers/login")
-    async loginCustomers(@Body() customersData: AuthDto, @Req() req: Request, @GetIp() ip: string, @Res({ passthrough: true }) res: Response): Promise<{message: string} | any>{
-        const ua = req.headers["user-agent"]?req.headers["user-agent"] : "unknown";
-
+    async loginCustomers(@Body() customersData: AuthDto, @Req() req: Request, @GetIp() ip: string, @GetUserAgent() ua: string, @Res({ passthrough: true }) res: Response): Promise<{message: string} | any>{
+    
         const ipuaData = {
             ip: ip,
             ua: ua

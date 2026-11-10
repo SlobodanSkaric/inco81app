@@ -12,10 +12,15 @@ import { AuthUserServices } from './auth.user.services';
 import { ConfigService } from '@nestjs/config';
 import { Customers } from 'src/entitets/entities/Customers';
 import { GetCustomersDto } from '../customers/dtos/get.customers.dto';
-import { LoginAttemptsService } from './login.attempts.service';
+import { LoginAttemptsService, LoginScope } from './login.attempts.service';
 import { Role } from '../../common/enums/role.enum';
 import { CustomersService } from '../customers/customers.service';
 import { RefreshSessionService } from './refresh.session.service';
+
+export interface LoginMeta{
+    ip: string;
+    ua: string;
+}
 
 @Injectable()
 export class AuthService {
@@ -30,29 +35,36 @@ export class AuthService {
         private readonly refreshSessionService: RefreshSessionService
     ){}
 
-    private async validateCredentials(email: string, password: string, role: string): Promise<Users | null> {
-        await this.loginAttemptsService.assetorsNotLocked(email);
-        let user = Object();
+    private async validateCredentials(email: string, password: string, role: string, ip: string): Promise<Users | Customers | null> {
+        const scope: LoginScope = role === Role.CUSTOMER ? "customers" : "users";
+        await this.loginAttemptsService.assetorsNotLocked(scope, email, ip);
 
-        if(role === Role.USER || role === Role.ADMIN || role === Role.SUPER_ADMIN){
-            user = await this.authUserServices.getUserByEmail(email) as Users | null;
-        }else if(role === Role.CUSTOMER){
+        let user: any = null;
+
+        if(role === Role.CUSTOMER){
             user = await this.customersService.getByEmail(email) as Customers | null;
+        }else{
+            user = await this.authUserServices.getUserByEmail(email) as Users | null;
         }
-        
+
         const passwordChecked = await bcrypt.compare(password, user?.password || AuthService.DUMMY_HASH);
-        const inactiveCustomer = role === Role.CUSTOMER && user?.isActive === false;
-        if(!user || !passwordChecked ||  user?.role !== role ){
-          
-            await this.loginAttemptsService.registerFailer(email);
+
+        if(!user || !passwordChecked || user.role !== role){
+            await this.loginAttemptsService.registerFailer(scope, email, ip);
             throw new HttpException("Invalid credentials", HttpStatus.UNAUTHORIZED);
         }
-        
-        if(inactiveCustomer){
-            throw new UnauthorizedException("Inactive customer");
+
+        const inactiveCustomer = role === Role.CUSTOMER && user?.isActive === false;
+        const userNotVisible = role !== Role.CUSTOMER && user.visibility === 1;
+
+        if(inactiveCustomer || userNotVisible){
+            throw new HttpException("Invalid credentials", HttpStatus.UNAUTHORIZED);
         }
-        await this.loginAttemptsService.resetFailures(email);
+
+        this.logger.log("Login successful. Auth service");
+        await this.loginAttemptsService.resetFailures(scope, email, ip);
         return user;
+        
     }
 
     private async issueTokens(subject: {id: number, email: string, role: Role}, sid: string, jti: string){
@@ -69,8 +81,8 @@ export class AuthService {
         return { accessToken, refreshToken };
     }
 
-    async adminstratorLogin(data: AuthDto, ipuaData): Promise<AuthLoginDto | ApiResponse | Users | any>{
-        const checkedAdministrator = await this.validateCredentials(data.email, data.password, Role.ADMIN) as Users | null;
+    async adminstratorLogin(data: AuthDto, ipuaData: LoginMeta): Promise<AuthLoginDto | ApiResponse | Users | any>{
+        const checkedAdministrator = await this.validateCredentials(data.email, data.password, Role.ADMIN, ipuaData.ip) as Users | null;
         if(!checkedAdministrator) throw new UnauthorizedException("Invalid credentials");
         const {sid, jti} = await this.refreshSessionService.create(checkedAdministrator.userId.toString(), Role.ADMIN, ipuaData);
         const {accessToken, refreshToken} = await this.issueTokens({id: checkedAdministrator.userId, email: checkedAdministrator.email, role: Role.ADMIN}, sid, jti);
@@ -80,8 +92,8 @@ export class AuthService {
         return { accessToken, refreshToken, administratorInfo };       
     }
 
-    async userLogin(data: AuthDto, ipuaData): Promise<AuthLoginDto | ApiResponse | Users | any>{
-        const checkedUser = await this.validateCredentials(data.email, data.password, Role.USER) as Users | null;
+    async userLogin(data: AuthDto, ipuaData: LoginMeta): Promise<AuthLoginDto | ApiResponse | Users | any>{
+        const checkedUser = await this.validateCredentials(data.email, data.password, Role.USER, ipuaData.ip) as Users | null;
         
         if(!checkedUser) throw new UnauthorizedException("Invalid credentials");
         const {sid, jti} = await this.refreshSessionService.create(checkedUser.userId.toString(), Role.USER, ipuaData);
@@ -93,8 +105,8 @@ export class AuthService {
     }
 
 
-    async loginSuperAdministrators(data: AuthDto, ipuaData): Promise<AuthLoginDto | ApiResponse | any>{
-        const checkedSuperadmistrators = await this.validateCredentials(data.email, data.password, Role.SUPER_ADMIN) as Users | null;
+    async loginSuperAdministrators(data: AuthDto, ipuaData: LoginMeta): Promise<AuthLoginDto | ApiResponse | any>{
+        const checkedSuperadmistrators = await this.validateCredentials(data.email, data.password, Role.SUPER_ADMIN, ipuaData.ip) as Users | null;
        
         if(!checkedSuperadmistrators) throw new UnauthorizedException("Invalid credentials");
         const {sid, jti} = await this.refreshSessionService.create(checkedSuperadmistrators.userId.toString(), Role.SUPER_ADMIN, ipuaData);
@@ -106,8 +118,8 @@ export class AuthService {
     }
 
     
-    async loginCutomers(data: AuthDto, ipuaData): Promise<AuthLoginDto | ApiResponse | any>{
-       const checkedCustomers = await this.validateCredentials(data.email, data.password, Role.CUSTOMER) as Customers | null;
+    async loginCutomers(data: AuthDto, ipuaData: LoginMeta): Promise<AuthLoginDto | ApiResponse | any>{
+       const checkedCustomers = await this.validateCredentials(data.email, data.password, Role.CUSTOMER, ipuaData.ip) as Customers | null;
       
        if(!checkedCustomers) throw new UnauthorizedException("Invalid credentials");
        const {sid, jti} = await this.refreshSessionService.create(checkedCustomers.customerId.toString(), Role.CUSTOMER, ipuaData);

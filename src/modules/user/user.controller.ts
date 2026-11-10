@@ -37,7 +37,7 @@ export class UserController {
       
         const usersDatas = await this.userServices.getAllUsers(adminId);
 
-        if(usersDatas instanceof ApiResponse && usersDatas.code === -1002){
+        if(usersDatas instanceof ApiResponse && usersDatas.code === -1001){
             return usersDatas;
         }
 
@@ -50,7 +50,7 @@ export class UserController {
     @UseInterceptors(CacheRedisIntrceptor)
     @Get("")
     @Roles("user")
-    @UseGuards(JwtAuthGuards)
+    @UseGuards(JwtAuthGuards, RoleGuards)
     async getById(@Req() req: Request): Promise<UserInfoDto | ApiResponse>{     
         const userData = await this.userServices.getUserById(req.user.id);
         return userData;

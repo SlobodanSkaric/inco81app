@@ -5,11 +5,11 @@ export class UdateTimeOfWorkUserDto{
     @IsNumber()
     id: number;
 
-    @IsOptional()
+    @IsNotEmpty()
     @IsString()
     dateStartTime: string;
 
-    @IsOptional()
+    @IsNotEmpty()
     @IsString()
     dateEndTime: string;
 }

@@ -122,11 +122,12 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
 
     async increment(key: string, ttlSeconds: number): Promise<number> {
-        const count = await this.redisClient.incr(key);
-        if(count == 1){
-            await this.redisClient.expire(key, ttlSeconds);
-        }
-        return count;
+        const [count] = await this.redisClient
+            .multi()
+            .incr(key)
+            .expire(key, ttlSeconds, "NX")
+            .exec();
+        return Number(count) || 0;
     }
 
     async setJson(key: string, value: any, ttlSeconds: number): Promise<void>{

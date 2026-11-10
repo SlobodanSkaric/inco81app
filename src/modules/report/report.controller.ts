@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { ReportService } from './report.service';
 import { Roles } from 'src/common/decorators/role.decorator';
 import { RoleGuards } from 'src/common/guards/roles.guards';
@@ -6,6 +6,7 @@ import { JwtAuthGuards } from 'src/modules/auth/jwtAuthGuards';
 import { ApiBody, ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from 'src/common/decorators/swagger.decorator';
 import { ReportDto } from './dto/report.dto';
+import { Request } from 'express';
 
 @ApiTags('report')
 @Controller('report')
@@ -19,8 +20,9 @@ export class ReportController {
     @Post("/generate")
     @Roles("administrator")
     @UseGuards(JwtAuthGuards,RoleGuards)
-    async genrateReportes(@Body() report):Promise<string | {message: string}>{
-        return this.reportServices.createPdfReport(report);
+    async genrateReportes(@Body() report: ReportDto, @Req() req: Request):Promise<string | {message: string}>{
+        const adminId = req.user.id;
+        return this.reportServices.createPdfReport(report, adminId);
     }
 
 }
