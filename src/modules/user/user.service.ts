@@ -10,6 +10,7 @@ import { UserVisibilityDto } from './dto/user.visibility.dto';
 import { UserEditDto } from './dto/user.edit.dto';
 import {EventEmitter2} from '@nestjs/event-emitter';
 import { CacheIvalidationEvent } from 'src/common/events/cahce.events';
+import { Role } from '../../common/enums/role.enum';
 
 @Injectable()
 export class UserService {
@@ -19,45 +20,23 @@ export class UserService {
     ){}
 
     async getAllUsers(userId): Promise<UserInfoDto[] | ApiResponse>{
-        const adminId = userId;
-        const admin = await this.userEntitets.findOne({ 
-            where: { userId: adminId }
-        });
+       const allUsers = await this.userEntitets.find({ where: { role: Role.USER} });
 
-        if(!admin){
-            return new ApiResponse("error", -1002, "No admin");
-        }
+       if(allUsers.length === 0){
+        return new ApiResponse("error", -1001, "No users");
+       }
 
-        const allUsers = await this.userEntitets.find({
-            relations: { timeOfWorkes: { user: true } }
-        });
+       const userInfoDto: UserInfoDto[] = [];
 
-        if(allUsers.length === 0){
-            return new ApiResponse("error", -1001, "No users");
-        }
+       allUsers.forEach((data) => {
+        userInfoDto.push(new UserInfoDto(data.userId, data.name, data.lastname, data.email, data.phonenumber ?? ""));
+       });
 
-        const userInfoDto: UserInfoDto[] = [];
-        let sumTimeOfWork = 0;  
+       if(userInfoDto.length === 0){
+        return new ApiResponse("error", -1001, "No users");
+       }
 
-
-        allUsers.forEach((data) => {
-            const timeOfWorkSet = data.timeOfWorkes;
-            timeOfWorkSet.forEach((dataSet) =>{
-                sumTimeOfWork += dataSet.checked_out.getTime() - dataSet.checked_in.getTime();
-           });
-            
-            let sumTimeOfWorkset = Number((sumTimeOfWork / (1000 * 60 * 60)).toFixed(2)); 
-            let sufix = "H";
-
-            if(sumTimeOfWorkset < 1){
-                sufix = "min";
-                sumTimeOfWorkset = Number(sumTimeOfWorkset.toString().split(".")[1])
-            }
-            userInfoDto.push(new UserInfoDto(data.userId, data.name, data.lastname, data.email, data.phonenumber ?? "",data.timeOfWorkes,sumTimeOfWorkset.toString() + sufix));
-            sumTimeOfWork = 0;
-        });
-
-        return userInfoDto;
+       return userInfoDto;
     }
 
     async getUserById(id): Promise<UserInfoDto | ApiResponse>{
@@ -211,6 +190,46 @@ export class UserService {
         }catch(e){
             return new ApiResponse("error", -1008, "Cant update user");
         }
+    }
+
+    //Thus refactor this function to get all users time of work and return the time of work for each user
+    async getAllUsersTimeOfWork(userId: number): Promise<UserInfoDto[] | ApiResponse>{
+        const allUsers = await this.userEntitets.find({
+            relations: { timeOfWorkes: { user: true } }
+        });
+
+        if(allUsers.length === 0){
+            return new ApiResponse("error", -1001, "No users");
+        }
+
+        const userInfoDto: UserInfoDto[] = [];
+        let sumTimeOfWork = 0;  
+
+        allUsers.forEach((data) => {
+            const timeOfWorkSet = data.timeOfWorkes;
+            timeOfWorkSet.forEach((dataSet) =>{
+                sumTimeOfWork += dataSet.checked_out.getTime() - dataSet.checked_in.getTime();
+           });
+            let sumTimeOfWorkset = Number((sumTimeOfWork / (1000 * 60 * 60)).toFixed(2)); 
+            let sufix = "H";
+
+            if(sumTimeOfWorkset < 1){
+                sufix = "min";
+                sumTimeOfWorkset = Number(sumTimeOfWorkset.toString().split(".")[1])
+            }
+            userInfoDto.push(new UserInfoDto(data.userId, data.name, data.lastname, data.email, data.phonenumber ?? "",data.timeOfWorkes,sumTimeOfWorkset.toString() + sufix));
+            sumTimeOfWork = 0;
+        });
+
+        return userInfoDto;
+    }
+
+    async getUserTimeOfWorkById(userId: number): Promise<UserInfoDto | ApiResponse>{
+        const user = await this.userEntitets.findOne({ where: { userId: userId } });
+        if(!user){
+            return new ApiResponse("error", -1003, "No user");
+        }
+        return new UserInfoDto(user.userId, user.name, user.lastname, user.email, user.phonenumber ?? "");
     }
         
 }

@@ -13,10 +13,10 @@ import { Users } from 'src/entitets/entities/Users';
 export class TimeofworkService {
     constructor(@InjectRepository(TimeOfWorke) private readonly timeOfWorksRepository: Repository<TimeOfWorke>){}
 
-    async userCheckedIn(data: UserCheckedInDto): Promise<TimeOfWorke | ApiResponse>{
+    async userCheckedIn(userId: number): Promise<TimeOfWorke | ApiResponse>{
         const checkedUser = await this.timeOfWorksRepository.findOne({
             where : {
-                user: { userId: data.userId } as Users,
+                user: { userId:userId } as Users,
                 checked_out: IsNull()
             }
         })
@@ -28,7 +28,7 @@ export class TimeofworkService {
 
 
         const timeOfWork = new TimeOfWorke();
-        timeOfWork.user = { userId: data.userId } as Users;
+        timeOfWork.user = { userId: userId } as Users;
         timeOfWork.checked_in = new Date();
 
         const savedTimeOfWork = await this.timeOfWorksRepository.save(timeOfWork);
@@ -42,10 +42,10 @@ export class TimeofworkService {
 
 
 
-    async userCheckedOut(data: UserCheckedInDto): Promise<TimeOfWorke | ApiResponse>{
+    async userCheckedOut(userId: number): Promise<TimeOfWorke | ApiResponse>{
         const checkedUser = await this.timeOfWorksRepository.findOne({
             where : {
-                user: { userId: data.userId } as Users,
+                user: { userId: userId } as Users,
                 checked_out: IsNull()
             }
         })

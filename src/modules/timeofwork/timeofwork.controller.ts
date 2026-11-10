@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { TimeofworkService } from './timeofwork.service';
 import { TimeOfWorke } from 'src/entitets/entities/TimeOfWorke';
 import { ApiResponse } from 'src/misc/api.response.dto';
@@ -11,6 +11,7 @@ import { UdateTimeOfWorkUserDto } from './dtos/udate.timeofwork.user.dto';
 import { JwtAuthGuards } from 'src/modules/auth/jwtAuthGuards';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiAuth, ApiResult } from 'src/common/decorators/swagger.decorator';
+import { Request } from 'express';
 
 @ApiTags('timeofwork')
 @Controller('timeofwork')
@@ -23,8 +24,9 @@ export class TimeofworkController {
     @Post("checkedin")
     @Roles("user","administrator","superadministrator")
     @UseGuards(JwtAuthGuards,RoleGuards)
-    async userCheckedIn(@Body() data: UserCheckedInDto): Promise<TimeOfWorke | ApiResponse>{
-        return await this.timeOfVorkServices.userCheckedIn(data);
+    async userCheckedIn(@Req() req: Request): Promise<TimeOfWorke | ApiResponse>{
+        const userId = req.user.id;
+        return await this.timeOfVorkServices.userCheckedIn(userId);
     }
 
     @ApiOperation({ summary: 'User check-out' })
@@ -33,8 +35,9 @@ export class TimeofworkController {
     @Post("checkedout")
     @Roles("user","administrator","superadministrator")
     @UseGuards(JwtAuthGuards,RoleGuards)
-    async userCheckedOut(@Body() data: UserCheckedOutDto): Promise<TimeOfWorke | ApiResponse>{
-        return await this.timeOfVorkServices.userCheckedOut(data);
+    async userCheckedOut(@Req() req: Request): Promise<TimeOfWorke | ApiResponse>{
+        const userId = req.user.id;
+        return await this.timeOfVorkServices.userCheckedOut(userId);
     }
 
     @ApiOperation({ summary: 'Get total worked hours of a user in a date range' })
@@ -43,8 +46,13 @@ export class TimeofworkController {
     @Post("gethoursebyuser")
     @Roles("user","administrator","superadministrator")
     @UseGuards(JwtAuthGuards,RoleGuards)
-    async getGourseByUserId(@Body() data: GetHorseDto): Promise< { getOfTime: string } | ApiResponse>{
-        return await this.timeOfVorkServices.getTiemOfWorkByUserId(data);
+    async getHourseByUserId(@Body() data: GetHorseDto, @Req() req: Request): Promise< { getOfTime: string } | ApiResponse>{
+        const userId = req.user.id;
+        const dtoInstance = new GetHorseDto();
+        dtoInstance.userId = userId;
+        dtoInstance.stratDate = data.stratDate;
+        dtoInstance.endDate = data.endDate;
+        return await this.timeOfVorkServices.getTiemOfWorkByUserId(dtoInstance);
     }
 
     @ApiOperation({ summary: 'Get time of work entry by id' })

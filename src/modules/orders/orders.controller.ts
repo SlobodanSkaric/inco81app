@@ -45,8 +45,9 @@ export class OrdersController {
     @Post("/createorders")
     @Roles("administrator", "customer")
     @UseGuards(JwtAuthGuards, RoleGuards)
-    async createOrder(@Body() order: OrderAddDto): Promise<OrderGetAllDto | ApiResponse>{
-        return await this.ordersService.addOrder(order);
+    async createOrder(@Body() order: OrderAddDto, @Req() req: Request): Promise<OrderGetAllDto | ApiResponse>{
+        const userId = req.user.id;
+        return await this.ordersService.addOrder(order, userId);
     }
 
     @ApiOperation({ summary: 'Delete (cancel) order' })

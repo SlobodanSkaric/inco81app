@@ -6,9 +6,6 @@ export class OrderItemDto {
 }
 
 export class OrderAddDto {
-    @IsNumber()
-    @IsNotEmpty()
-    customerId: number;
 
     @IsString()
     @IsNotEmpty()

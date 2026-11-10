@@ -24,11 +24,11 @@ export class ReportService {
         return `${hours}:${minutes}`;
     }
 
-    async createPdfReport(report: ReportDto): Promise<{message: string}> {
-        const getUser = await this.userRepository.findOneBy({userId: report.userId});
+    async createPdfReport(report: ReportDto, adminId: number): Promise<{message: string}> {
+        const getUser = await this.userRepository.findOneBy({userId: report.userId, managerId: adminId});
 
         if(!getUser){
-            return {message: "Korisnik nije pronađen"}
+            return {message: "User not found"}
         }
 
         const doc = new PDFDocument();

@@ -104,7 +104,7 @@ export class OrdersService {
         return orders;
     }
 
-    async addOrder(order: OrderAddDto): Promise<OrderGetAllDto | ApiResponse | any>{
+    async addOrder(order: OrderAddDto, userId: number): Promise<OrderGetAllDto | ApiResponse | any>{
         return await this.dataSource.transaction(async(transactionalEntityManager) => {
             const itemsId = order.items.map(item => item.itemId);
 
@@ -120,7 +120,7 @@ export class OrdersService {
 
             
             const orderCreate = transactionalEntityManager.create(Orders, {
-                customerId: order.customerId,
+                customerId: userId,
                 orderStatus: order.orderStatus
             });
 
