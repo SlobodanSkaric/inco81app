@@ -134,6 +134,18 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         await this.redisClient.set(key, JSON.stringify(value), {EX: ttlSeconds});
     }
 
+    async addToSet(key: string, value: any, ttlSeconds: number): Promise<void>{
+        await this.redisClient.multi().sAdd(key, value).expire(key, ttlSeconds).exec();
+    }
+
+    async removeFromSet(key: string, value: any): Promise<void>{
+        await this.redisClient.sRem(key, value);
+    }
+
+    async getSet(key: string): Promise<string[]>{
+        return await this.redisClient.sMembers(key);
+    }
+
 
     async delete(key: string, options?: CacheOptions): Promise<void> {
         const prefix = options?.prefix || '';

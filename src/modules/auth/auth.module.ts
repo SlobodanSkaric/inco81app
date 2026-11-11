@@ -18,10 +18,11 @@ import { Customers } from 'src/entitets/entities/Customers';
 import { LoginAttemptsService } from './login.attempts.service';
 import { RedisModule } from '../redis/redis.module';
 import { RefreshSessionService } from './refresh.session.service';
+import { AuthSessionsListener } from './auth.sessions.listener';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, JwtRefreshStrategy, JwtService, AuthUserServices, LoginAttemptsService, RefreshSessionService],
+  providers: [AuthService, JwtStrategy, JwtRefreshStrategy, JwtService, AuthUserServices, LoginAttemptsService, RefreshSessionService, AuthSessionsListener],
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({

@@ -1,9 +1,12 @@
 import { PassportStrategy } from "@nestjs/passport";
 import { Strategy, ExtractJwt } from "passport-jwt";
+import { RefreshSessionService } from "./refresh.session.service";
 import { Request } from "express";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 
+@Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-    constructor() {
+     constructor(private readonly refreshSessionService: RefreshSessionService) {
         super({
             jwtFromRequest: ExtractJwt.fromExtractors([
                 (req: Request) => req.cookies?.access_token
@@ -14,6 +17,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     async validate(payload: any) {
+        if(!payload.sid || !(await this.refreshSessionService.isActive(payload.sid, payload.id.toString(), payload.role))){
+            throw new UnauthorizedException("Invalid session");
+        }
         return {
             id: payload.id,
             email: payload.email,
@@ -21,7 +27,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             role: payload.role,
             permissions: payload.permissions,
             ip: payload.ip,
-            ua: payload.ua
+            ua: payload.ua,
+            sid: payload.sid
         };
     }
 }

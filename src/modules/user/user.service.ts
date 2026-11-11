@@ -11,6 +11,7 @@ import { UserEditDto } from './dto/user.edit.dto';
 import {EventEmitter2} from '@nestjs/event-emitter';
 import { CacheIvalidationEvent } from 'src/common/events/cahce.events';
 import { Role } from '../../common/enums/role.enum';
+import { SessionsRevokedEvent } from '../../common/events/auth.events';
 
 @Injectable()
 export class UserService {
@@ -109,7 +110,7 @@ export class UserService {
     
 
     async deleteUser(user_data: UserVisibilityDto): Promise<ApiResponse>{
-        const user = await this.userEntitets.findOne({ where: { userId: user_data.user_id } });
+        const user = await this.userEntitets.findOne({ where: { userId: user_data.user_id , role: Role.USER} });
 
         if(!user){
             return new ApiResponse("error", -1003, "No user");
@@ -123,6 +124,9 @@ export class UserService {
 
         try{
             await this.userEntitets.save(user);
+            if(user.visibility === 1){
+                await this.eventEmmiter.emitAsync("auth.sessions.revoked", new SessionsRevokedEvent(user.userId.toString(), Role.USER));
+            }
             if(user_data.visible == 0){
                 return new ApiResponse("ok", 0, "User successfuly hidden");
             }else{
@@ -131,6 +135,8 @@ export class UserService {
         }catch(e){
             return new ApiResponse("error", -1005, "Cant change user visibility");
         }
+
+       
         
     }
 
@@ -185,6 +191,10 @@ export class UserService {
                 )
             )
             
+
+            if(userData.password){
+                await this.eventEmmiter.emitAsync("auth.sessions.revoked", new SessionsRevokedEvent(saveUser.userId.toString(), Role.USER));
+            }
 
             return await this.getUserByIdLocal(saveUser.userId);
         }catch(e){

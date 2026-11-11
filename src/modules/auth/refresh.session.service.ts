@@ -24,12 +24,16 @@ export class RefreshSessionService {
         return "auth:refresh:" + sid;
     }
 
+    private userKey(role: Role, userId: string): string{
+        return `auth:refresh:user:${role}:${userId}`;
+    }
+
     async create(userId: string, role: Role, meta: {ip?: string, ua?: string}): Promise<{sid: string, jti: string}> {
         const sid = randomUUID();
         const jti = randomUUID();
 
         await this.redisService.setJson(this.key(sid), { userId, role, jti, ...meta }, RefreshSessionService.TTL_SECONDS);
-
+        await this.redisService.addToSet(this.userKey(role, userId), sid, RefreshSessionService.TTL_SECONDS);
         return { sid, jti };
     }
 
@@ -52,11 +56,29 @@ export class RefreshSessionService {
 
        const jti = randomUUID();
        await this.redisService.setJson(this.key(sid), { ...session, previousJti: session.jti, jti, rotatedAt: Date.now() }, RefreshSessionService.TTL_SECONDS);
-
+       await this.redisService.addToSet(this.userKey(role, userId), sid, RefreshSessionService.TTL_SECONDS);
        return jti;
     }
 
+    async isActive(sid: string, userId: string, role: Role): Promise<boolean>{
+        const session = await this.redisService.get<RefreshSessionPayload>(this.key(sid)) as RefreshSessionPayload | null;
+        return !!session && session.userId === userId && session.role === role;
+    }
+    
     async invalidate(sid: string): Promise<void>{
+        const session = await this.redisService.get<RefreshSessionPayload>(this.key(sid)) as RefreshSessionPayload || null;
         await this.redisService.delete(this.key(sid));
+        if(session){
+            await this.redisService.removeFromSet(this.userKey(session.role, session.userId), sid);
+        }
+    }
+
+    async invalidateAllForUser(userId: string, role: Role): Promise<void>{
+        const indexKey = this.userKey(role, userId);
+        const sids = await this.redisService.getSet(indexKey);
+        for(const sid of sids){
+            await this.redisService.delete(this.key(sid));
+        }
+        await this.redisService.delete(indexKey);
     }
 }

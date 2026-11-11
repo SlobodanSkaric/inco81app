@@ -131,14 +131,14 @@ export class AuthService {
     }
 
     async refresh(payload: {id: number, role: Role, sid: string, jti: string}){
-        const jti = await this.refreshSessionService.rotate(payload.sid, payload.jti, payload.id.toString(), payload.role);
-
         const account = payload.role === Role.CUSTOMER ? await this.customersService.findCustomerInActive(payload.id) as Customers | null : await this.authUserServices.findByIdAndRole(payload.id, payload.role) as Users | null;
 
-        if(!account){
+        if(!account || (account instanceof Users && account.visibility === 1)){
             await this.refreshSessionService.invalidate(payload.sid);
             throw new UnauthorizedException("Invalid session");
         }
+
+        const jti = await this.refreshSessionService.rotate(payload.sid, payload.jti, payload.id.toString(), payload.role);
 
         const email = account instanceof Customers ? account.contactEmail  : account.email;
         return this.issueTokens({id: payload.id, email, role: payload.role}, payload.sid, jti);

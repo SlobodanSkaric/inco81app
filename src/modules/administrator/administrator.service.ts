@@ -14,13 +14,16 @@ import { Vacations } from 'src/entitets/entities/Vacations';
 import { RequestVacationDto } from '../vacation/dto/rewquest.vactions.dto';
 import { DecideVacationDto } from '../vacation/dto/decide.vactions.dto';
 import { Role } from '../../common/enums/role.enum';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { SessionsRevokedEvent } from '../../common/events/auth.events';
 
 @Injectable()
 export class AdministratorService {
     constructor(
         @InjectRepository(Users) private readonly administratorEntitets: Repository<Users>,
         @InjectRepository(TimeOfWorke) private readonly timeOfWorkeEntitets: Repository<TimeOfWorke>,
-        @InjectRepository(Vacations) private readonly vacationsEntitets: Repository<Vacations>
+        @InjectRepository(Vacations) private readonly vacationsEntitets: Repository<Vacations>,
+        private readonly eventEmmiter: EventEmitter2
     ){}
 
     async getAllAdmin(): Promise<AdministratorInfoDto[] | ApiResponse>{
@@ -92,12 +95,14 @@ export class AdministratorService {
         try{
             const result: Users | null = await this.administratorEntitets.createQueryBuilder("admiistrator_visibility")
                                  .where("admiistrator_visibility.userId = :userId", { userId: id})
+                                 .andWhere("admiistrator_visibility.role = :role", { role: Role.ADMIN})
                                  .andWhere("admiistrator_visibility.visibility = :visibility", { visibility: 0})
                                  .getOne()
 
             if(result){
                 result.visibility = 1;
                 await this.administratorEntitets.save(result);
+                await this.eventEmmiter.emitAsync("auth.sessions.revoked", new SessionsRevokedEvent(result.userId.toString(), Role.ADMIN));
                 return true;
             }
 
