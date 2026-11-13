@@ -96,11 +96,11 @@ export class AdministratorService {
             const result: Users | null = await this.administratorEntitets.createQueryBuilder("admiistrator_visibility")
                                  .where("admiistrator_visibility.userId = :userId", { userId: id})
                                  .andWhere("admiistrator_visibility.role = :role", { role: Role.ADMIN})
-                                 .andWhere("admiistrator_visibility.visibility = :visibility", { visibility: 0})
+                                 .andWhere("admiistrator_visibility.visibility = :visibility", { visibility: 1})
                                  .getOne()
 
             if(result){
-                result.visibility = 1;
+                result.visibility = 0;
                 await this.administratorEntitets.save(result);
                 await this.eventEmmiter.emitAsync("auth.sessions.revoked", new SessionsRevokedEvent(result.userId.toString(), Role.ADMIN));
                 return true;

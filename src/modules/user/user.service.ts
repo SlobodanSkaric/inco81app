@@ -21,7 +21,7 @@ export class UserService {
     ){}
 
     async getAllUsers(userId): Promise<UserInfoDto[] | ApiResponse>{
-       const allUsers = await this.userEntitets.find({ where: { role: Role.USER} });
+       const allUsers = await this.userEntitets.find({ where: { role: Role.USER, managerId: userId} });
 
        if(allUsers.length === 0){
         return new ApiResponse("error", -1001, "No users");
@@ -69,7 +69,7 @@ export class UserService {
             return user;
         }
 
-    async addUser(data: UserAddDto): Promise<UserInfoDto | ApiResponse>{
+    async addUser(data: UserAddDto, userId: number): Promise<UserInfoDto | ApiResponse>{
         const user = new Users();
 
         const saltRound = 10;
@@ -78,13 +78,16 @@ export class UserService {
         user.lastname = data.lastname;
         user.email = data.email;
         user.phonenumber = data.phonenumber;
-
+        user.managerId = userId;
         const passwordHash = await bcrypt.hash(data.password, saltRound);
 
         user.password = passwordHash;
 
         try{
             const saveUser = await this.userEntitets.save(user);
+            this.eventEmmiter.emit("cache.invalidate",
+                new CacheIvalidationEvent([`administrator:${userId}:/user/all`], [], "Users", "create")
+            );
             return await this.getUserByIdLocal(saveUser.userId);
         }catch(error: any){
             if(error.errno === 1062 || error.code === "ER_DUP_ENTRY" || error.errno === 23505){
@@ -109,8 +112,8 @@ export class UserService {
 
     
 
-    async deleteUser(user_data: UserVisibilityDto): Promise<ApiResponse>{
-        const user = await this.userEntitets.findOne({ where: { userId: user_data.user_id , role: Role.USER} });
+    async deleteUser(user_data: UserVisibilityDto, userId: number): Promise<ApiResponse>{
+        const user = await this.userEntitets.findOne({ where: { userId: user_data.user_id , role: Role.USER, managerId: userId} });
 
         if(!user){
             return new ApiResponse("error", -1003, "No user");
@@ -123,8 +126,20 @@ export class UserService {
         user.visibility = user_data.visible;
 
         try{
-            await this.userEntitets.save(user);
-            if(user.visibility === 1){
+           const saveUser = await this.userEntitets.save(user);
+            this.eventEmmiter.emit("cache.invalidate",
+                new CacheIvalidationEvent(
+                    [
+                        `administrator:${userId}:/user/all`,
+                    ],
+                    [
+                       
+                    ],
+                    "Users",
+                    "update"
+                )
+            )
+            if(user.visibility === 0){
                 await this.eventEmmiter.emitAsync("auth.sessions.revoked", new SessionsRevokedEvent(user.userId.toString(), Role.USER));
             }
             if(user_data.visible == 0){
@@ -134,13 +149,9 @@ export class UserService {
             }
         }catch(e){
             return new ApiResponse("error", -1005, "Cant change user visibility");
-        }
-
-       
+        }     
         
-    }
-
-    
+    }    
     
     
     

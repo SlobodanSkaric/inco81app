@@ -16,6 +16,7 @@ import { LoginAttemptsService, LoginScope } from './login.attempts.service';
 import { Role } from '../../common/enums/role.enum';
 import { CustomersService } from '../customers/customers.service';
 import { RefreshSessionService } from './refresh.session.service';
+import { Premissions } from 'src/common/enums/premisions.enums';
 
 export interface LoginMeta{
     ip: string;
@@ -55,7 +56,7 @@ export class AuthService {
         }
 
         const inactiveCustomer = role === Role.CUSTOMER && user?.isActive === false;
-        const userNotVisible = role !== Role.CUSTOMER && user.visibility === 1;
+        const userNotVisible = role !== Role.CUSTOMER && user.visibility === 0;
 
         if(inactiveCustomer || userNotVisible){
             throw new HttpException("Invalid credentials", HttpStatus.UNAUTHORIZED);
@@ -67,9 +68,9 @@ export class AuthService {
         
     }
 
-    private async issueTokens(subject: {id: number, email: string, role: Role}, sid: string, jti: string){
+    private async issueTokens(subject: {id: number, email: string, role: Role}, sid: string, jti: string, permissions: Premissions[]){
         const accessToken = await this.jwtService.signAsync(
-            {id: subject.id, email: subject.email, role: subject.role, sid},
+            {id: subject.id, email: subject.email, role: subject.role, sid, permissions},
             { secret: this.configService.get<string>("SECRET_TOKEN_KEY"), expiresIn: "15m" }
         )
 
@@ -85,7 +86,7 @@ export class AuthService {
         const checkedAdministrator = await this.validateCredentials(data.email, data.password, Role.ADMIN, ipuaData.ip) as Users | null;
         if(!checkedAdministrator) throw new UnauthorizedException("Invalid credentials");
         const {sid, jti} = await this.refreshSessionService.create(checkedAdministrator.userId.toString(), Role.ADMIN, ipuaData);
-        const {accessToken, refreshToken} = await this.issueTokens({id: checkedAdministrator.userId, email: checkedAdministrator.email, role: Role.ADMIN}, sid, jti);
+        const {accessToken, refreshToken} = await this.issueTokens({id: checkedAdministrator.userId, email: checkedAdministrator.email, role: Role.ADMIN}, sid, jti, [Premissions.CREATE, Premissions.READ, Premissions.UPDATE, Premissions.DELETE]);
 
         const administratorInfo = new AdministratorInfoDto(checkedAdministrator?.userId, checkedAdministrator?.name, checkedAdministrator?.lastname, checkedAdministrator?.email, checkedAdministrator?.phonenumber ?? "");
 
@@ -97,7 +98,7 @@ export class AuthService {
         
         if(!checkedUser) throw new UnauthorizedException("Invalid credentials");
         const {sid, jti} = await this.refreshSessionService.create(checkedUser.userId.toString(), Role.USER, ipuaData);
-        const {accessToken, refreshToken} = await this.issueTokens({id: checkedUser.userId, email: checkedUser.email, role: Role.USER}, sid, jti);
+        const {accessToken, refreshToken} = await this.issueTokens({id: checkedUser.userId, email: checkedUser.email, role: Role.USER}, sid, jti, [Premissions.CREATE, Premissions.READ, Premissions.UPDATE]);
 
         const userInfo = new UserInfoDto(checkedUser?.userId, checkedUser?.name, checkedUser?.lastname, checkedUser?.email, checkedUser?.phonenumber ?? "");
 
@@ -110,7 +111,7 @@ export class AuthService {
        
         if(!checkedSuperadmistrators) throw new UnauthorizedException("Invalid credentials");
         const {sid, jti} = await this.refreshSessionService.create(checkedSuperadmistrators.userId.toString(), Role.SUPER_ADMIN, ipuaData);
-        const {accessToken, refreshToken} = await this.issueTokens({id: checkedSuperadmistrators.userId, email: checkedSuperadmistrators.email, role: Role.SUPER_ADMIN}, sid, jti);
+        const {accessToken, refreshToken} = await this.issueTokens({id: checkedSuperadmistrators.userId, email: checkedSuperadmistrators.email, role: Role.SUPER_ADMIN}, sid, jti, [Premissions.CREATE, Premissions.READ, Premissions.UPDATE, Premissions.DELETE]);
 
         const superadministrastorsInfo = new SuperadministratorInfoDto(checkedSuperadmistrators?.userId,checkedSuperadmistrators?.name ,checkedSuperadmistrators?.email ,checkedSuperadmistrators?.phonenumber ?? "");
      
@@ -123,7 +124,7 @@ export class AuthService {
       
        if(!checkedCustomers) throw new UnauthorizedException("Invalid credentials");
        const {sid, jti} = await this.refreshSessionService.create(checkedCustomers.customerId.toString(), Role.CUSTOMER, ipuaData);
-       const {accessToken, refreshToken} = await this.issueTokens({id: checkedCustomers.customerId, email: checkedCustomers.contactEmail, role: Role.CUSTOMER}, sid, jti);
+       const {accessToken, refreshToken} = await this.issueTokens({id: checkedCustomers.customerId, email: checkedCustomers.contactEmail, role: Role.CUSTOMER}, sid, jti, [Premissions.CREATE, Premissions.READ, Premissions.UPDATE, Premissions.DELETE]);
 
         const customersInfo = new GetCustomersDto(checkedCustomers?.customerId, checkedCustomers?.customerName, checkedCustomers?.isActive, checkedCustomers?.contactEmail, checkedCustomers?.phoneNumber, checkedCustomers?.address);
      
@@ -133,7 +134,7 @@ export class AuthService {
     async refresh(payload: {id: number, role: Role, sid: string, jti: string}){
         const account = payload.role === Role.CUSTOMER ? await this.customersService.findCustomerInActive(payload.id) as Customers | null : await this.authUserServices.findByIdAndRole(payload.id, payload.role) as Users | null;
 
-        if(!account || (account instanceof Users && account.visibility === 1)){
+        if(!account || (account instanceof Users && account.visibility === 0)){
             await this.refreshSessionService.invalidate(payload.sid);
             throw new UnauthorizedException("Invalid session");
         }
@@ -141,7 +142,7 @@ export class AuthService {
         const jti = await this.refreshSessionService.rotate(payload.sid, payload.jti, payload.id.toString(), payload.role);
 
         const email = account instanceof Customers ? account.contactEmail  : account.email;
-        return this.issueTokens({id: payload.id, email, role: payload.role}, payload.sid, jti);
+        return this.issueTokens({id: payload.id, email, role: payload.role}, payload.sid, jti, [Premissions.CREATE, Premissions.READ, Premissions.UPDATE, Premissions.DELETE]);
 
     }
 

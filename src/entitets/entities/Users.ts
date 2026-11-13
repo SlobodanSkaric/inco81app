@@ -44,7 +44,7 @@ export class Users {
   @Column("varchar", {name: "token",nullable: true,length: 256})
   token: string | null;
 
-  @Column("int", {name: "visibility", default: 0})
+  @Column("int", {name: "visibility", default: 1})
   visibility: number;
 
   @Column("datetime", {

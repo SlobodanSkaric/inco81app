@@ -14,6 +14,7 @@ import { RedisService } from '../redis/redis.service';
 import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptors';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiAuth, ApiResult } from 'src/common/decorators/swagger.decorator';
+import { PermissionsGuards } from '../../common/guards/permissions.guards';
 
 
 @ApiTags('user')
@@ -63,9 +64,9 @@ export class UserController {
     @Post("/add")
     @Roles("administrator")
     @Permissions("create")
-    @UseGuards(JwtAuthGuards, RoleGuards)
-    async addUser(@Body() data: UserAddDto): Promise<UserInfoDto | ApiResponse>{
-        return this.userServices.addUser(data);
+    @UseGuards(JwtAuthGuards, RoleGuards, PermissionsGuards)
+    async addUser(@Body() data: UserAddDto, @Req() req: Request): Promise<UserInfoDto | ApiResponse>{
+        return this.userServices.addUser(data, req.user.id);
     }
 
     @ApiOperation({ summary: 'Change user visibility (soft delete / restore)' })
@@ -74,9 +75,9 @@ export class UserController {
     @Post("/delete")
     @Roles("administrator")
     @Permissions("delete")
-    @UseGuards(JwtAuthGuards, RoleGuards)
-    async deleteUser(@Body() user_data: UserVisibilityDto): Promise<ApiResponse>{
-        return this.userServices.deleteUser(user_data);
+    @UseGuards(JwtAuthGuards, RoleGuards, PermissionsGuards)
+    async deleteUser(@Body() user_data: UserVisibilityDto, @Req() req: Request): Promise<ApiResponse>{
+        return this.userServices.deleteUser(user_data, req.user.id);
     }
 
     @ApiOperation({ summary: 'Edit logged-in user profile' })
@@ -84,7 +85,8 @@ export class UserController {
     @ApiResult(UserInfoDto, { status: 201 })
     @Post("/edit")
     @Roles("user")
-    @UseGuards(JwtAuthGuards, RoleGuards)
+    @Permissions("update")
+    @UseGuards(JwtAuthGuards, RoleGuards, PermissionsGuards)
     async editUser(@Body() userData: UserEditDto, @Req() req: Request): Promise<UserInfoDto | ApiResponse>{
         return this.userServices.editUser(userData, req.user.id);
     }
