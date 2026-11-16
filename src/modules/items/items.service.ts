@@ -14,7 +14,7 @@ export class ItemsService {
         const items = await this.itemsRepository.find();
 
         if(items.length === 0){
-            return new ApiResponse("error", -1201, "No items found");
+            return new ApiResponse("error", 404, "No items found");
         }
 
         return items.map(item => new GetItemsDto(
@@ -30,7 +30,7 @@ export class ItemsService {
         const item = await this.itemsRepository.findOne({ where: { itemId: id } });
 
         if(!item){
-            return new ApiResponse("error", -1202, "Item not found");
+            return new ApiResponse("error", 404, "Item not found");
         }
 
         return new GetItemsDto(

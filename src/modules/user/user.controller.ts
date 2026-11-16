@@ -11,7 +11,7 @@ import { UserVisibilityDto } from './dto/user.visibility.dto';
 import { RoleGuards } from 'src/common/guards/roles.guards';
 import { UserEditDto } from './dto/user.edit.dto';
 import { RedisService } from '../redis/redis.service';
-import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptors';
+import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptor';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiAuth, ApiResult } from 'src/common/decorators/swagger.decorator';
 import { PermissionsGuards } from '../../common/guards/permissions.guards';
@@ -38,7 +38,7 @@ export class UserController {
       
         const usersDatas = await this.userServices.getAllUsers(adminId);
 
-        if(usersDatas instanceof ApiResponse && usersDatas.code === -1001){
+        if(usersDatas instanceof ApiResponse && usersDatas.code === 404){
             return usersDatas;
         }
 

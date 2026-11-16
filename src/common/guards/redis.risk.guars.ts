@@ -14,7 +14,7 @@ export class RedisRiskGuards implements CanActivate{
         }
 
         const payload = {
-            ip: request.ip || request.header["x-forwarded-from"],
+            ip: request.ip || request.header["x-forwarded-for"],
             ua: request.headers["user-agent"]
         }
 

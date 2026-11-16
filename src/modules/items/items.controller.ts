@@ -7,7 +7,7 @@ import { GetItemsDto } from './dtos/get.itmes.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { AddItemsDto } from './dtos/add.items.dto';
 import { RedisService } from '../redis/redis.service';
-import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptors';
+import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptor';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiAuth, ApiResult } from 'src/common/decorators/swagger.decorator';
 

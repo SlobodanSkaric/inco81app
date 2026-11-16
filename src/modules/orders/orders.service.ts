@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Orders } from 'src/entitets/entities/Orders';
 import { get } from 'http';
 import { ApiResponse } from 'src/misc/api.response.dto';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { OrderGetAllDto } from './dtos/order.get.all.dto';
 import { OrderAddDto } from './dtos/orders.add.dto';
 import { DataSource } from 'typeorm';
@@ -27,7 +27,7 @@ export class OrdersService {
 
 
         if(getOrders.length === 0){
-            return new ApiResponse("error", -7008, "No Orders");
+            return new ApiResponse("error", 404, "No Orders");
         }
 
         const orders: OrderGetAllDto[] = [];
@@ -43,7 +43,7 @@ export class OrdersService {
         const getOrder = await this.ordersEntitets.findOne({ where: {orderId: id}}); //implement all relations and change dto
 
         if(!getOrder){
-            return new ApiResponse("error", -7009, "No Order");
+            return new ApiResponse("error", 404, "No Order");
         }
 
         return new OrderGetAllDto(getOrder.orderId, getOrder.customerId, getOrder.orderStatus);
@@ -54,7 +54,7 @@ export class OrdersService {
         const getOrders = await this.ordersEntitets.find({ where: {orderStatus: orderStatus}}); //implement all relations and change dto
 
         if(getOrders.length === 0){
-            return new ApiResponse("error", -7010, "No Orders with this status");
+            return new ApiResponse("error", 404, "No Orders with this status");
         }
 
         const orders: OrderGetAllDto[] = [];
@@ -70,11 +70,19 @@ export class OrdersService {
         const order = await this.ordersEntitets.findOne({ where: {orderId: orderId}});
 
         if(!order){
-            return new ApiResponse("error", -7012, "No Order");
+            return new ApiResponse("error", 404, "No Order");
         }
 
         if(!Object.values(OrdersStatus).includes(orderStatus as OrdersStatus)){
-            return new ApiResponse("error", -7011, "Invalid order status");
+            return new ApiResponse("error", 400, "Invalid order status");
+        }
+
+        if(orderStatus === OrdersStatus.CANCELLED){
+            return new ApiResponse("error", 403, "You cannot cancel an order");
+        }
+
+        if(order.orderStatus === OrdersStatus.CANCELLED){
+            return new ApiResponse("error", 409, "Order is already cancelled");
         }
 
         order.orderStatus = orderStatus;
@@ -82,7 +90,7 @@ export class OrdersService {
         const savedOrder = await this.ordersEntitets.save(order);
 
         if(!savedOrder){
-            return new ApiResponse("error", -7013, "Cannot change order status");
+            return new ApiResponse("error", 400, "Cannot change order status");
         }
 
         return new OrderGetAllDto(savedOrder.orderId, savedOrder.customerId, savedOrder.orderStatus);
@@ -92,7 +100,7 @@ export class OrdersService {
         const getOrders = await this.ordersEntitets.find({ where: {customerId: customerId}}); //implement all relations and change dto
 
         if(getOrders.length === 0){
-            return new ApiResponse("error", -7011, "No Orders for this customer");
+            return new ApiResponse("error", 404, "No Orders for this customer");
         }
 
         const orders: OrderGetAllDto[] = [];
@@ -109,19 +117,26 @@ export class OrdersService {
             const itemsId = order.items.map(item => item.itemId);
 
             const items = await transactionalEntityManager.find(Items, {
-                where: itemsId.map(id => ({ itemId: id }))  
+                where: itemsId.map(id => ({ itemId: id })),
+                lock: { mode: "pessimistic_write" }
             });
 
             if(items.length !== order.items.length){
-                return new ApiResponse("error", -7014, "One or more items not found");
+                return new ApiResponse("error", 404, "One or more items not found");
             }
 
             const itemsById = new Map(items.map(item => [item.itemId, item]));
 
+            for(const item of order.items){
+                if(itemsById.get(item.itemId)!.stockQuantity < item.quantity){
+                    return new ApiResponse("error", 409, `Not enough stock for item ${item.itemId}`);
+                }
+            }
+
             
             const orderCreate = transactionalEntityManager.create(Orders, {
                 customerId: userId,
-                orderStatus: order.orderStatus
+                orderStatus: OrdersStatus.ACTIVE
             });
 
             const savedOrder = await transactionalEntityManager.save(orderCreate);
@@ -138,45 +153,81 @@ export class OrdersService {
             });
 
             await transactionalEntityManager.save(OrderItems, orderItems);
+
+            for(const item of order.items){
+                await transactionalEntityManager.decrement(Items, { itemId: item.itemId }, "stockQuantity", item.quantity);
+            }
+
             return savedOrder;
         });
     }
 
-    async delteOrder(orderId: number, status: string, userId: number): Promise<ApiResponse>{
-        const order = await this.ordersEntitets.findOne({ where: { orderId: orderId } });
+    async delteOrderForCustomer(orderId: number,  userId: number): Promise<ApiResponse>{
+        return await this.dataSource.transaction(async(transactionalEntityManager) => {
+            const order = await transactionalEntityManager.findOne(Orders, {
+                where: { orderId: orderId },
+                lock: { mode: "pessimistic_write" }
+            });
 
-        if(!order){
-            return new ApiResponse("error", -7015, "Order not found");        
-        }
+            if(!order){
+                return new ApiResponse("error", 404, "Order not found");        
+            }
 
-        if(order.customerId !== userId){
-            return new ApiResponse("error", -7016, "You can only delete your own orders");
-        }
+            if(order.customerId !== userId){
+                return new ApiResponse("error", 403, "You can only delete your own orders");
+            }
 
-        if(order.orderStatus !== "active"){
-            return new ApiResponse("error", -7017, "Only active orders can be deleted");
-        }
+            if(order.orderStatus !== OrdersStatus.ACTIVE && order.orderStatus !== OrdersStatus.PENDING){
+                return new ApiResponse("error", 400, "Only active and pending orders can be deleted");
+            }
 
-        order.orderStatus = status;
+            return await this.cancelOrder(transactionalEntityManager, order);
 
-        const savedOrder = await this.ordersEntitets.save(order);
-
-        if(!savedOrder){
-            return new ApiResponse("error", -7018, "Cannot delete order");
-        }
-
-        return new ApiResponse("success", 7001, "Order deleted successfully");
+        });
     }
 
-   /* async checkedItemPrice(itemId: number, customersPrice: number): Promise<boolean>{
-        const itemsRepository = await this.itemsEntitets.findOne({ where: { itemId: itemId }});
+    async deleteOrderForAdmin(orderId: number): Promise<ApiResponse>{
+        return await this.dataSource.transaction(async(transactionalEntityManager) => {
+            const order = await transactionalEntityManager.findOne(Orders, {
+                where: { orderId: orderId },
+                lock: { mode: "pessimistic_write" }
+            });
 
-        if(!itemsRepository){
-            return false
+            if(!order){
+                return new ApiResponse("error", 404, "Order not found");
+            }
+
+            if(order.orderStatus !== OrdersStatus.ACTIVE && order.orderStatus !== OrdersStatus.PENDING){
+                return new ApiResponse("error", 400, "Only active and pending orders can be deleted");
+            }
+
+            return await this.cancelOrder(transactionalEntityManager, order);
+        });
+    }
+
+
+    private async cancelOrder(transactionalEntityManager: EntityManager, order: Orders): Promise<ApiResponse>{
+        const orderItems = await transactionalEntityManager.find(OrderItems,{
+            where: { orders: order.orderId },
+            loadRelationIds: true,
+            lock: { mode: "pessimistic_write" }
+        });
+
+        if(orderItems.length === 0){
+            return new ApiResponse("error", 400, "Order has no items");
         }
 
-        return itemsRepository.price === customersPrice;
-    }*/
+        for(const orderItem of orderItems){
+            await transactionalEntityManager.increment(Items, { itemId: orderItem.items}, "stockQuantity", orderItem.quantity);
+        }
+
+        await transactionalEntityManager.delete(OrderItems, { orders: order.orderId });
+
+        order.orderStatus = OrdersStatus.CANCELLED;
+        await transactionalEntityManager.save(order);
+
+        return new ApiResponse("success", 7001, "Order cancelled successfully");
+    }
 
     async orderSnapshotJSON(orderId: number): Promise<string | ApiResponse | null>{ return null;}//implement order snapshot in json format
     async orderSnapshotPDF(orderId: number): Promise<Buffer | ApiResponse | null>{ return null;}//implement order snapshot in pdf format

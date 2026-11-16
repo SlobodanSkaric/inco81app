@@ -13,7 +13,7 @@ import { OrdersService } from '../orders/orders.service';
 import { DecideVacationDto } from '../vacation/dto/decide.vactions.dto';
 import { Vacations } from 'src/entitets/entities/Vacations';
 import { RedisService } from '../redis/redis.service';
-import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptors';
+import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptor';
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import { RequestVacationDto } from '../vacation/dto/rewquest.vactions.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -67,14 +67,24 @@ export class AdministratorController {
         return await this.admiServices.addAdministratorServices(data);
     }
 
-    @ApiOperation({ summary: "Edit user's time of work end date" })
+    @ApiOperation({ summary: "Retrieve user's time of work end date" })
     @ApiAuth("administrator")
     @ApiResult(TimeOfWorke, { status: 201, isArray: true })
-    @Post("edit/timeofwork/")
+    @Post("retrieve/timeofwork/")
     @Roles("administrator")
     @UseGuards(JwtAuthGuards,RoleGuards)
-    async editUserTimeOfWork(@Body() data: EditUserTimeOfWorkDto){
-        return await this.admiServices.editUserTimeOfWork(data);
+    async retrieveUserTimeOfWork(@Body() data: EditUserTimeOfWorkDto): Promise<TimeOfWorke[] | ApiResponse>{
+        return await this.admiServices.retrieveUserTimeOfWork(data);
+    }
+
+    @ApiOperation({ summary: "Update user's time of work end date" })
+    @ApiAuth("administrator")
+    @ApiResult(TimeOfWorke, { status: 201 })
+    @Post("update/timeofwork")
+    @Roles("administrator")
+    @UseGuards(JwtAuthGuards,RoleGuards)
+    async updateUserTimeOfWork(@Body() data: EditUserTimeOfWorkDto, @Req() req: Request): Promise<TimeOfWorke | ApiResponse>{
+        return await this.admiServices.updateUserTimeOfWork(req.user.id, data);
     }
 
     @ApiOperation({ summary: "Delete user's time of work entry" })

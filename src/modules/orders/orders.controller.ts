@@ -40,10 +40,10 @@ export class OrdersController {
     }
 
     @ApiOperation({ summary: 'Create order' })
-    @ApiAuth("administrator", "customer")
+    @ApiAuth( "customer")
     @ApiResult(OrderGetAllDto, { status: 201 })
     @Post("/createorders")
-    @Roles("administrator", "customer")
+    @Roles("customer")
     @UseGuards(JwtAuthGuards, RoleGuards)
     async createOrder(@Body() order: OrderAddDto, @Req() req: Request): Promise<OrderGetAllDto | ApiResponse>{
         const userId = req.user.id;
@@ -51,13 +51,13 @@ export class OrdersController {
     }
 
     @ApiOperation({ summary: 'Delete (cancel) order' })
-    @ApiAuth("administrator", "customer")
+    @ApiAuth("customer")
     @ApiResult(undefined, { status: 201 })
     @Post("/deleteorders")
-    @Roles("administrator", "customer")
+    @Roles("customer")
     @UseGuards(JwtAuthGuards, RoleGuards)
-    async deleteOrder(@Body() deleteData: OrderDeleteDto, @Req() req: Request): Promise<ApiResponse>{
-        return await this.ordersService.delteOrder(deleteData.orderId, deleteData.status, req.user.id);
+    async deleteOrderForCustomer(@Body() deleteData: OrderDeleteDto, @Req() req: Request): Promise<ApiResponse>{
+        return await this.ordersService.delteOrderForCustomer(deleteData.orderId, req.user.id);
     }
 
     @ApiOperation({ summary: 'Change order status' })
@@ -68,5 +68,15 @@ export class OrdersController {
     @UseGuards(JwtAuthGuards, RoleGuards)
     async changeOrderStatus(@Body() order: EditOrdersStatusDto): Promise<OrderGetAllDto | ApiResponse>{
         return await this.ordersService.changeOrderStatus(order.orderId, order.orderStatus);
+    }
+    
+    @ApiOperation({ summary: 'Delete order for admin' })
+    @ApiAuth("administrator")
+    @ApiResult(undefined, { status: 201 })
+    @Post("/deleteorders/admin")
+    @Roles("administrator")
+    @UseGuards(JwtAuthGuards, RoleGuards)
+    async deleteOrderForAdmin(@Body() deleteData: OrderDeleteDto): Promise<ApiResponse>{
+        return await this.ordersService.deleteOrderForAdmin(deleteData.orderId);
     }
 }

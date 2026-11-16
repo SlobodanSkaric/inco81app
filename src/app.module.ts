@@ -25,8 +25,9 @@ import { GetDatabaseConfig } from './config/database.config';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { RequestLogInterceptor } from './common/interceptors/request.log.interceptors';
+import { RequestLogInterceptor } from './common/interceptors/request.log.interceptor';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ApiResponseInterceptor } from './common/interceptors/api.response.interceptor';
 
 const templatesDir = existsSync(join(process.cwd(), 'dist/templates'))
   ? join(process.cwd(), 'dist/templates')
@@ -96,6 +97,10 @@ const mailSecure = process.env.MAIL_SECURE
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ApiResponseInterceptor,
     }
   ]
 

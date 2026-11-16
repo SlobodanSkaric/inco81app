@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AdministratorInfoDto } from './dto/administrator.info.dto';
@@ -19,6 +19,8 @@ import { SessionsRevokedEvent } from '../../common/events/auth.events';
 
 @Injectable()
 export class AdministratorService {
+    private readonly logger = new Logger(AdministratorService.name);
+
     constructor(
         @InjectRepository(Users) private readonly administratorEntitets: Repository<Users>,
         @InjectRepository(TimeOfWorke) private readonly timeOfWorkeEntitets: Repository<TimeOfWorke>,
@@ -30,7 +32,7 @@ export class AdministratorService {
         const getAdmin = await this.administratorEntitets.find({ where: { role: Role.ADMIN } });
 
         if(getAdmin.length === 0){
-            return new ApiResponse("error", -1006, "No Administrator");
+            return new ApiResponse("error", 404, "No Administrator");
         }
 
         const admin: AdministratorInfoDto[] = [];
@@ -58,7 +60,7 @@ export class AdministratorService {
         const getAdmin = await this.administratorEntitets.findOne({ where: { userId: id, role: Role.ADMIN } });
 
         if(!getAdmin){
-            return new ApiResponse("error", -1007, "Adminstrator for this id is not exists");
+            return new ApiResponse("error", 404, "Adminstrator for this id is not exists");
         }
 
         return new AdministratorInfoDto(getAdmin.userId, getAdmin.name, getAdmin.lastname, getAdmin.email, getAdmin.phonenumber ?? "");
@@ -87,7 +89,7 @@ export class AdministratorService {
             if(error instanceof Object && 'errno' in error && (error.errno === 1062 || error.errno === 23505)){
                 throw new ConflictException("Administrator for this email or phonenumber is  existes");
             }
-            return new ApiResponse("error", -1008, "Failed to add administrator");
+            return new ApiResponse("error", 500, "Failed to add administrator");
         }
     }
 
@@ -114,7 +116,7 @@ export class AdministratorService {
         }
         
 
-    async editUserTimeOfWork(data: EditUserTimeOfWorkDto): Promise<TimeOfWorke[] | ApiResponse> {
+    async retrieveUserTimeOfWork(data: EditUserTimeOfWorkDto): Promise<TimeOfWorke[] | ApiResponse> {
         const getDate = data.dateEndTime.split(" ")[0];
         const excangeDate = dataUtils(data.dateEndTime);
         const checkedInDate = new Date(getDate);
@@ -122,21 +124,33 @@ export class AdministratorService {
         try {
             const result = await this.timeOfWorkeEntitets.createQueryBuilder("time_of_works")
                 .where("DATE(time_of_works.checked_in) = :checked_in", { checked_in: checkedInDate.toISOString().split('T')[0] })
-                .andWhere("time_of_works.userId = :userId", { userId: data.userId })
+                .andWhere("time_of_works.user_id = :userId", { userId: data.userId })
                 .andWhere("time_of_works.status = :status", { status: 0 })
                 .getMany();
 
             if (!result || result.length === 0) {
-                return new ApiResponse("error", -1009, "Time of work for this user is not exists");
+                return new ApiResponse("error", 404, "Time of work for this user is not exists");
             }
 
             return result;
-        } catch (err: any) {
-            return new ApiResponse("error", -1009, `Failed to fetch time of work: ${err.message}`);
+        } catch (err: unknown) {
+            this.logger.error('Failed to fetch time of work', err instanceof Error ? err.stack : err);
+            return new ApiResponse("error", 500, "Failed to fetch time of work");
         }
     }
-
+    //Refactor this function to use the updateUserTimeOfWork function. Cheched how it recive the data and time for end
     async updateUserTimeOfWork(userId: number, data: EditUserTimeOfWorkDto): Promise<TimeOfWorke | ApiResponse> {
+        const checkedScop = await this.administratorEntitets.createQueryBuilder("administrator")
+            .where("administrator.userId = :userId", { userId: data.userId })
+            .andWhere("administrator.role = :role", { role: Role.USER })
+            .andWhere("administrator.visibility = :visibility", { visibility: 1 })
+            .andWhere("administrator.manager_id = :managerId", { managerId: userId })
+            .getOne();
+
+        if(!checkedScop){
+            return new ApiResponse("error", 404, "Administrator for this user is not found");
+        }
+
         try {
             const getDate = data.dateEndTime.split(" ")[0];
             const excangeDate = dataUtils(data.dateEndTime);
@@ -144,11 +158,11 @@ export class AdministratorService {
             
             const result = await this.timeOfWorkeEntitets.createQueryBuilder("time_of_works")
                 .where("DATE(time_of_works.checked_in) = :checked_in", { checked_in: checkedInDate.toISOString().split('T')[0] })
-                .andWhere("time_of_works.userId = :userId", { userId: userId })
+                .andWhere("time_of_works.user_id = :userId", { userId: data.userId })
                 .getOne();
 
             if (!result) {
-                return new ApiResponse("error", -1009, "Time of work for this user is not found");
+                return new ApiResponse("error", 404, "Time of work for this user is not found");
             }
 
             // Update the checked_out time
@@ -157,8 +171,9 @@ export class AdministratorService {
 
             const updated = await this.timeOfWorkeEntitets.save(result);
             return updated;
-        } catch (err: any) {
-            return new ApiResponse("error", -1009, `Failed to update time of work: ${err.message}`);
+        } catch (err: unknown) {
+            this.logger.error('Failed to update time of work', err instanceof Error ? err.stack : err);
+            return new ApiResponse("error", 500, "Failed to update time of work");
         }
     }
 
@@ -166,17 +181,17 @@ export class AdministratorService {
         const getTimeOfWorForUser = await this.timeOfWorkeEntitets.findOne({ where: { timeOfWorkeId: data.timeOfWorkeId, user: { userId: data.userId } as Users } });
 
         if(!getTimeOfWorForUser){
-            return new ApiResponse("error", -1009, "Time of work for this user is not exists");
+            return new ApiResponse("error", 404, "Time of work for this user is not exists");
         }
 
         if(getTimeOfWorForUser.status === data.status){
-            return new ApiResponse("error", -1011, "Time of work for this user is already in this status");
+            return new ApiResponse("error", 409, "Time of work for this user is already in this status");
         }
 
         const deleteTimeOfWorkUser = await  this.timeOfWorkeEntitets.update({ timeOfWorkeId: data.timeOfWorkeId }, { status: data.status });
 
         if(deleteTimeOfWorkUser.affected === 0){
-            return new ApiResponse("error", -1010, "Can not delete time of work for this user");
+            return new ApiResponse("error", 400, "Can not delete time of work for this user");
         }
 
         const getUpdateTimeOfWork = await this.timeOfWorkeEntitets.findOne({ where: { timeOfWorkeId: data.timeOfWorkeId } });
@@ -207,33 +222,28 @@ export class AdministratorService {
         }
 
         if(curentRquestsUserVactions.length === 0){
-            return new ApiResponse("error", -1012, "No vacation requests found!");
+            return new ApiResponse("error", 404, "No vacation requests found!");
         }
 
         return curentRquestsUserVactions;
     }
 
     async editUserVactionbyAdmin(data:DecideVacationDto, adminId: number): Promise<Vacations | ApiResponse>{
-        const vactionResutl = await this.vacationsEntitets.createQueryBuilder("vacations")
-                             .leftJoinAndSelect("vacations.admin", "admin")
-                             .select([
-                                "vacations",
-                                "admin.adminId"
-                            ])
-                             .where("vacations.vacationId = :vacationId", { vacationId: data.vacationId })
-                             .getOne();
-                             
+        const vactionResutl = await this.vacationsEntitets.findOne({
+            where: { vacationId: data.vacationId },
+            relations: { user: true },
+        });
 
         if(!vactionResutl){
-            return new ApiResponse("error", -1013, "Vacation request not found!");
+            return new ApiResponse("error", 404, "Vacation request not found!");
         }
 
         if(vactionResutl.status === data.status){
-            return new ApiResponse("error", -1014, "Vacation request is already in this status!");
+            return new ApiResponse("error", 409, "Vacation request is already in this status!");
         }
 
-        if(vactionResutl.user.managerId !== adminId){
-            return new ApiResponse("error", -1016, "You are not authorized to update this vacation request!");
+        if(vactionResutl.user?.managerId !== adminId){
+            return new ApiResponse("error", 403, "You are not authorized to update this vacation request!");
         }
 
         vactionResutl.status = data.status;
@@ -242,7 +252,7 @@ export class AdministratorService {
         const updateVacationRequest = await this.vacationsEntitets.save(vactionResutl);
 
         if(!updateVacationRequest){
-            return new ApiResponse("error", -1015, "Failed to update vacation request!");
+            return new ApiResponse("error", 500, "Failed to update vacation request!");
         }
 
         return updateVacationRequest;

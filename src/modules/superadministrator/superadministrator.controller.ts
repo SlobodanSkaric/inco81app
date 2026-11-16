@@ -8,7 +8,7 @@ import { Request } from 'express';
 import { SuperadministratorInfoDto } from './dtos/superadministrator.info.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { RedisService } from '../redis/redis.service';
-import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptors';
+import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptor';
 import { AdministratorService } from '../administrator/administrator.service';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiAuth, ApiResult } from 'src/common/decorators/swagger.decorator';
@@ -51,11 +51,11 @@ export class SuperadministratorController {
     @ApiOperation({ summary: 'Deactivate administrator by id' })
     @ApiAuth("superadministrator")
     @ApiOkResponse({ type: Boolean })
-    @Get("delete/administrator/:id")
+    @Post("delete/administrator")
     @Roles("superadministrator")
     @UseGuards(JwtAuthGuards, RoleGuards)
-    async deleteAdministrator(@Param("id") id: number){
-        const deleteResult = await this.administrator.editAministators(id);
+    async deleteAdministrator(@Body() body: { id: number }): Promise<boolean>{
+        const deleteResult = await this.administrator.editAministators(body.id);
 
         return deleteResult;
     }

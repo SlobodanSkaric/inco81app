@@ -19,40 +19,42 @@ export class VacationService {
         const alllVacations = await this.vacation.find();
 
         if(alllVacations.length === 0){
-            return new ApiResponse("error", -1001, "No vacations found!");
+            return new ApiResponse("error", 404, "No vacations found!");
         }
 
         return alllVacations;
     }
 
-    async findById(id: number): Promise<Vacations | ApiResponse>{
-        const vacations = await this.vacation.findOne({ where: {vacationId : id}})
+    async findById(id: number, userId: number): Promise<Vacations | ApiResponse>{
+        const vacations = await this.vacation.findOne({ where: {vacationId : id, user: {userId}}})
 
         if(!vacations){
-            return new ApiResponse("error", -1002, "Vacation not found!");
+            return new ApiResponse("error", 404, "Vacation not found!");
         }
 
         return vacations;
     }
 
-    async addVactions(vacactionsData: AddVacationsDto): Promise<Vacations | ApiResponse>{
-        const newVacations = this.vacation.create({
-            vacation_start: dataUtils(vacactionsData.vacation_start),
-            vacation_end: dataUtils(vacactionsData.vacation_end),
-            user: { userId: vacactionsData.userId },
-            reason: vacactionsData.reason,
-            status: vacactionsData.status,
-            admin_comment: vacactionsData.admin_comment ?? null,
-            user_comment: vacactionsData.user_comment ?? null
-        });
-
-        const savedVacation = await this.vacation.save(newVacations);
-
-        if(!savedVacation){
-            return new ApiResponse("error", -1003, "Cannot add vacation!");
+    async addVactions(vacactionsData: AddVacationsDto, userId: number): Promise<Vacations | ApiResponse>{
+        //Checked user belongs to admin or superadmin and send message 
+        let savedVacation: Vacations;
+        try{
+            const newVacations = this.vacation.create({
+                vacation_start: dataUtils(vacactionsData.vacation_start),
+                vacation_end: dataUtils(vacactionsData.vacation_end),
+                user: {userId},
+                reason: vacactionsData.reason,
+                user_comment: vacactionsData.user_comment ?? null
+            });
+    
+             savedVacation = await this.vacation.save(newVacations);
+        }catch(error){
+            return new ApiResponse("error", 500, "Cannot add vacation!");
         }
+        
 
-        this.eventEmitter.emit('vacation.request.created', new VactionRequestCreatedEvent(savedVacation.vacationId, vacactionsData.userId));
+        //Send message to administrator and user
+        this.eventEmitter.emit('vacation.request.created', new VactionRequestCreatedEvent(savedVacation.vacationId, userId));
 
         return savedVacation;
     }

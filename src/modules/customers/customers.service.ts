@@ -7,6 +7,8 @@ import { GetCustomersDto } from './dtos/get.customers.dto';
 import { AddCustomersDto } from './dtos/add.customers.dto';
 import * as bcrypt from "bcrypt";
 import { OrdersStatus } from '../orders/dtos/order.status.enum';
+import { GetCustomerOrdersDto } from './dtos/get.cstomers,orders.dto';
+import { CustomersOrderDto } from './dtos/customers.order.dto';
 
 @Injectable()
 export class CustomersService {
@@ -16,7 +18,7 @@ export class CustomersService {
         try{
             const customers = await this.customersRepository.find();
             if(customers.length === 0){
-                return new ApiResponse("error", -1101, "No customers found");
+                return new ApiResponse("error", 404, "No customers found");
             }
             return customers.map(customer => new GetCustomersDto(
                 customer.customerId,
@@ -27,7 +29,7 @@ export class CustomersService {
                 customer.address ? customer.address : ""
             ));
         }catch(error){
-            return new ApiResponse("error", -1102, "Database query failed");
+            return new ApiResponse("error", 500, "Database query failed");
         }
     }
 
@@ -49,7 +51,7 @@ export class CustomersService {
         try{
             const customer = await this.customersRepository.findOne({ where : { customerId: customertsId } });
             if(!customer){
-                return new ApiResponse("error", -1103, "Customer not found");
+                return new ApiResponse("error", 404, "Customer not found");
             }
 
            return new GetCustomersDto(
@@ -61,11 +63,11 @@ export class CustomersService {
                 customer.address ? customer.address : ""
             );
         }catch(error){
-            return new ApiResponse("error", -1104, "Database query failed");
+            return new ApiResponse("error", 500, "Database query failed");
         }
     }
 
-    async findCustomersOrdes(customersId: number): Promise<Customers | ApiResponse>{
+    async findCustomersOrdes(customersId: number): Promise<GetCustomerOrdersDto | ApiResponse>{
         try{
             
             const customers = await this.customersRepository.createQueryBuilder("customers")
@@ -75,12 +77,20 @@ export class CustomersService {
                 .getOne();
 
             if(!customers){
-                return new ApiResponse("error", -1103, "Customer not found");
+                return new ApiResponse("error", 404, "Customer not found");
             }
 
-            return customers;
+            return new GetCustomerOrdersDto(
+                customers.customerId,
+                customers.customerName,
+                customers.isActive,
+                customers.contactEmail,
+                customers.phoneNumber ? customers.phoneNumber : "",
+                customers.address ? customers.address : "",
+                (customers.orders ?? []).map(order => new CustomersOrderDto(order.orderId, order.orderStatus, order.paymentmethod, order.createdAt)),
+            );
         }catch(error){
-            return new ApiResponse("error", -1104, "Database query failed");
+            return new ApiResponse("error", 500, "Database query failed");
         }
     }
 
@@ -109,9 +119,9 @@ export class CustomersService {
             );
         }catch(error){
             if(error.code === "ER_DUP_ENTRY"){
-                return new ApiResponse("error", -1105, "Customer with this email already exists");
+                return new ApiResponse("error", 409, "Customer with this email already exists");
             }
-            return new ApiResponse("error", -1106, "Database query failed");
+            return new ApiResponse("error", 500, "Database query failed");
         }
     }
 
