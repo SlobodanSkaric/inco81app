@@ -15,7 +15,7 @@ export class SuperadministratorService {
         const superadminisGetById = await this.superadministrators.findOne({ where: { userId: id }});
 
         if(!superadminisGetById){
-            return new ApiResponse('error', -2000, 'Superadministrator not found');
+            return new ApiResponse('error', 404, 'Superadministrator not found');
         }
 
         return superadminisGetById;
@@ -43,7 +43,7 @@ export class SuperadministratorService {
         const checkedExisted = await this.superadministrators.findOne({ where: { email: superadmins.email}});
 
         if(checkedExisted){
-            return new ApiResponse('error', -2001, 'Superadministrator with that email already exists');
+            return new ApiResponse('error', 409, 'Superadministrator with that email already exists');
         }
 
         const saltRoun = 10;
@@ -61,7 +61,7 @@ export class SuperadministratorService {
         const saveSuprtAdministrators = await this.superadministrators.save(newSuperadmin);
         
         if(!saveSuprtAdministrators){
-            return new ApiResponse('error', -2002, 'Could not save new superadministrator');
+            return new ApiResponse('error', 500, 'Could not save new superadministrator');
         }
 
        

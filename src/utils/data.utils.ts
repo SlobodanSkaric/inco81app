@@ -10,3 +10,11 @@ export function dataUtils(datasandtimes: string): Date {
 
     return new Date(year, mount -1, day, hours, minutes, seconds);    
 }
+
+export function curentDateFormatToISOString(): string {
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth() + 1;
+    const day = currentDate.getDate();
+    return `${year}-${month}-${day}`;
+}

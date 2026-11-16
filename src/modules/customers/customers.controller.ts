@@ -8,9 +8,10 @@ import { GetCustomersDto } from './dtos/get.customers.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import {Request} from 'express';
 import { Customers } from 'src/entitets/entities/Customers';
-import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptors';
+import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptor';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiAuth, ApiResult } from 'src/common/decorators/swagger.decorator';
+import { GetCustomerOrdersDto } from './dtos/get.cstomers,orders.dto';
 
 @ApiTags('customers')
 @Controller('customers')
@@ -42,11 +43,11 @@ export class CustomersController {
 
     @ApiOperation({ summary: 'Get logged-in customer with orders' })
     @ApiAuth("customer")
-    @ApiResult(Customers)
+    @ApiResult(GetCustomerOrdersDto)
     @Get("order")
     @Roles("customer")
     @UseGuards(JwtAuthGuards, RoleGuards)
-    async getCustomerWithOrders(@Req() req: Request): Promise<Customers | ApiResponse | any>{
+    async getCustomerWithOrders(@Req() req: Request): Promise<GetCustomerOrdersDto | ApiResponse | any>{
         return await this.customersService.findCustomersOrdes(req.user.id);
     }
 

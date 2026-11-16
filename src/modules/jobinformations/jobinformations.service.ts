@@ -13,7 +13,7 @@ export class JobinformationsService {
         const jobinfos = await this.jobinfo.find();
         
         if(jobinfos.length === 0){
-            return new ApiResponse("error", -1010, "No job informations found");
+            return new ApiResponse("error", 404, "No job informations found");
         }
 
         return jobinfos;
@@ -23,7 +23,7 @@ export class JobinformationsService {
         const jobinfo = await this.jobinfo.findOne({ where: { jobInfoId: id}});
 
         if(!jobinfo){
-            return new ApiResponse("error", -1011, "Job information not found");
+            return new ApiResponse("error", 404, "Job information not found");
         }
 
         return jobinfo;
@@ -43,7 +43,7 @@ export class JobinformationsService {
         const saveJobInfo = await this.jobinfo.save(addJobs);
 
         if(!saveJobInfo){
-            return new ApiResponse("error", -1012, "Could not save job information");
+            return new ApiResponse("error", 500, "Could not save job information");
         }
 
         return saveJobInfo;

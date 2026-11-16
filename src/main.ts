@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
-
+import  helmet from 'helmet';
 import * as cookieParser from 'cookie-parser';
 import { ConfigService } from '@nestjs/config';
 import { ACCESS_TOKEN_COOKIE } from './common/decorators/swagger.decorator';
@@ -10,8 +10,21 @@ import { ACCESS_TOKEN_COOKIE } from './common/decorators/swagger.decorator';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
+  const nodeEnv = configService.get<string>("NODE_ENV", "development");
 
-  const config = new DocumentBuilder()
+
+  app.use(helmet());
+  app.use(helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+    },
+  }));
+
+  if(nodeEnv !== "production"){
+    const config = new DocumentBuilder()
     .setTitle('API81')
     .setDescription(
       'Work time management API. Authentication uses the httpOnly "access_token" cookie: ' +
@@ -28,9 +41,13 @@ async function bootstrap() {
       withCredentials: true,
     },
   });
+  }
+  app.use(helmet.crossOriginOpenerPolicy({
+    policy: 'same-origin',
+  }));
 
   app.use(cookieParser());
-
+  
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true,
@@ -39,7 +56,7 @@ async function bootstrap() {
 
   app.enableCors({
     credentials: true,
-    origin: configService.get<string>("CORSES_ORIGIN")?.split(",").map(origin => origin.trim()),
+    origin: configService.get<string>("CORS_ORIGIN")?.split(",").map(origin => origin.trim()),
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Accept',
   });

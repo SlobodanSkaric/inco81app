@@ -20,11 +20,11 @@ export class UserService {
         private readonly eventEmmiter: EventEmitter2
     ){}
 
-    async getAllUsers(userId): Promise<UserInfoDto[] | ApiResponse>{
+    async getAllUsers(userId: number): Promise<UserInfoDto[] | ApiResponse>{
        const allUsers = await this.userEntitets.find({ where: { role: Role.USER, managerId: userId} });
 
        if(allUsers.length === 0){
-        return new ApiResponse("error", -1001, "No users");
+        return new ApiResponse("error", 404, "No users");
        }
 
        const userInfoDto: UserInfoDto[] = [];
@@ -34,18 +34,18 @@ export class UserService {
        });
 
        if(userInfoDto.length === 0){
-        return new ApiResponse("error", -1001, "No users");
+        return new ApiResponse("error", 404, "No users");
        }
 
        return userInfoDto;
     }
 
-    async getUserById(id): Promise<UserInfoDto | ApiResponse>{
+    async getUserById(id: number): Promise<UserInfoDto | ApiResponse>{
         
         const user = await this.userEntitets.findOne({ where: { userId: id } });
 
         if(!user){
-            return new ApiResponse("error", -1001, "No user");
+            return new ApiResponse("error", 404, "No user");
         }
 
         return new UserInfoDto(user.userId, user.name, user.lastname, user.email, user.phonenumber ?? "");
@@ -78,7 +78,9 @@ export class UserService {
         user.lastname = data.lastname;
         user.email = data.email;
         user.phonenumber = data.phonenumber;
+        user.role = Role.USER;
         user.managerId = userId;
+        user.manager = { userId } as Users;
         const passwordHash = await bcrypt.hash(data.password, saltRound);
 
         user.password = passwordHash;
@@ -102,7 +104,7 @@ export class UserService {
         const user = await this.userEntitets.findOne({ where: { userId: id } });
 
         if(!user){
-            return new ApiResponse("error", -1003, "No user");
+            return new ApiResponse("error", 404, "No user");
         }
 
         const userIfno = new UserInfoDto(user.userId, user.name, user.lastname, user.email, user.phonenumber ?? "");
@@ -116,11 +118,11 @@ export class UserService {
         const user = await this.userEntitets.findOne({ where: { userId: user_data.user_id , role: Role.USER, managerId: userId} });
 
         if(!user){
-            return new ApiResponse("error", -1003, "No user");
+            return new ApiResponse("error", 404, "No user");
         }
 
         if(user_data.visible == user.visibility){
-            return new ApiResponse("error", -1004, "User already has this visibility");
+            return new ApiResponse("error", 409, "User already has this visibility");
         }
 
         user.visibility = user_data.visible;
@@ -148,7 +150,7 @@ export class UserService {
                 return new ApiResponse("ok", 1, "User successfuly unhidden");
             }
         }catch(e){
-            return new ApiResponse("error", -1005, "Cant change user visibility");
+            return new ApiResponse("error", 500, "Cant change user visibility");
         }     
         
     }    
@@ -158,19 +160,19 @@ export class UserService {
     async editUser(userData: UserEditDto, userId: number): Promise<UserInfoDto | ApiResponse>{
         const user = await this.userEntitets.findOne({ where: { userId: userId} });
         if(!user){
-            return new ApiResponse("errot", -1003, "No user");
+            return new ApiResponse("error", 404, "No user");
         }
 
         const checkedEmail = userData.email ? await this.userEntitets.findOne({ where : { email: userData.email, userId: Not(userId)}}) : null;
 
         if(checkedEmail){//This condition is checked
-            return new ApiResponse("error", -1006, "Email already in use");
+            return new ApiResponse("error", 409, "Email already in use");
         }
 
         const checkedPhonenumber = await this.userEntitets.findOne({ where : { phonenumber: userData.phonenumber, userId: Not(userId)}}) ;
 
         if(checkedPhonenumber){// This condition is checked
-            return new ApiResponse("error", -1007, "Phone number already in use");
+            return new ApiResponse("error", 409, "Phone number already in use");
         }
 
         user.name = userData.name ? userData.name : user.name;
@@ -209,7 +211,7 @@ export class UserService {
 
             return await this.getUserByIdLocal(saveUser.userId);
         }catch(e){
-            return new ApiResponse("error", -1008, "Cant update user");
+            return new ApiResponse("error", 500, "Cant update user");
         }
     }
 
@@ -220,7 +222,7 @@ export class UserService {
         });
 
         if(allUsers.length === 0){
-            return new ApiResponse("error", -1001, "No users");
+            return new ApiResponse("error", 404, "No users");
         }
 
         const userInfoDto: UserInfoDto[] = [];
@@ -248,7 +250,7 @@ export class UserService {
     async getUserTimeOfWorkById(userId: number): Promise<UserInfoDto | ApiResponse>{
         const user = await this.userEntitets.findOne({ where: { userId: userId } });
         if(!user){
-            return new ApiResponse("error", -1003, "No user");
+            return new ApiResponse("error", 404, "No user");
         }
         return new UserInfoDto(user.userId, user.name, user.lastname, user.email, user.phonenumber ?? "");
     }

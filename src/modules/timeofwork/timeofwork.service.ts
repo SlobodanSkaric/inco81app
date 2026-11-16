@@ -6,7 +6,7 @@ import { Between, IsNull, Repository } from 'typeorm';
 import { UserCheckedInDto } from './dtos/user.checkedin.dto';
 import { GetHorseDto } from './dtos/get.horse.dto';
 import { UdateTimeOfWorkUserDto } from './dtos/udate.timeofwork.user.dto';
-import { dataUtils } from 'src/utils/data.utils';
+import { curentDateFormatToISOString, dataUtils } from 'src/utils/data.utils';
 import { Users } from 'src/entitets/entities/Users';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class TimeofworkService {
         })
 
         if(checkedUser){
-            return new ApiResponse("error", -4001, "Korisnik je vec prijavljen");
+            return new ApiResponse("error", 409, "Korisnik je vec prijavljen");
         }
 
 
@@ -33,7 +33,7 @@ export class TimeofworkService {
 
         const savedTimeOfWork = await this.timeOfWorksRepository.save(timeOfWork);
         if(!savedTimeOfWork){
-            return new ApiResponse("error", -4002, "Ne mogu da se prijavim");
+            return new ApiResponse("error", 500, "Ne mogu da se prijavim");
         }
 
 
@@ -51,56 +51,74 @@ export class TimeofworkService {
         })
 
         if(!checkedUser){
-            return new ApiResponse("error", -4001, "Korisnik nije prijavljen");
+            return new ApiResponse("error", 400, "Korisnik nije prijavljen");
         }
 
         checkedUser.checked_out = new Date();
 
         const savedTimeOfWork = await this.timeOfWorksRepository.save(checkedUser);
         if(!savedTimeOfWork){
-            return new ApiResponse("error", -4002, "Ne mogu da se odjavim");
+            return new ApiResponse("error", 500, "Ne mogu da se odjavim");
         }
 
         return savedTimeOfWork;
     }
 
-    async getTiemOfWorkByUserId(data: GetHorseDto): Promise<{getOfTime: string}>{
+    async getTiemOfWorkByUserId(data: GetHorseDto): Promise<{getOfTime: string, problems?: string[]} | ApiResponse>{
+        if(!data.startDate || !data.endDate){
+            return new ApiResponse("error", 400, "Date and time are required");
+        }
+        if(data.startDate >= data.endDate){
+            return new ApiResponse("error", 400, "Start date must be before end date");
+        }
+
+        if(data.startDate > curentDateFormatToISOString()){
+            return new ApiResponse("error", 400, "Start date must be in the past");
+        }
+        if(data.endDate > curentDateFormatToISOString()){
+            return new ApiResponse("error", 400, "End date must be in the past");
+        }
+       
+
         const checkedUser = await this.timeOfWorksRepository.find({ where: { user : { userId: data.userId }} });
 
         if(checkedUser.length === 0){
             return { getOfTime: "Undefind user" }
         }
-        const timeOfWork = await this.timeOfWorksRepository.find({
-            where: {
-                user: { userId: data.userId } as Users,
-                checked_in: Between(new Date(data.stratDate), new Date(data.endDate))
-            }
-        });
+        
+            
+        const timeOfWork = await this.timeOfWorksRepository.createQueryBuilder("time_of_worke")
+        .where("time_of_worke.user_id = :userId", { userId: data.userId })
+        .andWhere("time_of_worke.checked_in IS NOT NULL")
+        .andWhere("time_of_worke.checked_in <= :endDate", { endDate: data.endDate })
+        .andWhere("(time_of_worke.checked_out IS NULL OR time_of_worke.checked_out >= :startDate)", 
+            { startDate: data.startDate })
+        .getMany();
         
         if(timeOfWork.length === 0){
             return {getOfTime: "0"}
         }
 
         let sumTime = 0;
+        let timeProblem: string[] = [];
 
-        timeOfWork.forEach((element) => {
+        for (const element of timeOfWork) {
+            if (element.checked_out === null) {
+                timeProblem.push(`Korisnik nije odradio sve radne sate koji su poceli ${element.checked_in}`);
+                continue;
+            }
             sumTime += element.checked_out.getTime() - element.checked_in.getTime();
-        });
-
-        let totalHouerse = Number((sumTime / (1000 *60 * 60)).toFixed(2));
-
-
-        let sufix = "H";
-
-
-        if(totalHouerse < 1){
-            sufix = "min";
-            totalHouerse = Number(totalHouerse.toString().split(".")[1]);
         }
 
+        let totalHouerse = Number((sumTime / (1000 * 60 * 60)).toFixed(2));
+        let sufix = "H";
 
-        
-        return { getOfTime: totalHouerse.toString() + sufix }
+        if (totalHouerse < 1) {
+            sufix = "min";
+            totalHouerse = Math.round(totalHouerse * 60);
+        }
+
+        return { getOfTime: totalHouerse.toString() + sufix , problems: timeProblem ? timeProblem : [] }
 
     }
 
@@ -108,7 +126,7 @@ export class TimeofworkService {
         const timeOfWork = await this.timeOfWorksRepository.findOne({ where: { timeOfWorkeId: id } });
 
         if(!timeOfWork){
-            return new ApiResponse("error", -1009, "Time of work for this id is not exists");
+            return new ApiResponse("error", 404, "Time of work for this id is not exists");
         }
 
         return timeOfWork;
@@ -125,7 +143,7 @@ export class TimeofworkService {
                         .execute();
 
         if(result.affected === 0){
-            return new ApiResponse("error", -1009, "Time of work for this id is not exists");
+            return new ApiResponse("error", 404, "Time of work for this id is not exists");
         }
 
         return await this.timeOfWorksRepository.findOne({ where: { timeOfWorkeId: data.id } });

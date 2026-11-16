@@ -1,6 +1,7 @@
 import { CallHandler, ExecutionContext, Inject, Injectable, NestInterceptor } from "@nestjs/common";
 import { Observable, of, tap } from "rxjs";
 import { RedisService } from "src/modules/redis/redis.service";
+import { ApiResponse } from "../../misc/api.response.dto";
 
 
 @Injectable()   
@@ -32,8 +33,8 @@ export class CacheRedisIntrceptor implements NestInterceptor{
         }
 
         return next.handle().pipe(
-            tap(async (responseData) =>{
-                if(responseData){
+            tap(async (responseData: ApiResponse) =>{
+                if(responseData && responseData.status !== "error"){
                     try{
                         await this.redisService.setCache(redisKey,responseData, {ttl: 60 * 60 * 24});
                     }

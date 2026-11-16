@@ -8,7 +8,7 @@ export class GetHorseDto{
 
     @IsString()
     @IsNotEmpty()
-    stratDate: string;
+    startDate: string;
 
     @IsString()
     @IsNotEmpty()

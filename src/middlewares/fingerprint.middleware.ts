@@ -61,7 +61,7 @@ export class FingerprintMiddleware implements NestMiddleware {
     }
 
     private extractsIp(req: Request): string | any{ 
-        const ip = req.headers["x-forwarded-from"];
+        const ip = req.headers["x-forwarded-for"];
         if(ip){
             return ip.toString().split(",")[0].trim();
         }

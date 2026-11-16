@@ -92,7 +92,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         const prefix = "set:cache:";
         const fullKey = `${prefix}${key}`;
 
-        const result = await this.redisClient.set(fullKey, JSON.stringify(value), );
+        const result = await this.redisClient.set(fullKey, JSON.stringify(value), {EX: ttl});
        
 
         if (result != "OK") {

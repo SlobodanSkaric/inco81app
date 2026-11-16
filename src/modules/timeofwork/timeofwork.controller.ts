@@ -50,7 +50,7 @@ export class TimeofworkController {
         const userId = req.user.id;
         const dtoInstance = new GetHorseDto();
         dtoInstance.userId = userId;
-        dtoInstance.stratDate = data.stratDate;
+        dtoInstance.startDate = data.startDate;
         dtoInstance.endDate = data.endDate;
         return await this.timeOfVorkServices.getTiemOfWorkByUserId(dtoInstance);
     }
