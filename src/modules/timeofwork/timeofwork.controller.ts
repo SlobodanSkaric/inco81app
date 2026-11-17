@@ -49,10 +49,9 @@ export class TimeofworkController {
     async getHourseByUserId(@Body() data: GetHorseDto, @Req() req: Request): Promise< { getOfTime: string } | ApiResponse>{
         const userId = req.user.id;
         const dtoInstance = new GetHorseDto();
-        dtoInstance.userId = userId;
         dtoInstance.startDate = data.startDate;
         dtoInstance.endDate = data.endDate;
-        return await this.timeOfVorkServices.getTiemOfWorkByUserId(dtoInstance);
+        return await this.timeOfVorkServices.getTiemOfWorkByUserId(dtoInstance, userId);
     }
 
     @ApiOperation({ summary: 'Get time of work entry by id' })
@@ -61,8 +60,9 @@ export class TimeofworkController {
     @Get("getinfotimeofwork/:id")
     @Roles("administrator", "superadministrator")
     @UseGuards(JwtAuthGuards,RoleGuards)
-    async getInfoTimeOfWork(@Param("id") id: number){
-        return await this.timeOfVorkServices.getInfoTimeOfWork(id);
+    async getInfoTimeOfWork(@Param("id") id: number, @Req() req: Request): Promise<TimeOfWorke | ApiResponse>{
+        const userId = req.user.id;
+        return await this.timeOfVorkServices.getInfoTimeOfWork(id, userId);
     }
 
     @ApiOperation({ summary: "Update user's time of work entry" })
@@ -71,7 +71,8 @@ export class TimeofworkController {
     @Post("updateusertimeofwork")
     @Roles("administrator")
     @UseGuards(JwtAuthGuards,RoleGuards)
-    async updateUserTimeOfWork(@Body() data: UdateTimeOfWorkUserDto): Promise<TimeOfWorke | ApiResponse | null>{
-        return await this.timeOfVorkServices.updateUserTimeOfWork(data);
+    async updateUserTimeOfWork(@Body() data: UdateTimeOfWorkUserDto, @Req() req: Request): Promise<TimeOfWorke | ApiResponse | null>{
+        const userId = req.user.id;
+        return await this.timeOfVorkServices.updateUserTimeOfWork(data, userId);
     }
 }

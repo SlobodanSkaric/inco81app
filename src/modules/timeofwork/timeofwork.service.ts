@@ -11,7 +11,9 @@ import { Users } from 'src/entitets/entities/Users';
 
 @Injectable()
 export class TimeofworkService {
-    constructor(@InjectRepository(TimeOfWorke) private readonly timeOfWorksRepository: Repository<TimeOfWorke>){}
+    constructor(
+        @InjectRepository(TimeOfWorke) private readonly timeOfWorksRepository: Repository<TimeOfWorke>,
+){}
 
     async userCheckedIn(userId: number): Promise<TimeOfWorke | ApiResponse>{
         const checkedUser = await this.timeOfWorksRepository.findOne({
@@ -64,7 +66,7 @@ export class TimeofworkService {
         return savedTimeOfWork;
     }
 
-    async getTiemOfWorkByUserId(data: GetHorseDto): Promise<{getOfTime: string, problems?: string[]} | ApiResponse>{
+    async getTiemOfWorkByUserId(data: GetHorseDto, userId: number): Promise<{getOfTime: string, problems?: string[]} | ApiResponse>{
         if(!data.startDate || !data.endDate){
             return new ApiResponse("error", 400, "Date and time are required");
         }
@@ -80,7 +82,7 @@ export class TimeofworkService {
         }
        
 
-        const checkedUser = await this.timeOfWorksRepository.find({ where: { user : { userId: data.userId }} });
+        const checkedUser = await this.timeOfWorksRepository.find({ where: { user : { userId: userId}} });
 
         if(checkedUser.length === 0){
             return { getOfTime: "Undefind user" }
@@ -88,7 +90,7 @@ export class TimeofworkService {
         
             
         const timeOfWork = await this.timeOfWorksRepository.createQueryBuilder("time_of_worke")
-        .where("time_of_worke.user_id = :userId", { userId: data.userId })
+        .where("time_of_worke.user_id = :userId", { userId: userId })
         .andWhere("time_of_worke.checked_in IS NOT NULL")
         .andWhere("time_of_worke.checked_in <= :endDate", { endDate: data.endDate })
         .andWhere("(time_of_worke.checked_out IS NULL OR time_of_worke.checked_out >= :startDate)", 
@@ -122,8 +124,8 @@ export class TimeofworkService {
 
     }
 
-    async getInfoTimeOfWork(id: number): Promise<TimeOfWorke | ApiResponse>{
-        const timeOfWork = await this.timeOfWorksRepository.findOne({ where: { timeOfWorkeId: id } });
+    async getInfoTimeOfWork(id: number, userId: number): Promise<TimeOfWorke | ApiResponse>{
+        const timeOfWork = await this.timeOfWorksRepository.findOne({ where: { timeOfWorkeId: id, user: { userId: userId } } });
 
         if(!timeOfWork){
             return new ApiResponse("error", 404, "Time of work for this id is not exists");
@@ -132,7 +134,20 @@ export class TimeofworkService {
         return timeOfWork;
     }
 
-    async updateUserTimeOfWork(data: UdateTimeOfWorkUserDto): Promise<TimeOfWorke | ApiResponse | null>{
+    async updateUserTimeOfWork(data: UdateTimeOfWorkUserDto, userId: number): Promise<TimeOfWorke | ApiResponse | null>{
+        const timeOfWork = await this.timeOfWorksRepository.findOne({
+            where: { timeOfWorkeId: data.id },
+            relations: { user: true },
+        });
+
+        if(!timeOfWork){
+            return new ApiResponse("error", 404, "Time of work for this id is not exists");
+        }
+
+        if(timeOfWork.user?.managerId !== userId){
+            return new ApiResponse("error", 403, "You are not authorized to update this time of work");
+        }
+
         const result = await this.timeOfWorksRepository.createQueryBuilder()
                         .update(TimeOfWorke)
                         .set({

@@ -21,7 +21,9 @@ export class RequestLogsListeners {
         reqLogs.ip = payload.ip;
         reqLogs.userAgent = payload.user_agent;
         reqLogs.acceptLanguage = payload.accept_language;
-        reqLogs.deviceFingerprint = payload.fingerprint;
+        // mysql driver escapes plain objects as `key`='val' pairs → ER_BAD_FIELD_ERROR (e.g. userAgent)
+        const fingerprint = payload.user_host_info ?? payload.fingerprint;
+        reqLogs.deviceFingerprint = fingerprint == null ? null : typeof fingerprint === "string" ? fingerprint : JSON.stringify(fingerprint);
         reqLogs.route = payload.path;
         reqLogs.ts = payload.ts;
         reqLogs.responseStatus = payload.response_status;

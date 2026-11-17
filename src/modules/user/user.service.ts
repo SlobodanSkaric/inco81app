@@ -192,9 +192,9 @@ export class UserService {
             this.eventEmmiter.emit("cache.invalidate",
                 new CacheIvalidationEvent(
                     [
-                        `user:${saveUser.userId}:/user/`,
-                        `user:${saveUser.userId}:/user/all/`,
-                        `user:${saveUser.userId}:/user/`,
+                        `user:${saveUser.userId}:/user`,
+                        `user:${saveUser.userId}:/user/all`,
+                        `user:${saveUser.userId}:/user`,
                     ],
                     [
                         "administrator:*:/user/all",

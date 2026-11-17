@@ -73,8 +73,9 @@ export class AdministratorController {
     @Post("retrieve/timeofwork/")
     @Roles("administrator")
     @UseGuards(JwtAuthGuards,RoleGuards)
-    async retrieveUserTimeOfWork(@Body() data: EditUserTimeOfWorkDto): Promise<TimeOfWorke[] | ApiResponse>{
-        return await this.admiServices.retrieveUserTimeOfWork(data);
+    async retrieveUserTimeOfWork(@Body() data: EditUserTimeOfWorkDto, @Req() req: Request): Promise<TimeOfWorke[] | ApiResponse>{
+        const userId = req.user.id;
+        return await this.admiServices.retrieveUserTimeOfWork(data, userId);
     }
 
     @ApiOperation({ summary: "Update user's time of work end date" })
@@ -93,8 +94,9 @@ export class AdministratorController {
     @Post("delete/timeofwork")
     @Roles("administrator")
     @UseGuards(JwtAuthGuards,RoleGuards)
-    async deleteUserTimeOfWork(@Body() data: DeleteUserTimeOfWorkDto){
-        return await this.admiServices.deleteUserTimeOfWork(data);
+    async deleteUserTimeOfWork(@Body() data: DeleteUserTimeOfWorkDto, @Req() req: Request): Promise<TimeOfWorke | ApiResponse>{
+        const userId = req.user.id;
+        return await this.admiServices.deleteUserTimeOfWork(data, userId);
     }
 
     @ApiOperation({ summary: 'Get all orders' })

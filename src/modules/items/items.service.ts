@@ -1,14 +1,19 @@
-import { Get, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Items } from 'src/entitets/entities/Items';
 import { Repository } from 'typeorm';
 import { GetItemsDto } from './dtos/get.itmes.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { AddItemsDto } from './dtos/add.items.dto';
+import { CacheIvalidationEvent } from 'src/common/events/cahce.events';
 
 @Injectable()
 export class ItemsService {
-    constructor(@InjectRepository(Items) private readonly itemsRepository: Repository<Items>) {}
+    constructor(
+        @InjectRepository(Items) private readonly itemsRepository: Repository<Items>,
+        private readonly eventEmmiter: EventEmitter2,
+    ) {}
 
     async findAllItems(): Promise<GetItemsDto[] | ApiResponse> { 
         const items = await this.itemsRepository.find();
@@ -48,6 +53,20 @@ export class ItemsService {
         newItem.stockQuantity = items.stockQuantity;
 
         const savedItem = await this.itemsRepository.save(newItem);
+
+        this.eventEmmiter.emit("cache.invalidate",
+            new CacheIvalidationEvent(
+                [],
+                [
+                    "administrator:*:/items/all",
+                    "administrator:*:/items/*",
+                    "superadministrator:*:/items/all",
+                    "superadministrator:*:/items/*",
+                ],
+                "Items",
+                "create",
+            )
+        );
 
         return new GetItemsDto(
             savedItem.itemId,
