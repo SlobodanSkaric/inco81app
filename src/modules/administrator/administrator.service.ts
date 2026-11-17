@@ -16,6 +16,7 @@ import { DecideVacationDto } from '../vacation/dto/decide.vactions.dto';
 import { Role } from '../../common/enums/role.enum';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SessionsRevokedEvent } from '../../common/events/auth.events';
+import { CacheIvalidationEvent } from 'src/common/events/cahce.events';
 
 @Injectable()
 export class AdministratorService {
@@ -84,6 +85,17 @@ export class AdministratorService {
 
         try{
             const saveAdministrator = await this.administratorEntitets.save(admin);
+            this.eventEmmiter.emit("cache.invalidate",
+                new CacheIvalidationEvent(
+                    [],
+                    [
+                        "administrator:*:/administrator/all",
+                        "administrator:*:/administrator",
+                    ],
+                    "Administrator",
+                    "create",
+                )
+            );
             return await this.getById(saveAdministrator.userId);
         }catch(error: unknown){
             if(error instanceof Object && 'errno' in error && (error.errno === 1062 || error.errno === 23505)){
@@ -105,6 +117,19 @@ export class AdministratorService {
                 result.visibility = 0;
                 await this.administratorEntitets.save(result);
                 await this.eventEmmiter.emitAsync("auth.sessions.revoked", new SessionsRevokedEvent(result.userId.toString(), Role.ADMIN));
+                this.eventEmmiter.emit("cache.invalidate",
+                    new CacheIvalidationEvent(
+                        [
+                            `administrator:${result.userId}:/administrator`,
+                            `administrator:${result.userId}:/administrator/`,
+                        ],
+                        [
+                            "administrator:*:/administrator/all",
+                        ],
+                        "Administrator",
+                        "delete",
+                    )
+                );
                 return true;
             }
 
@@ -116,7 +141,11 @@ export class AdministratorService {
         }
         
 
-    async retrieveUserTimeOfWork(data: EditUserTimeOfWorkDto): Promise<TimeOfWorke[] | ApiResponse> {
+    async retrieveUserTimeOfWork(data: EditUserTimeOfWorkDto, userId: number): Promise<TimeOfWorke[] | ApiResponse> {
+        const checkedScop = await this.administratorEntitets.findOne({ where: { userId: data.userId, visibility: 1, managerId: userId } });
+        if(!checkedScop){
+            return new ApiResponse("error", 404, "Administrator for this user is not found");
+        }
         const getDate = data.dateEndTime.split(" ")[0];
         const excangeDate = dataUtils(data.dateEndTime);
         const checkedInDate = new Date(getDate);
@@ -177,7 +206,11 @@ export class AdministratorService {
         }
     }
 
-    async deleteUserTimeOfWork(data: DeleteUserTimeOfWorkDto): Promise<TimeOfWorke | ApiResponse | any>{
+    async deleteUserTimeOfWork(data: DeleteUserTimeOfWorkDto, userId: number): Promise<TimeOfWorke | ApiResponse | any>{
+        const checkedScop = await this.administratorEntitets.findOne({ where: { userId: data.userId, visibility: 1, managerId: userId } });
+        if(!checkedScop){
+            return new ApiResponse("error", 404, "Administrator for this user is not found");
+        }
         const getTimeOfWorForUser = await this.timeOfWorkeEntitets.findOne({ where: { timeOfWorkeId: data.timeOfWorkeId, user: { userId: data.userId } as Users } });
 
         if(!getTimeOfWorForUser){

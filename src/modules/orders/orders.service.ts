@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Orders } from 'src/entitets/entities/Orders';
-import { get } from 'http';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { EntityManager, Repository } from 'typeorm';
 import { OrderGetAllDto } from './dtos/order.get.all.dto';
@@ -9,17 +9,34 @@ import { OrderAddDto } from './dtos/orders.add.dto';
 import { DataSource } from 'typeorm';
 import { OrderItems } from 'src/entitets/entities/OrderItems';
 import { Items } from 'src/entitets/entities/Items';
-import { Request } from 'express';
 import { GetCustomersDto } from '../customers/dtos/get.customers.dto';
 import { OrdersStatus } from './dtos/order.status.enum';
+import { CacheIvalidationEvent } from 'src/common/events/cahce.events';
 
 @Injectable()
 export class OrdersService {
     constructor(
         @InjectRepository(Orders) private readonly ordersEntitets: Repository<Orders>,
         @InjectRepository(Items) private readonly itemsEntitets: Repository<Items>,
-        private dataSource: DataSource
+        private dataSource: DataSource,
+        private readonly eventEmmiter: EventEmitter2,
     ){}
+
+    private invalidateItemsCache(action: "create" | "update" | "delete"): void {
+        this.eventEmmiter.emit("cache.invalidate",
+            new CacheIvalidationEvent(
+                [],
+                [
+                    "administrator:*:/items/all",
+                    "administrator:*:/items/*",
+                    "superadministrator:*:/items/all",
+                    "superadministrator:*:/items/*",
+                ],
+                "Items",
+                action,
+            )
+        );
+    }
 
 
     async getAllOrders(): Promise<OrderGetAllDto[] | ApiResponse>{
@@ -113,7 +130,7 @@ export class OrdersService {
     }
 
     async addOrder(order: OrderAddDto, userId: number): Promise<OrderGetAllDto | ApiResponse | any>{
-        return await this.dataSource.transaction(async(transactionalEntityManager) => {
+        const result = await this.dataSource.transaction(async(transactionalEntityManager) => {
             const itemsId = order.items.map(item => item.itemId);
 
             const items = await transactionalEntityManager.find(Items, {
@@ -160,10 +177,16 @@ export class OrdersService {
 
             return savedOrder;
         });
+
+        if(!(result instanceof ApiResponse)){
+            this.invalidateItemsCache("update");
+        }
+
+        return result;
     }
 
     async delteOrderForCustomer(orderId: number,  userId: number): Promise<ApiResponse>{
-        return await this.dataSource.transaction(async(transactionalEntityManager) => {
+        const result = await this.dataSource.transaction(async(transactionalEntityManager) => {
             const order = await transactionalEntityManager.findOne(Orders, {
                 where: { orderId: orderId },
                 lock: { mode: "pessimistic_write" }
@@ -184,10 +207,16 @@ export class OrdersService {
             return await this.cancelOrder(transactionalEntityManager, order);
 
         });
+
+        if(result.status === "success"){
+            this.invalidateItemsCache("update");
+        }
+
+        return result;
     }
 
     async deleteOrderForAdmin(orderId: number): Promise<ApiResponse>{
-        return await this.dataSource.transaction(async(transactionalEntityManager) => {
+        const result = await this.dataSource.transaction(async(transactionalEntityManager) => {
             const order = await transactionalEntityManager.findOne(Orders, {
                 where: { orderId: orderId },
                 lock: { mode: "pessimistic_write" }
@@ -203,6 +232,12 @@ export class OrdersService {
 
             return await this.cancelOrder(transactionalEntityManager, order);
         });
+
+        if(result.status === "success"){
+            this.invalidateItemsCache("update");
+        }
+
+        return result;
     }
 
 

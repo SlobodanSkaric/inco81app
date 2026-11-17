@@ -18,7 +18,7 @@ export class RequestLogs{
     acceptLanguage?:string;
 
     @Column("text", { name:"device_fingerprint", nullable:true})
-    deviceFingerprint?:string;
+    deviceFingerprint:string | null;
 
     @Column("varchar", { name:"route", nullable:true})
     route?:string;

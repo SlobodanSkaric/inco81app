@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Customers } from 'src/entitets/entities/Customers';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { Repository } from 'typeorm';
@@ -9,10 +10,14 @@ import * as bcrypt from "bcrypt";
 import { OrdersStatus } from '../orders/dtos/order.status.enum';
 import { GetCustomerOrdersDto } from './dtos/get.cstomers,orders.dto';
 import { CustomersOrderDto } from './dtos/customers.order.dto';
+import { CacheIvalidationEvent } from 'src/common/events/cahce.events';
 
 @Injectable()
 export class CustomersService {
-    constructor(@InjectRepository(Customers) private readonly customersRepository: Repository<Customers>) {}
+    constructor(
+        @InjectRepository(Customers) private readonly customersRepository: Repository<Customers>,
+        private readonly eventEmmiter: EventEmitter2,
+    ) {}
 
     async findAllCustomers(): Promise<GetCustomersDto[] | ApiResponse> {
         try{
@@ -108,6 +113,20 @@ export class CustomersService {
             cusromerEntity.address = customer.address;
 
             const savedCustomer = await this.customersRepository.save(cusromerEntity);
+
+            this.eventEmmiter.emit("cache.invalidate",
+                new CacheIvalidationEvent(
+                    [],
+                    [
+                        "administrator:*:/customers/all",
+                        "administrator:*:/customers/*",
+                        "superadministrator:*:/customers/all",
+                        "superadministrator:*:/customers/*",
+                    ],
+                    "Customers",
+                    "create",
+                )
+            );
 
             return new GetCustomersDto(
                 savedCustomer.customerId,

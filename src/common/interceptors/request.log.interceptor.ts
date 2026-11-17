@@ -23,6 +23,7 @@ export class RequestLogInterceptor implements NestInterceptor{
             fingerprint: request.fingerprint || null, //request.fingerprint || request.headers["x-fingerprint"] || null, 
             coleration_id: request.headers["x-request-id"] || null,
             ip: ((request.ip || request.headers["x-forwarded-for"] || request.socket.remoteAddress || "").toString().split(",")[0].trim()) as string,
+            user_agent: request.headers["user-agent"] || null,
             user_host_info: request.fingerprint?.deviceFingerprint || null,
             accept_language: (request.headers["accept-language"] as string) || null,            
             ts: new Date(),
