@@ -58,6 +58,7 @@ export class ReportService {
             .andWhere("time_of_worke.checked_in IS NOT NULL")
             .andWhere("time_of_worke.checked_out IS NOT NULL")
             .andWhere("time_of_worke.checked_in <= :endDate", { endDate: report.endDate })
+            .andWhere("time_of_worke.status = 0")
             .andWhere("time_of_worke.checked_out >= :startDate", { startDate: report.startDate })
             .getMany();
         

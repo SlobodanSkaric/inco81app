@@ -1,4 +1,7 @@
-# Business Management System (NestJS API)
+# inco81app
+<p align="center">
+  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+</p>
 
 REST API built with NestJS for company operations: employees, work hours, leave management, and an ordering system for company-manufactured products.
 

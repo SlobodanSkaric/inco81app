@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TimeOfWorke } from 'src/entitets/entities/TimeOfWorke';
 import { ApiResponse } from 'src/misc/api.response.dto';
-import { Between, IsNull, Repository } from 'typeorm';
+import { Between, IsNull, Not, Repository } from 'typeorm';
 import { UserCheckedInDto } from './dtos/user.checkedin.dto';
 import { GetHorseDto } from './dtos/get.horse.dto';
 import { UdateTimeOfWorkUserDto } from './dtos/udate.timeofwork.user.dto';
@@ -15,22 +15,28 @@ export class TimeofworkService {
         @InjectRepository(TimeOfWorke) private readonly timeOfWorksRepository: Repository<TimeOfWorke>,
 ){}
 
-    async userCheckedIn(userId: number): Promise<TimeOfWorke | ApiResponse>{
-        const checkedUser = await this.timeOfWorksRepository.findOne({
-            where : {
-                user: { userId:userId } as Users,
-                checked_out: IsNull()
-            }
-        })
+    private findOpenShift(userId: number): Promise<TimeOfWorke | null> {
+        return this.timeOfWorksRepository.findOne({
+            where: {
+                user: { userId } as Users,
+                status: 0,
+                checked_in: Not(IsNull()),
+                checked_out: IsNull(),
+            },
+            order: { checked_in: "DESC" },
+        });
+    }
 
-        if(checkedUser){
+    async userCheckedIn(userId: number): Promise<TimeOfWorke | ApiResponse>{
+        const openShift = await this.findOpenShift(userId);
+
+        if(openShift){
             return new ApiResponse("error", 409, "Korisnik je vec prijavljen");
         }
 
-
-
         const timeOfWork = new TimeOfWorke();
         timeOfWork.user = { userId: userId } as Users;
+        timeOfWork.status = 0;
         timeOfWork.checked_in = new Date();
 
         const savedTimeOfWork = await this.timeOfWorksRepository.save(timeOfWork);
@@ -38,27 +44,19 @@ export class TimeofworkService {
             return new ApiResponse("error", 500, "Ne mogu da se prijavim");
         }
 
-
         return savedTimeOfWork;
-    }    
-
-
+    }
 
     async userCheckedOut(userId: number): Promise<TimeOfWorke | ApiResponse>{
-        const checkedUser = await this.timeOfWorksRepository.findOne({
-            where : {
-                user: { userId: userId } as Users,
-                checked_out: IsNull()
-            }
-        })
+        const openShift = await this.findOpenShift(userId);
 
-        if(!checkedUser){
+        if(!openShift){
             return new ApiResponse("error", 400, "Korisnik nije prijavljen");
         }
 
-        checkedUser.checked_out = new Date();
+        openShift.checked_out = new Date();
 
-        const savedTimeOfWork = await this.timeOfWorksRepository.save(checkedUser);
+        const savedTimeOfWork = await this.timeOfWorksRepository.save(openShift);
         if(!savedTimeOfWork){
             return new ApiResponse("error", 500, "Ne mogu da se odjavim");
         }
@@ -93,6 +91,7 @@ export class TimeofworkService {
         .where("time_of_worke.user_id = :userId", { userId: userId })
         .andWhere("time_of_worke.checked_in IS NOT NULL")
         .andWhere("time_of_worke.checked_in <= :endDate", { endDate: data.endDate })
+        .andWhere("time_of_worke.status = 0")
         .andWhere("(time_of_worke.checked_out IS NULL OR time_of_worke.checked_out >= :startDate)", 
             { startDate: data.startDate })
         .getMany();
