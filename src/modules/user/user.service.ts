@@ -21,7 +21,7 @@ export class UserService {
     ){}
 
     async getAllUsers(userId: number): Promise<UserInfoDto[] | ApiResponse>{
-       const allUsers = await this.userEntitets.find({ where: { role: Role.USER, managerId: userId} });
+       const allUsers = await this.userEntitets.find({ where: { role: Role.USER, managerId: userId, visibility: 1} });
 
        if(allUsers.length === 0){
         return new ApiResponse("error", 404, "No users");
@@ -216,10 +216,17 @@ export class UserService {
     }
 
     //Thus refactor this function to get all users time of work and return the time of work for each user
-    async getAllUsersTimeOfWork(userId: number): Promise<UserInfoDto[] | ApiResponse>{
-        const allUsers = await this.userEntitets.find({
-            relations: { timeOfWorkes: { user: true } }
-        });
+    async getAllUsersTimeOfWork(adminId: number): Promise<UserInfoDto[] | ApiResponse>{
+        const allUsers = await this.userEntitets.createQueryBuilder("users")
+        .leftJoinAndSelect(
+            "users.timeOfWorkes",
+            "timeOfWorkes",
+            "timeOfWorkes.status = :status",
+            { status: 0 }
+        )
+        .where("users.managerId = :managerId", { managerId: adminId })
+        .andWhere("users.visibility = :visibility", { visibility: 1 })
+        .getMany();
 
         if(allUsers.length === 0){
             return new ApiResponse("error", 404, "No users");
@@ -230,9 +237,12 @@ export class UserService {
 
         allUsers.forEach((data) => {
             const timeOfWorkSet = data.timeOfWorkes;
-            timeOfWorkSet.forEach((dataSet) =>{
+            timeOfWorkSet.forEach((dataSet) => {
+                if (!dataSet.checked_in || !dataSet.checked_out) {
+                    return;
+                }
                 sumTimeOfWork += dataSet.checked_out.getTime() - dataSet.checked_in.getTime();
-           });
+            });
             let sumTimeOfWorkset = Number((sumTimeOfWork / (1000 * 60 * 60)).toFixed(2)); 
             let sufix = "H";
 

@@ -103,7 +103,7 @@ describe('ReportService', () => {
   });
 
   it('builds an overlap query for the requested report period', async () => {
-    await service.createPdfReport(reportDto);
+    await service.createPdfReport(reportDto, reportDto.adminId);
 
     expect(timeOfWorkRepository.createQueryBuilder).toHaveBeenCalledWith('time_of_worke');
     expect(queryBuilder.where).toHaveBeenCalledWith('time_of_worke.user_id = :userId', { userId: 7 });
@@ -112,7 +112,8 @@ describe('ReportService', () => {
     expect(queryBuilder.andWhere).toHaveBeenNthCalledWith(3, 'time_of_worke.checked_in <= :endDate', {
       endDate: '2026-04-30T23:59:59.999Z',
     });
-    expect(queryBuilder.andWhere).toHaveBeenNthCalledWith(4, 'time_of_worke.checked_out >= :startDate', {
+    expect(queryBuilder.andWhere).toHaveBeenNthCalledWith(4, 'time_of_worke.status = 0');
+    expect(queryBuilder.andWhere).toHaveBeenNthCalledWith(5, 'time_of_worke.checked_out >= :startDate', {
       startDate: '2026-04-01T00:00:00.000Z',
     });
   });
@@ -126,7 +127,7 @@ describe('ReportService', () => {
       },
     ]);
 
-    await service.createPdfReport(reportDto);
+    await service.createPdfReport(reportDto, reportDto.adminId);
 
     expect(mockDoc.text).toHaveBeenCalledWith(
       expect.stringContaining('Pocetak: 08:05 - Zavrsetak: 16:09'),

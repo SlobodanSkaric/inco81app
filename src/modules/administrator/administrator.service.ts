@@ -188,15 +188,14 @@ export class AdministratorService {
             const result = await this.timeOfWorkeEntitets.createQueryBuilder("time_of_works")
                 .where("DATE(time_of_works.checked_in) = :checked_in", { checked_in: checkedInDate.toISOString().split('T')[0] })
                 .andWhere("time_of_works.user_id = :userId", { userId: data.userId })
+                .andWhere("time_of_works.status = :status", { status: 0 })
                 .getOne();
 
             if (!result) {
                 return new ApiResponse("error", 404, "Time of work for this user is not found");
             }
 
-            // Update the checked_out time
             result.checked_out = excangeDate;
-            result.status = 1; // Mark as completed
 
             const updated = await this.timeOfWorkeEntitets.save(result);
             return updated;
