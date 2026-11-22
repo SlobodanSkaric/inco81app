@@ -8,6 +8,7 @@ import { Users } from 'src/entitets/entities/Users';
 import { ReportDto } from './dto/report.dto';
 import { generateRandomDocName } from 'src/misc/random.docname';
 import { ConfigService } from '@nestjs/config';
+import path from 'path';
 
 @Injectable()
 export class ReportService {
@@ -34,8 +35,12 @@ export class ReportService {
         const doc = new PDFDocument();
         const generateRandomDocumentsName = generateRandomDocName(getUser.userId, new Date().getMonth() + 1 + "-" + new Date().getFullYear(),1, 1000);
         const filrPathNameEnv = this.configServices.get<string>("SERVER_PDF_PATH");
-        const filePathServer = filrPathNameEnv + getUser.name + "-"+getUser.lastname + "-" + generateRandomDocumentsName  + ".pdf";
-        const filePathHostMacines = this.configServices.get<string>("HOST_MACHINE_PDF_PATH")+ getUser.name+"-"+getUser.lastname + "-" + generateRandomDocumentsName + ".pdf";
+        const baseDir = path.resolve(filrPathNameEnv ? filrPathNameEnv : "./exports/");
+        const fileName = `${getUser.userId}-${generateRandomDocumentsName}.pdf`;
+        const filePathServer = path.join(baseDir, fileName);
+        
+        const hostBaseDir = path.resolve(this.configServices.get<string>("HOST_MACHINE_PDF_PATH") || "./exports/");
+        const filePathHostMacines = path.join(hostBaseDir, fileName);
         if (!fs.existsSync(filrPathNameEnv ? filrPathNameEnv : "./exports/")) {//refactoring server patha i host machine patha checked
             fs.mkdirSync(filrPathNameEnv ? filrPathNameEnv : "./exports/");
         }

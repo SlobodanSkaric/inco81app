@@ -3,9 +3,10 @@ import { TimeofworkController } from './timeofwork.controller';
 import { TimeofworkService } from './timeofwork.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TimeOfWorke } from 'src/entitets/entities/TimeOfWorke';
+import { Users } from 'src/entitets/entities/Users';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([TimeOfWorke])],
+  imports: [TypeOrmModule.forFeature([TimeOfWorke, Users])],
   controllers: [TimeofworkController],
   providers: [TimeofworkService],
 })
