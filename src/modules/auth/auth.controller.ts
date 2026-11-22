@@ -24,7 +24,7 @@ export class AuthController {
     @ApiResult(undefined, { status: 201 })
     @Throttle({ default: { limit: 20, ttl: 60000 } })
     @Post("administrator")
-    async administratorLogin(@Body() data: AuthDto, @Req() req: Request, @Res({ passthrough: true }) res: Response, @GetIp() ip: string, @GetUserAgent() ua: string):Promise<{message: string} | AuthLoginDto | ApiResponse | any>{             
+    async administratorLogin(@Body() data: AuthDto, @Res({ passthrough: true }) res: Response, @GetIp() ip: string, @GetUserAgent() ua: string):Promise<{message: string} | AuthLoginDto | ApiResponse | any>{             
           
            const ipuaData = {
             ip: ip,

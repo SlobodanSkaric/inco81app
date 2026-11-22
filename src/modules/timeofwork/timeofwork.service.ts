@@ -2,8 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TimeOfWorke } from 'src/entitets/entities/TimeOfWorke';
 import { ApiResponse } from 'src/misc/api.response.dto';
-import { Between, IsNull, Not, Repository } from 'typeorm';
-import { UserCheckedInDto } from './dtos/user.checkedin.dto';
+import { DataSource, EntityManager, IsNull, Not, Repository } from 'typeorm';
 import { GetHorseDto } from './dtos/get.horse.dto';
 import { UdateTimeOfWorkUserDto } from './dtos/udate.timeofwork.user.dto';
 import { curentDateFormatToISOString, dataUtils } from 'src/utils/data.utils';
@@ -13,10 +12,19 @@ import { Users } from 'src/entitets/entities/Users';
 export class TimeofworkService {
     constructor(
         @InjectRepository(TimeOfWorke) private readonly timeOfWorksRepository: Repository<TimeOfWorke>,
-){}
+        private readonly dataSource: DataSource,
+    ){}
 
-    private findOpenShift(userId: number): Promise<TimeOfWorke | null> {
-        return this.timeOfWorksRepository.findOne({
+    private isDuplicateKeyError(error: unknown): boolean {
+        if (!(error instanceof Object)) {
+            return false;
+        }
+        const err = error as { errno?: number; code?: string };
+        return err.errno === 1062 || err.code === "ER_DUP_ENTRY" || err.errno === 23505;
+    }
+
+    private findOpenShift(manager: EntityManager, userId: number): Promise<TimeOfWorke | null> {
+        return manager.getRepository(TimeOfWorke).findOne({
             where: {
                 user: { userId } as Users,
                 status: 0,
@@ -27,41 +35,68 @@ export class TimeofworkService {
         });
     }
 
+    private async lockUser(manager: EntityManager, userId: number): Promise<Users | null> {
+        return manager.getRepository(Users).findOne({
+            where: { userId },
+            lock: { mode: "pessimistic_write" },
+        });
+    }
+
     async userCheckedIn(userId: number): Promise<TimeOfWorke | ApiResponse>{
-        const openShift = await this.findOpenShift(userId);
+        try {
+            return await this.dataSource.transaction(async (manager) => {
+                const user = await this.lockUser(manager, userId);
+                if (!user) {
+                    return new ApiResponse("error", 404, "Korisnik ne postoji");
+                }
 
-        if(openShift){
-            return new ApiResponse("error", 409, "Korisnik je vec prijavljen");
+                const openShift = await this.findOpenShift(manager, userId);
+                if (openShift) {
+                    return new ApiResponse("error", 409, "Korisnik je vec prijavljen");
+                }
+
+                const timeOfWork = manager.create(TimeOfWorke, {
+                    user: { userId } as Users,
+                    status: 0,
+                    checked_in: new Date(),
+                });
+
+                const savedTimeOfWork = await manager.save(timeOfWork);
+                if (!savedTimeOfWork) {
+                    return new ApiResponse("error", 500, "Ne mogu da se prijavim");
+                }
+
+                return savedTimeOfWork;
+            });
+        } catch (error) {
+            if (this.isDuplicateKeyError(error)) {
+                return new ApiResponse("error", 409, "Korisnik je vec prijavljen");
+            }
+            throw error;
         }
-
-        const timeOfWork = new TimeOfWorke();
-        timeOfWork.user = { userId: userId } as Users;
-        timeOfWork.status = 0;
-        timeOfWork.checked_in = new Date();
-
-        const savedTimeOfWork = await this.timeOfWorksRepository.save(timeOfWork);
-        if(!savedTimeOfWork){
-            return new ApiResponse("error", 500, "Ne mogu da se prijavim");
-        }
-
-        return savedTimeOfWork;
     }
 
     async userCheckedOut(userId: number): Promise<TimeOfWorke | ApiResponse>{
-        const openShift = await this.findOpenShift(userId);
+        return await this.dataSource.transaction(async (manager) => {
+            const user = await this.lockUser(manager, userId);
+            if (!user) {
+                return new ApiResponse("error", 404, "Korisnik ne postoji");
+            }
 
-        if(!openShift){
-            return new ApiResponse("error", 400, "Korisnik nije prijavljen");
-        }
+            const openShift = await this.findOpenShift(manager, userId);
+            if (!openShift) {
+                return new ApiResponse("error", 400, "Korisnik nije prijavljen");
+            }
 
-        openShift.checked_out = new Date();
+            openShift.checked_out = new Date();
 
-        const savedTimeOfWork = await this.timeOfWorksRepository.save(openShift);
-        if(!savedTimeOfWork){
-            return new ApiResponse("error", 500, "Ne mogu da se odjavim");
-        }
+            const savedTimeOfWork = await manager.save(openShift);
+            if (!savedTimeOfWork) {
+                return new ApiResponse("error", 500, "Ne mogu da se odjavim");
+            }
 
-        return savedTimeOfWork;
+            return savedTimeOfWork;
+        });
     }
 
     async getTiemOfWorkByUserId(data: GetHorseDto, userId: number): Promise<{getOfTime: string, problems?: string[]} | ApiResponse>{

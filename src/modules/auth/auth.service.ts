@@ -139,10 +139,17 @@ export class AuthService {
             throw new UnauthorizedException("Invalid session");
         }
 
-        const jti = await this.refreshSessionService.rotate(payload.sid, payload.jti, payload.id.toString(), payload.role);
 
+        let premisions = [Premissions.READ, Premissions.CREATE, Premissions.UPDATE, Premissions.DELETE];
+
+        if(account.role === Role.USER){
+            premisions = [Premissions.READ, Premissions.CREATE, Premissions.UPDATE];
+        }
+
+        const jti = await this.refreshSessionService.rotate(payload.sid, payload.jti, payload.id.toString(), payload.role);
+        
         const email = account instanceof Customers ? account.contactEmail  : account.email;
-        return this.issueTokens({id: payload.id, email, role: payload.role}, payload.sid, jti, [Premissions.CREATE, Premissions.READ, Premissions.UPDATE, Premissions.DELETE]);
+        return this.issueTokens({id: payload.id, email, role: payload.role}, payload.sid, jti, premisions);
 
     }
 
