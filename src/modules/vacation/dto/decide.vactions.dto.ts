@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsIn, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { VACATION_DECISION_STATUSES, VacationStatus } from "./vacation.status.enum";
 
 export class DecideVacationDto {
     @IsNumber()
@@ -7,7 +8,8 @@ export class DecideVacationDto {
 
     @IsNumber()
     @IsNotEmpty()
-    status: number;
+    @IsIn([...VACATION_DECISION_STATUSES])
+    status: VacationStatus;
 
     @IsString()
     @IsOptional()

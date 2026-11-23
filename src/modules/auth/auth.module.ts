@@ -6,7 +6,7 @@ import { Users } from 'src/entitets/entities/Users';
 import { AdministratorModule } from 'src/modules/administrator/administrator.module';
 import { UserModule } from 'src/modules/user/user.module';
 import { PassportModule } from '@nestjs/passport';
-import { JwtModule, JwtService } from '@nestjs/jwt';
+import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './jwt.strategy';
 import { SuperadministratorModule } from 'src/modules/superadministrator/superadministrator.module';
@@ -19,10 +19,12 @@ import { LoginAttemptsService } from './login.attempts.service';
 import { RedisModule } from '../redis/redis.module';
 import { RefreshSessionService } from './refresh.session.service';
 import { AuthSessionsListener } from './auth.sessions.listener';
+import { JwtAuthGuards } from './jwtAuthGuards';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, JwtRefreshStrategy, JwtService, AuthUserServices, LoginAttemptsService, RefreshSessionService, AuthSessionsListener],
+  providers: [AuthService, JwtStrategy, JwtRefreshStrategy, AuthUserServices, LoginAttemptsService, RefreshSessionService, AuthSessionsListener, JwtAuthGuards],
+  exports: [JwtAuthGuards, AuthService],
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({

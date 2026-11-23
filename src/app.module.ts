@@ -6,7 +6,6 @@ import { AdministratorModule } from './modules/administrator/administrator.modul
 import { TimeofworkModule } from './modules/timeofwork/timeofwork.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ReportModule } from './modules/report/report.module';
-import { RequestlogModule } from './modules/requestlog/requestlog.module';
 import { FingerprintMiddleware } from './middlewares/fingerprint.middleware';
 import { JobinformationsModule } from './modules/jobinformations/jobinformations.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
@@ -28,6 +27,10 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { RequestLogInterceptor } from './common/interceptors/request.log.interceptor';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { ApiResponseInterceptor } from './common/interceptors/api.response.interceptor';
+import { PermissionsGuards } from './common/guards/permissions.guards';
+import { JwtAuthGuards } from './modules/auth/jwtAuthGuards';
+import { RoleGuards } from './common/guards/roles.guards';
+import { ScheduleModule } from '@nestjs/schedule';
 
 const templatesDir = existsSync(join(process.cwd(), 'dist/templates'))
   ? join(process.cwd(), 'dist/templates')
@@ -39,6 +42,7 @@ const mailSecure = process.env.MAIL_SECURE
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ThrottlerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => [
@@ -76,7 +80,6 @@ const mailSecure = process.env.MAIL_SECURE
     TimeofworkModule,
     AuthModule,
     ReportModule,
-    //RequestlogModule,
     JobinformationsModule,
     LogsModule,
     SuperadministratorModule,
@@ -99,6 +102,18 @@ const mailSecure = process.env.MAIL_SECURE
       useClass: ThrottlerGuard,
     },
     {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuards,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RoleGuards,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PermissionsGuards,
+    },
+    {
       provide: APP_INTERCEPTOR,
       useClass: ApiResponseInterceptor,
     }
@@ -107,6 +122,6 @@ const mailSecure = process.env.MAIL_SECURE
 })
 export class AppModule implements NestModule{
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(FingerprintMiddleware).exclude("auth/*path").forRoutes("*");//exclude
+    consumer.apply(FingerprintMiddleware).exclude("auth/*path").forRoutes("*");
   }
 }

@@ -1,6 +1,7 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { catchError, Observable, tap } from "rxjs";
+import { ApiResponse } from "src/misc/api.response.dto";
 
 @Injectable()
 export class RequestLogInterceptor implements NestInterceptor{
@@ -20,7 +21,7 @@ export class RequestLogInterceptor implements NestInterceptor{
             path: path,
             role: request.user?.role || null, 
             user_id: request.user ? request.user.id : null,
-            fingerprint: request.fingerprint || null, //request.fingerprint || request.headers["x-fingerprint"] || null, 
+            fingerprint: request.fingerprint || null,
             coleration_id: request.headers["x-request-id"] || null,
             ip: ((request.ip || request.headers["x-forwarded-for"] || request.socket.remoteAddress || "").toString().split(",")[0].trim()) as string,
             user_agent: request.headers["user-agent"] || null,
@@ -29,19 +30,19 @@ export class RequestLogInterceptor implements NestInterceptor{
             ts: new Date(),
         }
 
-        
-
         return next.handle().pipe(
-            tap(() => {
-                const duration = Number((process.hrtime.bigint() - start) / 1000000n) //ms
+            tap((data) => {
+                const duration = Number((process.hrtime.bigint() - start) / 1000000n);
+                const isApiError = data instanceof ApiResponse && data.status === "error";
                 this.emiter.emit("request.log", {
                     ...basePayload,
-                    response_status: reponse.statusCode,
-                    response_time: duration
+                    response_status: isApiError ? (data.code ?? reponse.statusCode) : reponse.statusCode,
+                    response_time: duration,
+                    ...(isApiError ? { error_message: data.messages } : {}),
                 });
             }),
             catchError((err) => {
-                const duration = Number((process.hrtime.bigint() - start) / 1000000n) //ms
+                const duration = Number((process.hrtime.bigint() - start) / 1000000n);
                 this.emiter.emit("request.log", {
                     ...basePayload,
                     response_status: err.status || 500,

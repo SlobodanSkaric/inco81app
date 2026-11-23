@@ -1,12 +1,10 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Users } from "./Users";
 
-
 @Entity("job_information")
 export class JobInformations {
     @PrimaryGeneratedColumn({ type: "int", name: "job_information_id" })
     jobInfoId: number;
-
 
     @Column("varchar", { name: "job_title", length: 255 })
     jobTitle: string;
@@ -29,11 +27,17 @@ export class JobInformations {
     @Column("datetime", { name: "created_at", default: () => "CURRENT_TIMESTAMP" })
     createdAt: Date;
 
-    @Column("datetime", { name: "updated_at", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP" })
+    @Column("datetime", {
+        name: "updated_at",
+        default: () => "CURRENT_TIMESTAMP",
+        onUpdate: "CURRENT_TIMESTAMP",
+    })
     updatedAt: Date;
 
+    @Column("int", { name: "user_id", nullable: true })
+    userId: number | null;
 
-    @ManyToOne(() => Users, users => users.jobInformations,{nullable: true})
+    @ManyToOne(() => Users, (users) => users.jobInformations, { nullable: true })
     @JoinColumn([{ name: "user_id", referencedColumnName: "userId" }])
-    userId: number;
+    user: Users;
 }

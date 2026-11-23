@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Post, Req, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Post, Req, UseInterceptors } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { UserInfoDto } from './dto/user.info.dto';
@@ -6,15 +6,12 @@ import { UserAddDto } from './dto/user.add.dto';
 import { Roles } from 'src/common/decorators/role.decorator';
 import { Request } from 'express';
 import { Permissions } from 'src/common/decorators/permissions.decorator';
-import { JwtAuthGuards } from 'src/modules/auth/jwtAuthGuards';
 import { UserVisibilityDto } from './dto/user.visibility.dto';
-import { RoleGuards } from 'src/common/guards/roles.guards';
 import { UserEditDto } from './dto/user.edit.dto';
 import { RedisService } from '../redis/redis.service';
 import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptor';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiAuth, ApiResult } from 'src/common/decorators/swagger.decorator';
-import { PermissionsGuards } from '../../common/guards/permissions.guards';
 
 
 @ApiTags('user')
@@ -31,7 +28,6 @@ export class UserController {
     @UseInterceptors(CacheRedisIntrceptor)
     @Get("/all")
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards, RoleGuards)
     async getAll(@Req() req: Request): Promise<UserInfoDto[] | ApiResponse | any >{
         const adminId = req.user.id;
 
@@ -51,7 +47,6 @@ export class UserController {
     @UseInterceptors(CacheRedisIntrceptor)
     @Get("")
     @Roles("user")
-    @UseGuards(JwtAuthGuards, RoleGuards)
     async getById(@Req() req: Request): Promise<UserInfoDto | ApiResponse>{     
         const userData = await this.userServices.getUserById(req.user.id);
         return userData;
@@ -64,7 +59,6 @@ export class UserController {
     @Post("/add")
     @Roles("administrator")
     @Permissions("create")
-    @UseGuards(JwtAuthGuards, RoleGuards, PermissionsGuards)
     async addUser(@Body() data: UserAddDto, @Req() req: Request): Promise<UserInfoDto | ApiResponse>{
         return this.userServices.addUser(data, req.user.id);
     }
@@ -75,7 +69,6 @@ export class UserController {
     @Post("/delete")
     @Roles("administrator")
     @Permissions("delete")
-    @UseGuards(JwtAuthGuards, RoleGuards, PermissionsGuards)
     async deleteUser(@Body() user_data: UserVisibilityDto, @Req() req: Request): Promise<ApiResponse>{
         return this.userServices.deleteUser(user_data, req.user.id);
     }
@@ -86,7 +79,6 @@ export class UserController {
     @Post("/edit")
     @Roles("user")
     @Permissions("update")
-    @UseGuards(JwtAuthGuards, RoleGuards, PermissionsGuards)
     async editUser(@Body() userData: UserEditDto, @Req() req: Request): Promise<UserInfoDto | ApiResponse>{
         return this.userServices.editUser(userData, req.user.id);
     }

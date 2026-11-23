@@ -1,29 +1,33 @@
-import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
 import { RedisService } from "src/modules/redis/redis.service";
 
+/**
+ * Blocks authenticated users whose Redis risk score exceeds the threshold.
+ * Safe to use after JwtAuthGuards (requires request.user).
+ * Prefer JwtStrategy risk check for global coverage; this guard is for explicit routes.
+ */
 @Injectable()
-export class RedisRiskGuards implements CanActivate{
-    constructor(private redisService: RedisService){}
+export class RedisRiskGuards implements CanActivate {
+    private static readonly RISK_BLOCK_SCORE = 80;
 
-    async canActivate(context: ExecutionContext): Promise<boolean>{
+    constructor(private redisService: RedisService) {}
+
+    async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
-        const userId = request.user.id
+        const userId = request.user?.id;
+        const role = request.user?.role;
 
-        if(!userId){
-            return false;
+        if (!userId || !role) {
+            return true;
         }
 
-        const payload = {
-            ip: request.ip || request.header["x-forwarded-for"],
-            ua: request.headers["user-agent"]
+        const risk = await this.redisService.getRiskScore(String(userId), role);
+        if (risk && risk.score >= RedisRiskGuards.RISK_BLOCK_SCORE) {
+            throw new ForbiddenException(
+                risk.reason || "Account temporarily blocked due to risk score",
+            );
         }
 
-        const setRedisData = await this.redisService.setCache(userId, payload);
-
-        if(!setRedisData){
-            return false;
-        }
-                return true
-
+        return true;
     }
 }

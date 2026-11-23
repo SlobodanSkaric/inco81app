@@ -1,17 +1,14 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseInterceptors } from '@nestjs/common';
 import { SuperadministratorService } from './superadministrator.service';
-import { AddSuperadministratorsDto } from './dtos/add.superadministrators.dto';
 import { Roles } from 'src/common/decorators/role.decorator';
-import { RoleGuards } from 'src/common/guards/roles.guards';
-import { JwtAuthGuards } from '../auth/jwtAuthGuards';
 import { Request } from 'express';
 import { SuperadministratorInfoDto } from './dtos/superadministrator.info.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
-import { RedisService } from '../redis/redis.service';
 import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interceptor';
 import { AdministratorService } from '../administrator/administrator.service';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiAuth, ApiResult } from 'src/common/decorators/swagger.decorator';
+import { DeleteAdministratorDto } from './dtos/delete.administrator.dto';
 
 @ApiTags('superadministrator')
 @Controller('superadministrator')
@@ -28,7 +25,6 @@ export class SuperadministratorController {
     @UseInterceptors(CacheRedisIntrceptor)
     @Get("")
     @Roles("superadministrator")
-    @UseGuards(JwtAuthGuards,RoleGuards)
     async getSuperAdministrators( @Req() req: Request): Promise<SuperadministratorInfoDto | ApiResponse> {
         const superadministratorGetById = await this.superadmins.getUserById(req.user.id);
       
@@ -53,11 +49,8 @@ export class SuperadministratorController {
     @ApiOkResponse({ type: Boolean })
     @Post("delete/administrator")
     @Roles("superadministrator")
-    @UseGuards(JwtAuthGuards, RoleGuards)
-    async deleteAdministrator(@Body() body: { id: number }): Promise<boolean>{
-        const deleteResult = await this.administrator.editAministators(body.id);
-
-        return deleteResult;
+    async deleteAdministrator(@Body() body: DeleteAdministratorDto): Promise<boolean>{
+        return await this.administrator.editAministators(body.id);
     }
 
 

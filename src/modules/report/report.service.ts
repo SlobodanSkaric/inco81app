@@ -8,7 +8,10 @@ import { Users } from 'src/entitets/entities/Users';
 import { ReportDto } from './dto/report.dto';
 import { generateRandomDocName } from 'src/misc/random.docname';
 import { ConfigService } from '@nestjs/config';
-import path from 'path';
+import * as path from 'path';
+import { ApiResponse } from 'src/misc/api.response.dto';
+import { calendarDateKey, calendarRangeBounds, clippedOverlapMs } from 'src/utils/data.utils';
+import { Role } from 'src/common/enums/role.enum';
 
 @Injectable()
 export class ReportService {
@@ -25,11 +28,27 @@ export class ReportService {
         return `${hours}:${minutes}`;
     }
 
-    async createPdfReport(report: ReportDto, adminId: number): Promise<{message: string}> {
-        const getUser = await this.userRepository.findOneBy({userId: report.userId, managerId: adminId});
+    async createPdfReport(report: ReportDto, adminId: number, role: Role): Promise<{message: string} | ApiResponse> {
+        const anyUser = await this.userRepository.findOne({
+            where: { userId: report.userId, visibility: 1 },
+        });
+        if (!anyUser) {
+            return new ApiResponse("error", 404, "User not found");
+        }
+        const allowed =
+            role === Role.SUPER_ADMIN || anyUser.managerId === adminId;
+        if (!allowed) {
+            return new ApiResponse("error", 403, "You are not authorized to generate a report for this user");
+        }
+        const getUser = anyUser;
 
-        if(!getUser){
-            return {message: "User not found"}
+        const startDate = calendarDateKey(report.startDate);
+        const endDate = calendarDateKey(report.endDate);
+        if (!startDate || !endDate) {
+            return new ApiResponse("error", 400, "Invalid date format");
+        }
+        if (startDate > endDate) {
+            return new ApiResponse("error", 400, "Start date must not be after end date");
         }
 
         const doc = new PDFDocument();
@@ -41,8 +60,8 @@ export class ReportService {
         
         const hostBaseDir = path.resolve(this.configServices.get<string>("HOST_MACHINE_PDF_PATH") || "./exports/");
         const filePathHostMacines = path.join(hostBaseDir, fileName);
-        if (!fs.existsSync(filrPathNameEnv ? filrPathNameEnv : "./exports/")) {//refactoring server patha i host machine patha checked
-            fs.mkdirSync(filrPathNameEnv ? filrPathNameEnv : "./exports/");
+        if (!fs.existsSync(filrPathNameEnv ? filrPathNameEnv : "./exports/")) {
+            fs.mkdirSync(filrPathNameEnv ? filrPathNameEnv : "./exports/", { recursive: true });
         }
 
         const stream = fs.createWriteStream(filePathServer)
@@ -52,7 +71,7 @@ export class ReportService {
         doc.fontSize(20).text('Izveštaj', { align: 'center' });
         doc.moveDown();
         doc.fontSize(12).text(`Zaposleni: ${getUser.name} ${getUser.lastname}`);
-        doc.text(`Za period: ${report.startDate} do ${report.endDate}`);
+        doc.text(`Za period: ${startDate} do ${endDate}`);
 
         doc.moveDown();
         doc.fontSize(14).text('Radni sati:', { underline: true });
@@ -62,16 +81,16 @@ export class ReportService {
             .where("time_of_worke.user_id = :userId", { userId: report.userId })
             .andWhere("time_of_worke.checked_in IS NOT NULL")
             .andWhere("time_of_worke.checked_out IS NOT NULL")
-            .andWhere("time_of_worke.checked_in <= :endDate", { endDate: report.endDate })
+            .andWhere("DATE(time_of_worke.checked_in) <= :endDate", { endDate })
             .andWhere("time_of_worke.status = 0")
-            .andWhere("time_of_worke.checked_out >= :startDate", { startDate: report.startDate })
+            .andWhere("DATE(time_of_worke.checked_out) >= :startDate", { startDate })
             .getMany();
         
 
+        const { start: rangeStart, end: rangeEnd } = calendarRangeBounds(startDate, endDate);
         const totalHours = workEntries.reduce((sum, entry) => {
             if (entry.checked_in && entry.checked_out) {
-                const hours = (entry.checked_out.getTime() - entry.checked_in.getTime()) / (1000 * 60 * 60);
-                return sum + hours;
+                return sum + clippedOverlapMs(entry.checked_in, entry.checked_out, rangeStart, rangeEnd) / (1000 * 60 * 60);
             }
             return sum;
         }, 0);
@@ -84,12 +103,12 @@ export class ReportService {
             workEntries.forEach(entry => {
                 let hoursWorked = 0;
                 if (entry.checked_in && entry.checked_out) {
-                    hoursWorked = (entry.checked_out.getTime() - entry.checked_in.getTime()) / (1000 * 60 * 60);
+                    hoursWorked = clippedOverlapMs(entry.checked_in, entry.checked_out, rangeStart, rangeEnd) / (1000 * 60 * 60);
                 }
                 const timeObjectCheckedIn = new Date(entry.checked_in);
                 const timeObjectCheckedOut = new Date(entry.checked_out);
 
-                doc.fontSize(10).text(`${ counter }. Datum: ${entry.dateAndTime.toISOString().split('T')[0]} - Pocetak: ${this.formatTime(timeObjectCheckedIn)} - Zavrsetak: ${this.formatTime(timeObjectCheckedOut)} - Sati: ${hoursWorked.toFixed(2)}`);
+                doc.fontSize(10).text(`${ counter }. Datum: ${timeObjectCheckedIn.toISOString().split('T')[0]} - Pocetak: ${this.formatTime(timeObjectCheckedIn)} - Zavrsetak: ${this.formatTime(timeObjectCheckedOut)} - Sati: ${hoursWorked.toFixed(2)}`);
                 counter++;
             });
         }
@@ -97,23 +116,20 @@ export class ReportService {
         doc.moveDown();
         doc.fontSize(12).text(`Ukupno radnih sati: ${totalHours.toFixed(2)}`);
         doc.moveDown();
-        
-        
-        
 
-
-        stream.on("finish", () =>{
-            console.log("PDF izveštaj je uspešno kreiran");
-            fs.copyFile(filePathServer, filePathHostMacines, (err) => {
-                if (err) {
-                    console.error("Greška prilikom kopiranja PDF izveštaja:", err);
-                } else {
-                    console.log("PDF izveštaj je uspešno kopiran na host mašinu");
-                }
-         });
+        await new Promise<void>((resolve, reject) => {
+            stream.on("finish", () => {
+                fs.copyFile(filePathServer, filePathHostMacines, (err) => {
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+                    resolve();
+                });
+            });
+            stream.on("error", reject);
+            doc.end();
         });
-
-        doc.end();
 
         return {message: "Uspešno kreiran izveštaj"};
     }

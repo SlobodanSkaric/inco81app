@@ -28,6 +28,19 @@ export class CacheInvalidateService{
             }
         }catch(error){
             this.logger.error(`Error invalidating cache data: ${error}`);
+            // Retry once so mutations are less likely to leave stale reads.
+            try {
+                for (const key of event.keys) {
+                    await this.redisServices.delete(key, { prefix: "set:cache:interceptor:" });
+                }
+                for (const pattern of event.patterns) {
+                    await this.redisServices.clearCacheByPattern(pattern, {
+                        prefix: "set:cache:interceptor:",
+                    });
+                }
+            } catch (retryError) {
+                this.logger.error(`Cache invalidate retry failed: ${retryError}`);
+            }
         }
     }
 }

@@ -1,8 +1,6 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Req } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { Roles } from 'src/common/decorators/role.decorator';
-import { JwtAuthGuards } from '../auth/jwtAuthGuards';
-import { RoleGuards } from 'src/common/guards/roles.guards';
 import { OrderGetAllDto } from './dtos/order.get.all.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { OrderAddDto } from './dtos/orders.add.dto';
@@ -20,22 +18,20 @@ export class OrdersController {
     }
 
     @ApiOperation({ summary: 'Get all orders' })
-    @ApiAuth("administrator")
+    @ApiAuth("administrator", "superadministrator")
     @ApiResult(OrderGetAllDto, { isArray: true })
     @Get("/all")
-    @Roles("administrator")
-    @UseGuards(JwtAuthGuards, RoleGuards)
+    @Roles("administrator", "superadministrator")
     async getAllOrders(): Promise<OrderGetAllDto[] | ApiResponse>{
         return await this.ordersService.getAllOrders();
     }
 
     @ApiOperation({ summary: 'Get order by id' })
-    @ApiAuth("administrator")
+    @ApiAuth("administrator", "superadministrator")
     @ApiResult(OrderGetAllDto)
     @Get("/:id")
-    @Roles("administrator")
-    @UseGuards(JwtAuthGuards, RoleGuards)
-    async getOrderById(@Param("id") id: number): Promise<OrderGetAllDto | ApiResponse>{
+    @Roles("administrator", "superadministrator")
+    async getOrderById(@Param("id", ParseIntPipe) id: number): Promise<OrderGetAllDto | ApiResponse>{
         return await this.ordersService.getOrderById(id);
     }
 
@@ -44,7 +40,6 @@ export class OrdersController {
     @ApiResult(OrderGetAllDto, { status: 201 })
     @Post("/createorders")
     @Roles("customer")
-    @UseGuards(JwtAuthGuards, RoleGuards)
     async createOrder(@Body() order: OrderAddDto, @Req() req: Request): Promise<OrderGetAllDto | ApiResponse>{
         const userId = req.user.id;
         return await this.ordersService.addOrder(order, userId);
@@ -55,27 +50,24 @@ export class OrdersController {
     @ApiResult(undefined, { status: 201 })
     @Post("/deleteorders")
     @Roles("customer")
-    @UseGuards(JwtAuthGuards, RoleGuards)
     async deleteOrderForCustomer(@Body() deleteData: OrderDeleteDto, @Req() req: Request): Promise<ApiResponse>{
         return await this.ordersService.delteOrderForCustomer(deleteData.orderId, req.user.id);
     }
 
     @ApiOperation({ summary: 'Change order status' })
-    @ApiAuth("administrator")
+    @ApiAuth("administrator", "superadministrator")
     @ApiResult(OrderGetAllDto, { status: 201 })
     @Post("/changestatus/")
-    @Roles("administrator")
-    @UseGuards(JwtAuthGuards, RoleGuards)
+    @Roles("administrator", "superadministrator")
     async changeOrderStatus(@Body() order: EditOrdersStatusDto): Promise<OrderGetAllDto | ApiResponse>{
         return await this.ordersService.changeOrderStatus(order.orderId, order.orderStatus);
     }
     
     @ApiOperation({ summary: 'Delete order for admin' })
-    @ApiAuth("administrator")
+    @ApiAuth("administrator", "superadministrator")
     @ApiResult(undefined, { status: 201 })
     @Post("/deleteorders/admin")
-    @Roles("administrator")
-    @UseGuards(JwtAuthGuards, RoleGuards)
+    @Roles("administrator", "superadministrator")
     async deleteOrderForAdmin(@Body() deleteData: OrderDeleteDto): Promise<ApiResponse>{
         return await this.ordersService.deleteOrderForAdmin(deleteData.orderId);
     }

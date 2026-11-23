@@ -1,8 +1,6 @@
-import { Body, Controller, Get, Param, Post, UseGuards,Req, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Req, UseInterceptors } from '@nestjs/common';
 import { CustomersService } from './customers.service';
 import { Roles } from 'src/common/decorators/role.decorator';
-import { JwtAuthGuards } from '../auth/jwtAuthGuards';
-import { RoleGuards } from 'src/common/guards/roles.guards';
 import { AddCustomersDto } from './dtos/add.customers.dto';
 import { GetCustomersDto } from './dtos/get.customers.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
@@ -12,6 +10,7 @@ import { CacheRedisIntrceptor } from 'src/common/interceptors/cache.redis.interc
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiAuth, ApiResult } from 'src/common/decorators/swagger.decorator';
 import { GetCustomerOrdersDto } from './dtos/get.cstomers,orders.dto';
+import { SetCustomerActiveDto } from './dtos/set.customer.active.dto';
 
 @ApiTags('customers')
 @Controller('customers')
@@ -24,7 +23,6 @@ export class CustomersController {
     @UseInterceptors(CacheRedisIntrceptor)
     @Get("all")
     @Roles("administrator", "superadministrator")
-    @UseGuards(JwtAuthGuards, RoleGuards)
     async getAllCustomers() {
         return await this.customersService.findAllCustomers();
     }
@@ -36,7 +34,6 @@ export class CustomersController {
     @UseInterceptors(CacheRedisIntrceptor)
     @Get("")
     @Roles("customer")
-    @UseGuards(JwtAuthGuards, RoleGuards)
     async getCustomer(@Req() req: Request): Promise<GetCustomersDto | ApiResponse | any>{
         return await this.customersService.findCustomersById(req.user.id);
     }
@@ -46,7 +43,6 @@ export class CustomersController {
     @ApiResult(GetCustomerOrdersDto)
     @Get("order")
     @Roles("customer")
-    @UseGuards(JwtAuthGuards, RoleGuards)
     async getCustomerWithOrders(@Req() req: Request): Promise<GetCustomerOrdersDto | ApiResponse | any>{
         return await this.customersService.findCustomersOrdes(req.user.id);
     }
@@ -57,8 +53,7 @@ export class CustomersController {
     @UseInterceptors(CacheRedisIntrceptor)
     @Get(":id")
     @Roles("administrator", "superadministrator")
-    @UseGuards(JwtAuthGuards, RoleGuards)
-    async getCustomerById(@Param("id") id: number) {
+    async getCustomerById(@Param("id", ParseIntPipe) id: number) {
         return await this.customersService.findCustomersById(id);
     }
 
@@ -67,8 +62,18 @@ export class CustomersController {
     @ApiResult(GetCustomersDto, { status: 201 })
     @Post("save")
     @Roles("administrator", "superadministrator")
-    @UseGuards(JwtAuthGuards, RoleGuards)
     async addCustomer(@Body() customer: AddCustomersDto): Promise<GetCustomersDto | ApiResponse> {
         return await this.customersService.addCustomers(customer);
+    }
+
+    @ApiOperation({ summary: 'Activate or deactivate customer' })
+    @ApiAuth("administrator", "superadministrator")
+    @ApiResult(GetCustomersDto, { status: 201 })
+    @Post("set-active")
+    @Roles("administrator", "superadministrator")
+    async setCustomerActive(
+        @Body() body: SetCustomerActiveDto,
+    ): Promise<GetCustomersDto | ApiResponse> {
+        return await this.customersService.setCustomerActive(body.customerId, body.isActive);
     }
 }

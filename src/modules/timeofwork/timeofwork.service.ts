@@ -5,14 +5,19 @@ import { ApiResponse } from 'src/misc/api.response.dto';
 import { DataSource, EntityManager, IsNull, Not, Repository } from 'typeorm';
 import { GetHorseDto } from './dtos/get.horse.dto';
 import { UdateTimeOfWorkUserDto } from './dtos/udate.timeofwork.user.dto';
-import { curentDateFormatToISOString, dataUtils } from 'src/utils/data.utils';
+import { calendarDateKey, calendarRangeBounds, clippedOverlapMs, curentDateFormatToISOString, dataUtils } from 'src/utils/data.utils';
 import { Users } from 'src/entitets/entities/Users';
+import { Role } from 'src/common/enums/role.enum';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { CacheIvalidationEvent } from 'src/common/events/cahce.events';
+import { runInTransaction, txAbort } from 'src/misc/transaction.abort';
 
 @Injectable()
 export class TimeofworkService {
     constructor(
         @InjectRepository(TimeOfWorke) private readonly timeOfWorksRepository: Repository<TimeOfWorke>,
         private readonly dataSource: DataSource,
+        private readonly eventEmitter: EventEmitter2,
     ){}
 
     private isDuplicateKeyError(error: unknown): boolean {
@@ -35,6 +40,28 @@ export class TimeofworkService {
         });
     }
 
+    private invalidateTimeOfWorkCache(ownerUserId: number, managerId?: number | null): void {
+        const keys: string[] = [`user:${ownerUserId}:/timeofwork`];
+        if (managerId != null) {
+            keys.push(`administrator:${managerId}:/user/all`);
+        }
+        this.eventEmitter.emit(
+            "cache.invalidate",
+            new CacheIvalidationEvent(
+                keys,
+                [
+                    `user:${ownerUserId}:/timeofwork/*`,
+                    "administrator:*:/timeofwork/*",
+                    "superadministrator:*:/timeofwork/*",
+                    "administrator:*:/user/all",
+                    "administrator:*:/administrator/*",
+                ],
+                "TimeOfWorke",
+                "update",
+            ),
+        );
+    }
+
     private async lockUser(manager: EntityManager, userId: number): Promise<Users | null> {
         return manager.getRepository(Users).findOne({
             where: { userId },
@@ -44,15 +71,15 @@ export class TimeofworkService {
 
     async userCheckedIn(userId: number): Promise<TimeOfWorke | ApiResponse>{
         try {
-            return await this.dataSource.transaction(async (manager) => {
+            const result = await runInTransaction(this.dataSource, async (manager) => {
                 const user = await this.lockUser(manager, userId);
                 if (!user) {
-                    return new ApiResponse("error", 404, "Korisnik ne postoji");
+                    txAbort("error", 404, "Korisnik ne postoji");
                 }
 
                 const openShift = await this.findOpenShift(manager, userId);
                 if (openShift) {
-                    return new ApiResponse("error", 409, "Korisnik je vec prijavljen");
+                    txAbort("error", 409, "Korisnik je vec prijavljen");
                 }
 
                 const timeOfWork = manager.create(TimeOfWorke, {
@@ -63,11 +90,18 @@ export class TimeofworkService {
 
                 const savedTimeOfWork = await manager.save(timeOfWork);
                 if (!savedTimeOfWork) {
-                    return new ApiResponse("error", 500, "Ne mogu da se prijavim");
+                    txAbort("error", 500, "Ne mogu da se prijavim");
                 }
 
-                return savedTimeOfWork;
+                return { savedTimeOfWork, managerId: user.managerId };
             });
+
+            if (result instanceof ApiResponse) {
+                return result;
+            }
+
+            this.invalidateTimeOfWorkCache(userId, result.managerId);
+            return result.savedTimeOfWork;
         } catch (error) {
             if (this.isDuplicateKeyError(error)) {
                 return new ApiResponse("error", 409, "Korisnik je vec prijavljen");
@@ -77,64 +111,71 @@ export class TimeofworkService {
     }
 
     async userCheckedOut(userId: number): Promise<TimeOfWorke | ApiResponse>{
-        return await this.dataSource.transaction(async (manager) => {
+        const result = await runInTransaction(this.dataSource, async (manager) => {
             const user = await this.lockUser(manager, userId);
             if (!user) {
-                return new ApiResponse("error", 404, "Korisnik ne postoji");
+                txAbort("error", 404, "Korisnik ne postoji");
             }
 
             const openShift = await this.findOpenShift(manager, userId);
             if (!openShift) {
-                return new ApiResponse("error", 400, "Korisnik nije prijavljen");
+                txAbort("error", 400, "Korisnik nije prijavljen");
             }
 
             openShift.checked_out = new Date();
 
             const savedTimeOfWork = await manager.save(openShift);
             if (!savedTimeOfWork) {
-                return new ApiResponse("error", 500, "Ne mogu da se odjavim");
+                txAbort("error", 500, "Ne mogu da se odjavim");
             }
 
-            return savedTimeOfWork;
+            return { savedTimeOfWork, managerId: user.managerId };
         });
+
+        if (result instanceof ApiResponse) {
+            return result;
+        }
+
+        this.invalidateTimeOfWorkCache(userId, result.managerId);
+        return result.savedTimeOfWork;
     }
 
     async getTiemOfWorkByUserId(data: GetHorseDto, userId: number): Promise<{getOfTime: string, problems?: string[]} | ApiResponse>{
         if(!data.startDate || !data.endDate){
             return new ApiResponse("error", 400, "Date and time are required");
         }
-        if(data.startDate >= data.endDate){
-            return new ApiResponse("error", 400, "Start date must be before end date");
+
+        const startDate = calendarDateKey(data.startDate);
+        const endDate = calendarDateKey(data.endDate);
+        if(!startDate || !endDate){
+            return new ApiResponse("error", 400, "Invalid date format");
+        }
+        if(startDate > endDate){
+            return new ApiResponse("error", 400, "Start date must not be after end date");
         }
 
-        if(data.startDate > curentDateFormatToISOString()){
+        const today = curentDateFormatToISOString();
+        if(startDate > today){
             return new ApiResponse("error", 400, "Start date must be in the past");
         }
-        if(data.endDate > curentDateFormatToISOString()){
-            return new ApiResponse("error", 400, "End date must be in the past");
+        if(endDate > today){
+            return new ApiResponse("error", 400, "End date must not be in the future");
         }
-       
 
-        const checkedUser = await this.timeOfWorksRepository.find({ where: { user : { userId: userId}} });
-
-        if(checkedUser.length === 0){
-            return { getOfTime: "Undefind user" }
-        }
-        
-            
         const timeOfWork = await this.timeOfWorksRepository.createQueryBuilder("time_of_worke")
         .where("time_of_worke.user_id = :userId", { userId: userId })
         .andWhere("time_of_worke.checked_in IS NOT NULL")
-        .andWhere("time_of_worke.checked_in <= :endDate", { endDate: data.endDate })
+        .andWhere("DATE(time_of_worke.checked_in) <= :endDate", { endDate })
         .andWhere("time_of_worke.status = 0")
-        .andWhere("(time_of_worke.checked_out IS NULL OR time_of_worke.checked_out >= :startDate)", 
-            { startDate: data.startDate })
+        .andWhere("(time_of_worke.checked_out IS NULL OR DATE(time_of_worke.checked_out) >= :startDate)",
+            { startDate })
         .getMany();
         
         if(timeOfWork.length === 0){
             return {getOfTime: "0"}
         }
 
+        const { start: rangeStart, end: rangeEnd } = calendarRangeBounds(startDate, endDate);
         let sumTime = 0;
         let timeProblem: string[] = [];
 
@@ -143,26 +184,47 @@ export class TimeofworkService {
                 timeProblem.push(`Korisnik nije odradio sve radne sate koji su poceli ${element.checked_in}`);
                 continue;
             }
-            sumTime += element.checked_out.getTime() - element.checked_in.getTime();
+            sumTime += clippedOverlapMs(element.checked_in, element.checked_out, rangeStart, rangeEnd);
         }
 
         let totalHouerse = Number((sumTime / (1000 * 60 * 60)).toFixed(2));
         let sufix = "H";
 
-        if (totalHouerse < 1) {
+        if (totalHouerse > 0 && totalHouerse < 1) {
             sufix = "min";
             totalHouerse = Math.round(totalHouerse * 60);
         }
 
-        return { getOfTime: totalHouerse.toString() + sufix , problems: timeProblem ? timeProblem : [] }
+        return { getOfTime: totalHouerse.toString() + sufix , problems: timeProblem }
 
     }
 
-    async getInfoTimeOfWork(id: number, userId: number): Promise<TimeOfWorke | ApiResponse>{
-        const timeOfWork = await this.timeOfWorksRepository.findOne({ where: { timeOfWorkeId: id, user: { userId: userId } } });
+    async getInfoTimeOfWork(id: number, requesterId: number, role: Role): Promise<TimeOfWorke | ApiResponse>{
+        const timeOfWork = await this.timeOfWorksRepository.findOne({
+            where: { timeOfWorkeId: id },
+            relations: { user: true },
+        });
 
         if(!timeOfWork){
             return new ApiResponse("error", 404, "Time of work for this id is not exists");
+        }
+
+        const ownerId = timeOfWork.user?.userId;
+        const managerId = timeOfWork.user?.managerId;
+
+        if (role === Role.SUPER_ADMIN) {
+            return timeOfWork;
+        }
+
+        if (role === Role.ADMIN) {
+            if (ownerId !== requesterId && managerId !== requesterId) {
+                return new ApiResponse("error", 403, "You are not authorized to view this time of work");
+            }
+            return timeOfWork;
+        }
+
+        if (ownerId !== requesterId) {
+            return new ApiResponse("error", 403, "You are not authorized to view this time of work");
         }
 
         return timeOfWork;
@@ -182,11 +244,61 @@ export class TimeofworkService {
             return new ApiResponse("error", 403, "You are not authorized to update this time of work");
         }
 
+        if (!data.dateStartTime && !data.dateEndTime) {
+            return new ApiResponse("error", 400, "At least one of dateStartTime or dateEndTime is required");
+        }
+
+        let checkedIn = timeOfWork.checked_in;
+        let checkedOut = timeOfWork.checked_out;
+
+        try {
+            if (data.dateStartTime) {
+                checkedIn = dataUtils(data.dateStartTime);
+            }
+            if (data.dateEndTime) {
+                checkedOut = dataUtils(data.dateEndTime);
+            }
+        } catch {
+            return new ApiResponse("error", 400, "Invalid date and time format. Use YYYY-MM-DD HH:mm:ss");
+        }
+
+        if (checkedIn && checkedOut && checkedOut.getTime() < checkedIn.getTime()) {
+            return new ApiResponse("error", 400, "checked_out must be after checked_in");
+        }
+
+        if (checkedIn) {
+            const ownerUserId = timeOfWork.user?.userId;
+            if (ownerUserId != null) {
+                const overlapQb = this.timeOfWorksRepository
+                    .createQueryBuilder("t")
+                    .where("t.user_id = :userId", { userId: ownerUserId })
+                    .andWhere("t.timeOfWorkeId != :id", { id: data.id })
+                    .andWhere("t.status = :status", { status: 0 })
+                    .andWhere("t.checked_in IS NOT NULL")
+                    .andWhere("t.checked_in < :end", {
+                        end: checkedOut ?? new Date("9999-12-31T23:59:59"),
+                    })
+                    .andWhere(
+                        "(t.checked_out IS NULL OR t.checked_out > :start)",
+                        { start: checkedIn },
+                    );
+
+                const overlap = await overlapQb.getOne();
+                if (overlap) {
+                    return new ApiResponse(
+                        "error",
+                        409,
+                        "Updated shift overlaps another time-of-work entry",
+                    );
+                }
+            }
+        }
+
         const result = await this.timeOfWorksRepository.createQueryBuilder()
                         .update(TimeOfWorke)
                         .set({
-                            checked_in: dataUtils(data.dateStartTime) ? dataUtils(data.dateStartTime) : () => "checked_in",
-                            checked_out: dataUtils(data.dateEndTime) ? dataUtils(data.dateEndTime) : () => "checked_out"
+                            checked_in: checkedIn,
+                            checked_out: checkedOut,
                         })
                         .where("timeOfWorkeId = :id", { id: data.id })
                         .execute();
@@ -195,8 +307,8 @@ export class TimeofworkService {
             return new ApiResponse("error", 404, "Time of work for this id is not exists");
         }
 
+        this.invalidateTimeOfWorkCache(timeOfWork.user?.userId ?? userId, userId);
+
         return await this.timeOfWorksRepository.findOne({ where: { timeOfWorkeId: data.id } });
     }
-
-    async deleteUserTimeOfWork(){}
 }

@@ -12,7 +12,9 @@ export class SuperadministratorService {
     constructor(@InjectRepository(Users) private readonly superadministrators: Repository<Users>) {}
 
     async getUserById(id): Promise<Users | ApiResponse> {
-        const superadminisGetById = await this.superadministrators.findOne({ where: { userId: id }});
+        const superadminisGetById = await this.superadministrators.findOne({
+            where: { userId: id, role: Role.SUPER_ADMIN, visibility: 1 },
+        });
 
         if(!superadminisGetById){
             return new ApiResponse('error', 404, 'Superadministrator not found');
@@ -23,7 +25,7 @@ export class SuperadministratorService {
 
 
     async getByEmail(email: string): Promise<Users  | null> {
-        const superadminisGetByEmail = await this.superadministrators.findOne({ where: { email: email }});
+        const superadminisGetByEmail = await this.superadministrators.findOne({ where: { email: email.trim().toLowerCase() }});
 
         if(!superadminisGetByEmail){
             return null;
@@ -40,7 +42,7 @@ export class SuperadministratorService {
     }
 
     async addSuperAdministrators(superadmins: AddSuperadministratorsDto): Promise<Users | ApiResponse> {
-        const checkedExisted = await this.superadministrators.findOne({ where: { email: superadmins.email}});
+        const checkedExisted = await this.superadministrators.findOne({ where: { email: superadmins.email.trim().toLowerCase() }});
 
         if(checkedExisted){
             return new ApiResponse('error', 409, 'Superadministrator with that email already exists');
@@ -54,7 +56,7 @@ export class SuperadministratorService {
         newSuperadmin.name = superadmins.name;
         newSuperadmin.lastname = superadmins.lastname;
         newSuperadmin.password = hashPassword;
-        newSuperadmin.email = superadmins.email;
+        newSuperadmin.email = superadmins.email.trim().toLowerCase();
         newSuperadmin.phonenumber = superadmins.phoneNumber;
         newSuperadmin.role = Role.SUPER_ADMIN;
 

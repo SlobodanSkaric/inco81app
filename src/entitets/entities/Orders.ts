@@ -10,7 +10,7 @@ export class Orders {
     @Column("int", { name: "customer_id" })
     customerId: number;
 
-    @Column("enum", { name: "order_status", enum: ["active", "pending","completed", "cancelled"], default: "active" })
+    @Column("enum", { name: "order_status", enum: ["active", "pending","completed", "cancelled"], default: "pending" })
     orderStatus: string;
 
     @Column("datetime", { name: "created_at", default: () => "CURRENT_TIMESTAMP" })
@@ -18,6 +18,13 @@ export class Orders {
 
     @Column("enum", { name: "payment_method", enum: ["cards", "delivirs", "paypal"], default: "cards" })
     paymentmethod: "cards" | "delivirs" | "paypal";
+
+    @Column("enum", {
+        name: "payment_status",
+        enum: ["unpaid", "paid", "failed", "refunded"],
+        default: "unpaid",
+    })
+    paymentStatus: "unpaid" | "paid" | "failed" | "refunded";
 
     @Column("datetime", { name: "updated_at", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP" })
     updatedAt: Date;
@@ -27,5 +34,5 @@ export class Orders {
 
     @ManyToOne(() => Customers, customers => customers.orders)
     @JoinColumn([{ name: "customer_id", referencedColumnName: "customerId" }])
-    customers: Customers[];
+    customers: Customers;
 }

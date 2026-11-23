@@ -1,8 +1,6 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Req } from '@nestjs/common';
 import { ReportService } from './report.service';
 import { Roles } from 'src/common/decorators/role.decorator';
-import { RoleGuards } from 'src/common/guards/roles.guards';
-import { JwtAuthGuards } from 'src/modules/auth/jwtAuthGuards';
 import { ApiBody, ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from 'src/common/decorators/swagger.decorator';
 import { ReportDto } from './dto/report.dto';
@@ -14,15 +12,13 @@ export class ReportController {
     constructor(private readonly reportServices: ReportService){}
 
     @ApiOperation({ summary: 'Generate PDF work time report for a user' })
-    @ApiAuth("administrator")
+    @ApiAuth("administrator", "superadministrator")
     @ApiBody({ type: ReportDto })
     @ApiCreatedResponse({ schema: { type: 'object', properties: { message: { type: 'string' } } } })
     @Post("/generate")
-    @Roles("administrator")
-    @UseGuards(JwtAuthGuards,RoleGuards)
-    async genrateReportes(@Body() report: ReportDto, @Req() req: Request):Promise<string | {message: string}>{
-        const adminId = req.user.id;
-        return this.reportServices.createPdfReport(report, adminId);
+    @Roles("administrator", "superadministrator")
+    async genrateReportes(@Body() report: ReportDto, @Req() req: Request){
+        return this.reportServices.createPdfReport(report, req.user.id, req.user.role);
     }
 
 }

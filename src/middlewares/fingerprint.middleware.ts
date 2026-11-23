@@ -60,12 +60,11 @@ export class FingerprintMiddleware implements NestMiddleware {
         }
     }
 
-    private extractsIp(req: Request): string | any{ 
-        const ip = req.headers["x-forwarded-for"];
-        if(ip){
-            return ip.toString().split(",")[0].trim();
+    private extractsIp(req: Request): string {
+        // Prefer Express-resolved req.ip (honours trust proxy). Do not trust raw XFF alone.
+        if (req.ip) {
+            return req.ip;
         }
-
         return (req.socket.remoteAddress || "").toString();
     }
 }

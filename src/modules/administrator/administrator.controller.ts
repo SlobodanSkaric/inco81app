@@ -1,13 +1,11 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, UseInterceptors } from '@nestjs/common';
 import { AdministratorService } from './administrator.service';
 import { AdministratorInfoDto } from './dto/administrator.info.dto';
 import { ApiResponse } from 'src/misc/api.response.dto';
 import { AdministratorAddDto } from './dto/administrator.add.dto';
 import { Roles } from 'src/common/decorators/role.decorator';
-import { RoleGuards } from 'src/common/guards/roles.guards';
 import { Request } from 'express';
 import { EditUserTimeOfWorkDto } from './dto/edit.user.timeofwork.dto';
-import { JwtAuthGuards } from 'src/modules/auth/jwtAuthGuards';
 import { DeleteUserTimeOfWorkDto } from './dto/delete.user.timeofwork';
 import { OrdersService } from '../orders/orders.service';
 import { DecideVacationDto } from '../vacation/dto/decide.vactions.dto';
@@ -35,7 +33,6 @@ export class AdministratorController {
     @UseInterceptors(CacheRedisIntrceptor)
     @Get("all")
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards,RoleGuards)    
     async getAllAdministrator(): Promise<AdministratorInfoDto[] | ApiResponse>{   
         const adminstratorsData =  await this.admiServices.getAllAdmin();
         return adminstratorsData;
@@ -47,7 +44,6 @@ export class AdministratorController {
     @UseInterceptors(CacheRedisIntrceptor)
     @Get("")
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards,RoleGuards)
     async getAdminstratorById(@Req() req: Request): Promise<AdministratorInfoDto | ApiResponse>{
         const administratorId = req.user.id;
 
@@ -61,7 +57,6 @@ export class AdministratorController {
     @ApiResult(AdministratorInfoDto, { status: 201 })
     @Post("add")//add role and guards of superadmin
     @Roles("superadministrator")
-    @UseGuards(JwtAuthGuards,RoleGuards)
     async addAdministrator(@Body() data: AdministratorAddDto): Promise<AdministratorInfoDto | ApiResponse>{
         return await this.admiServices.addAdministratorServices(data);
     }
@@ -71,7 +66,6 @@ export class AdministratorController {
     @ApiResult(TimeOfWorke, { status: 201, isArray: true })
     @Post("retrieve/timeofwork/")
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards,RoleGuards)
     async retrieveUserTimeOfWork(@Body() data: EditUserTimeOfWorkDto, @Req() req: Request): Promise<TimeOfWorke[] | ApiResponse>{
         const userId = req.user.id;
         return await this.admiServices.retrieveUserTimeOfWork(data, userId);
@@ -82,7 +76,6 @@ export class AdministratorController {
     @ApiResult(TimeOfWorke, { status: 201 })
     @Post("update/timeofwork")
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards,RoleGuards)
     async updateUserTimeOfWork(@Body() data: EditUserTimeOfWorkDto, @Req() req: Request): Promise<TimeOfWorke | ApiResponse>{
         return await this.admiServices.updateUserTimeOfWork(req.user.id, data);
     }
@@ -92,52 +85,49 @@ export class AdministratorController {
     @ApiResult(TimeOfWorke, { status: 201 })
     @Post("delete/timeofwork")
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards,RoleGuards)
     async deleteUserTimeOfWork(@Body() data: DeleteUserTimeOfWorkDto, @Req() req: Request): Promise<TimeOfWorke | ApiResponse>{
         const userId = req.user.id;
         return await this.admiServices.deleteUserTimeOfWork(data, userId);
     }
 
     @ApiOperation({ summary: 'Get all orders' })
-    @ApiAuth("administrator")
+    @ApiAuth("administrator", "superadministrator")
     @ApiResult(OrderGetAllDto, { isArray: true })
     @Get("get/allorders")
-    @Roles("administrator")
-    @UseGuards(JwtAuthGuards,RoleGuards)
+    @Roles("administrator", "superadministrator")
     async getAllOrders(@Req() req: Request){
         return await this.OrdersServices.getAllOrders();
     }
 
 
-    @ApiOperation({ summary: 'Edit administrator (not implemented yet)', deprecated: true })
+    @ApiOperation({ summary: 'Edit administrator profile fields (retired)' })
     @ApiAuth("administrator")
-    @Post("edit/adminstator")//This is methods to move superadministrator
+    @Post("edit/adminstator")
     @Roles("administrator")
-    @UseGuards(JwtAuthGuards,RoleGuards)
-    async editAdministrator(@Body() data: AdministratorAddDto, @Req() req: Request): Promise<AdministratorInfoDto | ApiResponse | void>{
-        /* return await this.admiServices.editAdministrator(data, req); */
+    async editAdministrator(@Body() data: AdministratorAddDto, @Req() req: Request): Promise<ApiResponse>{
+        return new ApiResponse(
+            "error",
+            410,
+            "This endpoint is retired. Use superadministrator flows to manage administrators.",
+        );
     }
 
     @ApiOperation({ summary: 'Get vacation requests assigned to logged-in administrator' })
-    @ApiAuth("administrator")
+    @ApiAuth("administrator", "superadministrator")
     @ApiResult(RequestVacationDto, { isArray: true })
     @Get("getallvactions")
-    @Roles("administrator")
-    @UseGuards(JwtAuthGuards, RoleGuards)
+    @Roles("administrator", "superadministrator")
     async getAllVactionsByAdministrators(@Req() req: Request):Promise<RequestVacationDto[] | ApiResponse>{
-        const getAllVactions: RequestVacationDto[] | ApiResponse = await this.admiServices.administratrosDecideUserVaction(req.user.id);
-        return getAllVactions;
+        return await this.admiServices.administratrosDecideUserVaction(req.user.id, req.user.role);
     }
 
 
     @ApiOperation({ summary: 'Approve or reject a vacation request' })
-    @ApiAuth("administrator")
+    @ApiAuth("administrator", "superadministrator")
     @ApiResult(Vacations, { status: 201 })
     @Post("vactions/decides")
-    @Roles("administrator")
-    @UseGuards(JwtAuthGuards,RoleGuards)
+    @Roles("administrator", "superadministrator")
     async administratrosDecideUserVaction2(@Body() data: DecideVacationDto, @Req() req: Request): Promise<Vacations | ApiResponse>{
-        const adminId = req.user.id;
-        return await this.admiServices.editUserVactionbyAdmin(data, adminId);
+        return await this.admiServices.editUserVactionbyAdmin(data, req.user.id, req.user.role);
     }
 }

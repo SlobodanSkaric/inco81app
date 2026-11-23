@@ -1,8 +1,9 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from 'src/entitets/entities/Users';
 import { ApiResponse } from 'src/misc/api.response.dto';
-import { Not, Repository } from 'typeorm';
+import { DataSource, IsNull, Not, Repository } from 'typeorm';
+import { runInTransaction, txAbort } from 'src/misc/transaction.abort';
 import { UserInfoDto } from './dto/user.info.dto';
 import { UserAddDto } from './dto/user.add.dto';
 import * as bcrypt from "bcrypt";
@@ -12,12 +13,20 @@ import {EventEmitter2} from '@nestjs/event-emitter';
 import { CacheIvalidationEvent } from 'src/common/events/cahce.events';
 import { Role } from '../../common/enums/role.enum';
 import { SessionsRevokedEvent } from '../../common/events/auth.events';
+import { TimeOfWorke } from 'src/entitets/entities/TimeOfWorke';
+import {
+    restoreSoftDeleteEmail,
+    restoreSoftDeletePhone,
+    softDeleteEmail,
+    softDeletePhone,
+} from 'src/utils/soft.delete.identity';
 
 @Injectable()
 export class UserService {
     constructor(
         @InjectRepository(Users) private readonly userEntitets: Repository<Users>,
-        private readonly eventEmmiter: EventEmitter2
+        private readonly eventEmmiter: EventEmitter2,
+        private readonly dataSource: DataSource,
     ){}
 
     async getAllUsers(userId: number): Promise<UserInfoDto[] | ApiResponse>{
@@ -42,7 +51,7 @@ export class UserService {
 
     async getUserById(id: number): Promise<UserInfoDto | ApiResponse>{
         
-        const user = await this.userEntitets.findOne({ where: { userId: id } });
+        const user = await this.userEntitets.findOne({ where: { userId: id, visibility: 1 } });
 
         if(!user){
             return new ApiResponse("error", 404, "No user");
@@ -60,7 +69,7 @@ export class UserService {
     }
 
     async getByEmail(email: string): Promise<Users | null>{
-            const user = await this.userEntitets.findOne({ where : { email: email } });
+            const user = await this.userEntitets.findOne({ where : { email: email.trim().toLowerCase() } });
     
             if(!user){
                 return null;
@@ -76,7 +85,7 @@ export class UserService {
 
         user.name = data.name;
         user.lastname = data.lastname;
-        user.email = data.email;
+        user.email = data.email.trim().toLowerCase();
         user.phonenumber = data.phonenumber;
         user.role = Role.USER;
         user.managerId = userId;
@@ -101,7 +110,7 @@ export class UserService {
 
 
     async getUserByIdLocal(id: number): Promise<UserInfoDto | ApiResponse>{
-        const user = await this.userEntitets.findOne({ where: { userId: id } });
+        const user = await this.userEntitets.findOne({ where: { userId: id, visibility: 1 } });
 
         if(!user){
             return new ApiResponse("error", 404, "No user");
@@ -115,61 +124,116 @@ export class UserService {
     
 
     async deleteUser(user_data: UserVisibilityDto, userId: number): Promise<ApiResponse>{
-        const user = await this.userEntitets.findOne({ where: { userId: user_data.user_id , role: Role.USER, managerId: userId} });
+        try {
+            const result = await runInTransaction(this.dataSource, async (manager) => {
+                const user = await manager.findOne(Users, {
+                    where: { userId: user_data.user_id, role: Role.USER, managerId: userId },
+                    lock: { mode: "pessimistic_write" },
+                });
 
-        if(!user){
-            return new ApiResponse("error", 404, "No user");
-        }
+                if (!user) {
+                    txAbort("error", 404, "No user");
+                }
 
-        if(user_data.visible == user.visibility){
-            return new ApiResponse("error", 409, "User already has this visibility");
-        }
+                if (user_data.visible == user.visibility) {
+                    txAbort("error", 409, "User already has this visibility");
+                }
 
-        user.visibility = user_data.visible;
+                if (user_data.visible === 0) {
+                    user.visibility = 0;
+                    user.email = softDeleteEmail(user.email, user.userId);
+                    if (user.phonenumber) {
+                        user.phonenumber = softDeletePhone(user.phonenumber, user.userId);
+                    }
 
-        try{
-           const saveUser = await this.userEntitets.save(user);
+                    const openShifts = await manager.find(TimeOfWorke, {
+                        where: {
+                            user: { userId: user.userId },
+                            status: 0,
+                            checked_in: Not(IsNull()),
+                            checked_out: IsNull(),
+                        },
+                    });
+                    for (const shift of openShifts) {
+                        shift.checked_out = shift.checked_in ?? new Date();
+                        shift.status = 1;
+                        await manager.save(shift);
+                    }
+                } else {
+                    const restoredEmail = restoreSoftDeleteEmail(user.email, user.userId);
+                    if (restoredEmail) {
+                        const emailTaken = await manager.findOne(Users, {
+                            where: { email: restoredEmail, userId: Not(user.userId) },
+                        });
+                        if (emailTaken) {
+                            txAbort("error", 409, "Email already in use by another user");
+                        }
+                        user.email = restoredEmail;
+                    }
+                    if (user.phonenumber) {
+                        const restoredPhone = restoreSoftDeletePhone(user.phonenumber, user.userId);
+                        if (restoredPhone) {
+                            const phoneTaken = await manager.findOne(Users, {
+                                where: { phonenumber: restoredPhone, userId: Not(user.userId) },
+                            });
+                            if (phoneTaken) {
+                                txAbort("error", 409, "Phone number already in use by another user");
+                            }
+                            user.phonenumber = restoredPhone;
+                        }
+                    }
+                    user.visibility = 1;
+                }
+
+                await manager.save(user);
+                return user;
+            });
+
+            if (result instanceof ApiResponse) {
+                return result;
+            }
+
             this.eventEmmiter.emit("cache.invalidate",
                 new CacheIvalidationEvent(
                     [
                         `administrator:${userId}:/user/all`,
                     ],
                     [
-                       
+                        "administrator:*:/user/all",
                     ],
                     "Users",
                     "update"
                 )
-            )
-            if(user.visibility === 0){
-                await this.eventEmmiter.emitAsync("auth.sessions.revoked", new SessionsRevokedEvent(user.userId.toString(), Role.USER));
-            }
-            if(user_data.visible == 0){
+            );
+            if (result.visibility === 0) {
+                await this.eventEmmiter.emitAsync(
+                    "auth.sessions.revoked",
+                    new SessionsRevokedEvent(result.userId.toString(), Role.USER),
+                );
                 return new ApiResponse("ok", 0, "User successfuly hidden");
-            }else{
-                return new ApiResponse("ok", 1, "User successfuly unhidden");
             }
-        }catch(e){
+            return new ApiResponse("ok", 1, "User successfuly unhidden");
+        } catch (e) {
             return new ApiResponse("error", 500, "Cant change user visibility");
-        }     
-        
+        }
     }    
     
     
     
     async editUser(userData: UserEditDto, userId: number): Promise<UserInfoDto | ApiResponse>{
-        const user = await this.userEntitets.findOne({ where: { userId: userId} });
+        const user = await this.userEntitets.findOne({ where: { userId: userId, visibility: 1} });
         if(!user){
             return new ApiResponse("error", 404, "No user");
         }
 
-        const checkedEmail = userData.email ? await this.userEntitets.findOne({ where : { email: userData.email, userId: Not(userId)}}) : null;
+        const normalizedEmail = userData.email ? userData.email.trim().toLowerCase() : undefined;
+        const checkedEmail = normalizedEmail ? await this.userEntitets.findOne({ where : { email: normalizedEmail, userId: Not(userId)}}) : null;
 
         if(checkedEmail){//This condition is checked
             return new ApiResponse("error", 409, "Email already in use");
         }
 
-        const checkedPhonenumber = await this.userEntitets.findOne({ where : { phonenumber: userData.phonenumber, userId: Not(userId)}}) ;
+        const checkedPhonenumber = userData.phonenumber ? await this.userEntitets.findOne({ where : { phonenumber: userData.phonenumber, userId: Not(userId)}}) : null ;
 
         if(checkedPhonenumber){// This condition is checked
             return new ApiResponse("error", 409, "Phone number already in use");
@@ -177,7 +241,7 @@ export class UserService {
 
         user.name = userData.name ? userData.name : user.name;
         user.lastname = userData.lastname ? userData.lastname : user.lastname;
-        user.email = userData.email ? userData.email : user.email;
+        user.email = normalizedEmail ? normalizedEmail : user.email;
         user.phonenumber = userData.phonenumber? userData.phonenumber : user.phonenumber;
 
         if(userData.password){
@@ -246,9 +310,9 @@ export class UserService {
             let sumTimeOfWorkset = Number((sumTimeOfWork / (1000 * 60 * 60)).toFixed(2)); 
             let sufix = "H";
 
-            if(sumTimeOfWorkset < 1){
+            if(sumTimeOfWorkset > 0 && sumTimeOfWorkset < 1){
                 sufix = "min";
-                sumTimeOfWorkset = Number(sumTimeOfWorkset.toString().split(".")[1])
+                sumTimeOfWorkset = Math.round(sumTimeOfWorkset * 60);
             }
             userInfoDto.push(new UserInfoDto(data.userId, data.name, data.lastname, data.email, data.phonenumber ?? "",data.timeOfWorkes,sumTimeOfWorkset.toString() + sufix));
             sumTimeOfWork = 0;
@@ -258,7 +322,7 @@ export class UserService {
     }
 
     async getUserTimeOfWorkById(userId: number): Promise<UserInfoDto | ApiResponse>{
-        const user = await this.userEntitets.findOne({ where: { userId: userId } });
+        const user = await this.userEntitets.findOne({ where: { userId: userId, visibility: 1 } });
         if(!user){
             return new ApiResponse("error", 404, "No user");
         }
