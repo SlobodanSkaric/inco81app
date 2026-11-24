@@ -113,7 +113,7 @@ export class ItemsService {
                 item.price = data.price;
             }
             if (data.stockQuantity !== undefined) {
-                item.stockQuantity = data.stockQuantity;
+                item.stockQuantity += data.stockQuantity;
             }
 
             return await manager.save(item);

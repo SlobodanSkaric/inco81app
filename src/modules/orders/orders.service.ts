@@ -229,7 +229,7 @@ export class OrdersService {
                 const dbItem = itemsById.get(itemId)!;
                 return transactionalEntityManager.create(OrderItems, {
                     orderId: savedOrder.orderId,
-                    itemId,
+                    itemId: itemId,
                     orders: savedOrder,
                     items: dbItem,
                     quantity,
