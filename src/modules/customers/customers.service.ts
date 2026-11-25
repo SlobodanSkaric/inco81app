@@ -11,6 +11,8 @@ import { OrdersStatus } from '../orders/dtos/order.status.enum';
 import { GetCustomerOrdersDto } from './dtos/get.cstomers,orders.dto';
 import { CustomersOrderDto } from './dtos/customers.order.dto';
 import { CacheIvalidationEvent } from 'src/common/events/cahce.events';
+import { SessionsRevokedEvent } from 'src/common/events/auth.events';
+import { Role } from 'src/common/enums/role.enum';
 
 @Injectable()
 export class CustomersService {
@@ -40,7 +42,7 @@ export class CustomersService {
 
     async getByEmail(email: string): Promise<Customers | null>{
         try{
-            const customers = await this.customersRepository.findOne({ where : { contactEmail: email}});
+            const customers = await this.customersRepository.findOne({ where : { contactEmail: email.trim().toLowerCase() }});
 
             if(!customers){
                 return null;
@@ -78,12 +80,15 @@ export class CustomersService {
             const customers = await this.customersRepository.createQueryBuilder("customers")
                 .leftJoinAndSelect("customers.orders", "orders")
                 .where("customers.customerId = :id", { id: customersId})
-                .andWhere("orders.orderStatus = :statuses", { statuses: OrdersStatus.ACTIVE })
                 .getOne();
 
             if(!customers){
                 return new ApiResponse("error", 404, "Customer not found");
             }
+
+            const visibleOrders = (customers.orders ?? []).filter(
+                (order) => order.orderStatus !== OrdersStatus.CANCELLED,
+            );
 
             return new GetCustomerOrdersDto(
                 customers.customerId,
@@ -92,7 +97,13 @@ export class CustomersService {
                 customers.contactEmail,
                 customers.phoneNumber ? customers.phoneNumber : "",
                 customers.address ? customers.address : "",
-                (customers.orders ?? []).map(order => new CustomersOrderDto(order.orderId, order.orderStatus, order.paymentmethod, order.createdAt)),
+                visibleOrders.map(order => new CustomersOrderDto(
+                    order.orderId,
+                    order.orderStatus,
+                    order.paymentmethod,
+                    order.createdAt,
+                    order.paymentStatus,
+                )),
             );
         }catch(error){
             return new ApiResponse("error", 500, "Database query failed");
@@ -108,7 +119,7 @@ export class CustomersService {
             cusromerEntity.customerName = customer.customerName;
             cusromerEntity.password = await bcrypt.hash(customer.password, salt);
             cusromerEntity.isActive = customer.isActive;
-            cusromerEntity.contactEmail = customer.contactEmail;
+            cusromerEntity.contactEmail = customer.contactEmail.trim().toLowerCase();
             cusromerEntity.phoneNumber = customer.phoneNumber;
             cusromerEntity.address = customer.address;
 
@@ -154,5 +165,51 @@ export class CustomersService {
         }catch(error){
             return null;
         }
+    }
+
+    async setCustomerActive(customerId: number, isActive: boolean): Promise<GetCustomersDto | ApiResponse> {
+        const customer = await this.customersRepository.findOne({ where: { customerId } });
+        if (!customer) {
+            return new ApiResponse("error", 404, "Customer not found");
+        }
+        if (customer.isActive === isActive) {
+            return new ApiResponse("error", 409, "Customer already has this active state");
+        }
+
+        customer.isActive = isActive;
+        const saved = await this.customersRepository.save(customer);
+
+        if (!isActive) {
+            await this.eventEmmiter.emitAsync(
+                "auth.sessions.revoked",
+                new SessionsRevokedEvent(saved.customerId.toString(), Role.CUSTOMER),
+            );
+        }
+
+        this.eventEmmiter.emit(
+            "cache.invalidate",
+            new CacheIvalidationEvent(
+                [],
+                [
+                    "administrator:*:/customers/all",
+                    "administrator:*:/customers/*",
+                    "superadministrator:*:/customers/all",
+                    "superadministrator:*:/customers/*",
+                    "customer:*:/customers",
+                    "customer:*:/customers/order",
+                ],
+                "Customers",
+                "update",
+            ),
+        );
+
+        return new GetCustomersDto(
+            saved.customerId,
+            saved.customerName,
+            saved.isActive,
+            saved.contactEmail,
+            saved.phoneNumber ?? "",
+            saved.address ?? "",
+        );
     }
 }

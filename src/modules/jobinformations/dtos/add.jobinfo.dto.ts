@@ -1,9 +1,10 @@
-import { IsDateString, IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class AddJobinfoDto {
+    /** Employee user id the job information belongs to. */
     @IsNotEmpty()
     @IsNumber()
-    administratorId: number;
+    userId: number;
 
     @IsNotEmpty()
     @IsString()
@@ -13,7 +14,7 @@ export class AddJobinfoDto {
     @IsString()
     companyName: string;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsString()
     location?: string;
 
@@ -21,11 +22,11 @@ export class AddJobinfoDto {
     @IsDateString()
     startDate: string;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsDateString()
-    endDate: string;
+    endDate?: string;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsString()
     jobDescription?: string;
 }

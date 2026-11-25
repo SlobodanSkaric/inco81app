@@ -1,8 +1,8 @@
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString, MaxLength } from "class-validator";
 
 export class AddVacationsDto {
     @IsString()
-    @IsNotEmpty()    
+    @IsNotEmpty()
     vacation_start: string;
 
     @IsString()
@@ -11,9 +11,11 @@ export class AddVacationsDto {
 
     @IsString()
     @IsNotEmpty()
+    @MaxLength(256)
     reason: string;
 
     @IsString()
     @IsOptional()
+    @MaxLength(2000)
     user_comment?: string;
 }

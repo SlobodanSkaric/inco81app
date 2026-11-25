@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber } from "class-validator";
+import { IsIn, IsNotEmpty, IsNumber } from "class-validator";
 
+/** Soft-delete only: status 1 marks a shift as deleted (hidden from hour totals). */
 export class DeleteUserTimeOfWorkDto {
     @ApiProperty({ example: 1 })
     @IsNumber()
@@ -12,8 +13,9 @@ export class DeleteUserTimeOfWorkDto {
     @IsNotEmpty()
     timeOfWorkeId: number;
 
-    @ApiProperty({ example: 0 })
+    @ApiProperty({ example: 1, description: "Only 1 (soft-delete) is allowed" })
     @IsNumber()
+    @IsIn([1], { message: "status must be 1 (soft-delete). Restoring deleted shifts is not allowed via this endpoint." })
     @IsNotEmpty()
     status: number;
 }

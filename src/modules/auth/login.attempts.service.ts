@@ -15,6 +15,7 @@ export class LoginAttemptsService {
 
     private readonly emailMaxAttempts = 100;
     private readonly emailLockSeconds = 60 * 60;
+    private readonly emailSlowdownThreshold = 3;
     private readonly emailSlowdownMs = 1500;
 
     constructor(
@@ -37,16 +38,14 @@ export class LoginAttemptsService {
         return `login:fail:email:${this.normalizeEmail(email)}`;
     }
 
-    private key(scope: LoginScope, email: string): string {
-        return `login:fail:${scope}:${this.normalizeEmail(email)}`;
-    }
-
     private async count(key: string): Promise<number> {
         const count = Number(await this.redisService.get<number>(key));
         return isNaN(count) ? 0 : count;
     }
 
-    
+    private async sleep(ms: number): Promise<void> {
+        await new Promise((resolve) => setTimeout(resolve, ms));
+    }
 
     async assetorsNotLocked(scope: LoginScope, email: string, ip: string): Promise<void> {
        const [pairAttempts, ipAttempts, emailAttempts] = await Promise.all([
@@ -64,8 +63,15 @@ export class LoginAttemptsService {
        }
 
        if(emailAttempts >= this.emailMaxAttempts) {
-        this.logger.warn(`Many failed logins for ${scope}:${this.normalizeEmail(email)} (${emailAttempts} in the last hour)`);
-        await new Promise(resolve => setTimeout(resolve, this.emailSlowdownMs));
+        this.logger.warn(`Email lockout for ${scope}:${this.normalizeEmail(email)} (${emailAttempts})`);
+        throw new HttpException(
+            "Too many login attempts. Try again later",
+            HttpStatus.TOO_MANY_REQUESTS,
+        );
+       }
+
+       if (emailAttempts >= this.emailSlowdownThreshold) {
+           await this.sleep(this.emailSlowdownMs);
        }
     }
 
@@ -79,8 +85,16 @@ export class LoginAttemptsService {
         ]);
     }
 
-    async resetFailures(scope: LoginScope, email: string, ip: string): Promise<void> {
-        await this.redisService.delete(this.keyPair(scope, email, ip));
+    /**
+     * Clears pair + email counters after a successful login.
+     * Intentionally does NOT clear the shared IP counter — resetting IP on every
+     * successful login would let one valid account dilute a brute-force lockout.
+     */
+    async resetFailures(scope: LoginScope, email: string, _ip: string): Promise<void> {
+        await Promise.all([
+            this.redisService.delete(this.keyPair(scope, email, _ip)),
+            this.redisService.delete(this.keyEmail(email)),
+        ]);
     }
     
 }

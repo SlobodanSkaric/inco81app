@@ -63,8 +63,7 @@ export class Users {
   @OneToMany(() => TimeOfWorke, (timeOfWorke) => timeOfWorke.user)
   timeOfWorkes: TimeOfWorke[];
 
-  @OneToMany(() => RequestLogs, (requestLogs: RequestLogs) => requestLogs.userId)
-  @JoinColumn({ name: "user_id", referencedColumnName: "userId" })
+  @OneToMany(() => RequestLogs, (requestLogs: RequestLogs) => requestLogs.user)
   requestLogs: RequestLogs[];
 
   @OneToMany(() => Vacations, (vacations) => vacations.user)
@@ -73,7 +72,7 @@ export class Users {
   @OneToMany(() => Payments, (payments) => payments.user)
   payments: Payments[];
 
-  @OneToMany(() => JobInformations, (jobInformations) => jobInformations.userId)
+  @OneToMany(() => JobInformations, (jobInformations) => jobInformations.user)
   jobInformations: JobInformations[];
 
 }

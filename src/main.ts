@@ -51,12 +51,26 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true,
-    transform: true
+    transform: true,
+    transformOptions: { enableImplicitConversion: true },
   }));
+
+  const corsOriginRaw = configService.get<string>("CORS_ORIGIN");
+  if (!corsOriginRaw && nodeEnv === "production") {
+    throw new Error("CORS_ORIGIN is required in production");
+  }
+  const corsOrigins = corsOriginRaw
+    ?.split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 
   app.enableCors({
     credentials: true,
-    origin: configService.get<string>("CORS_ORIGIN")?.split(",").map(origin => origin.trim()),
+    origin: corsOrigins && corsOrigins.length > 0
+      ? corsOrigins
+      : nodeEnv === "production"
+        ? false
+        : true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Accept',
   });

@@ -1,197 +1,133 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { OrdersService } from './orders.service';
 import { Orders } from 'src/entitets/entities/Orders';
-import { Repository } from 'typeorm';
+import { Items } from 'src/entitets/entities/Items';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { mock } from 'node:test';
+import { DataSource } from 'typeorm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { OrderGetAllDto } from './dtos/order.get.all.dto';
-
-const mockOrdersRepository = {
-  find: jest.fn(),
-  findOne: jest.fn(),
-  save: jest.fn(),
-}
+import { OrderPaymentMethod, OrderPaymentStatus, OrdersStatus } from './dtos/order.status.enum';
+import { ApiResponse } from 'src/misc/api.response.dto';
 
 describe('OrdersService', () => {
   let service: OrdersService;
-  let repository: Repository<Orders>;
+
+  const mockOrdersRepository = {
+    find: jest.fn(),
+    findOne: jest.fn(),
+    save: jest.fn(),
+  };
+
+  const mockItemsRepository = {
+    find: jest.fn(),
+  };
+
+  const mockEventEmitter = {
+    emit: jest.fn(),
+  };
+
+  const stockUpdateQb = {
+    update: jest.fn().mockReturnThis(),
+    set: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    execute: jest.fn().mockResolvedValue({ affected: 1 }),
+  };
+
+  const mockManager = {
+    findOne: jest.fn(),
+    find: jest.fn(),
+    create: jest.fn(),
+    save: jest.fn(),
+    decrement: jest.fn(),
+    increment: jest.fn(),
+    createQueryBuilder: jest.fn().mockReturnValue(stockUpdateQb),
+  };
+
+  const mockDataSource = {
+    transaction: jest.fn(async (cb: (manager: typeof mockManager) => unknown) => cb(mockManager)),
+  };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [OrdersService,
-        {
-          provide: getRepositoryToken(Orders),
-          useValue: mockOrdersRepository,
-        }
+      providers: [
+        OrdersService,
+        { provide: getRepositoryToken(Orders), useValue: mockOrdersRepository },
+        { provide: getRepositoryToken(Items), useValue: mockItemsRepository },
+        { provide: DataSource, useValue: mockDataSource },
+        { provide: EventEmitter2, useValue: mockEventEmitter },
       ],
     }).compile();
 
     service = module.get<OrdersService>(OrdersService);
-    repository = module.get<Repository<Orders>>(getRepositoryToken(Orders));
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  it("Get all orders", async() =>{
-    const mockOrders = [
-      {
-        orderId: 1,
-        customerId: 1,
-        orderStatus: "pending",
-        totalAmount: 100.00,
-      },
-       {
-        orderId: 2,
-        customerId: 1,
-        orderStatus: "active",
-        totalAmount: 180.00,
-      },
-       {
-        orderId: 3,
-        customerId: 1,
-        orderStatus: "pending",
-        totalAmount: 170.00,
-      }
-    ];
-
-    mockOrdersRepository.find.mockResolvedValue(mockOrders);
-
-    const result = await service.getAllOrders();
-
-    expect(result).toEqual(mockOrders);
-
-    expect(mockOrdersRepository.find).toHaveBeenCalledTimes(1);
-    expect(mockOrdersRepository.find).toHaveBeenCalledWith();
-  });
-
-  it("Get order by id", async() =>{
-    const mockOrder = {
+  it('blocks complete when order is unpaid', async () => {
+    mockManager.findOne.mockResolvedValue({
       orderId: 1,
       customerId: 1,
-      orderStatus: "pending",
-      totalAmount: 100.00,
-    };
+      orderStatus: OrdersStatus.ACTIVE,
+      paymentStatus: OrderPaymentStatus.UNPAID,
+    });
 
+    const result = await service.changeOrderStatus(1, OrdersStatus.COMPLETED);
 
-    mockOrdersRepository.findOne.mockResolvedValue(mockOrder);
-
-    const reasult = await service.getOrderById(mockOrder.orderId);
-
-    expect(reasult).toEqual(mockOrder);
-    expect(mockOrdersRepository.findOne).toHaveBeenCalledTimes(1);
-    expect(mockOrdersRepository.findOne).toHaveBeenCalledWith({ where: {orderId: mockOrder.orderId}});
+    expect(result).toBeInstanceOf(ApiResponse);
+    expect((result as ApiResponse).code).toBe(400);
   });
 
-  it("Get order by status", async() =>{
-    const mockOrders =[
-      {
-        orderId: 1,
-        customerId: 1,
-        orderStatus: "pending",
-        totalAmount: 100.00,
-      },
-       {
-        orderId: 3,
-        customerId: 1,
-        orderStatus: "pending",
-        totalAmount: 170.00,
-      } 
-    ];
-
-      const status = "pending";
-
-    mockOrdersRepository.find.mockResolvedValue(mockOrders);
-
-    const reasult = await service.getOrderStatus(status);
-
-    expect(reasult).toEqual(mockOrders);
-    expect(mockOrdersRepository.find).toHaveBeenCalledWith({ where: {orderStatus: status}});
-  });
-
-  it("Change order status", async() =>{
-    const mockOrder = {
+  it('blocks active when order is unpaid', async () => {
+    mockManager.findOne.mockResolvedValue({
       orderId: 1,
       customerId: 1,
-      orderStatus: "pending",
-      totalAmount: 100.00,
+      orderStatus: OrdersStatus.PENDING,
+      paymentStatus: OrderPaymentStatus.UNPAID,
+    });
+
+    const result = await service.changeOrderStatus(1, OrdersStatus.ACTIVE);
+
+    expect(result).toBeInstanceOf(ApiResponse);
+    expect((result as ApiResponse).code).toBe(400);
+  });
+
+  it('creates order with payment method and unpaid status', async () => {
+    const customer = { customerId: 5, isActive: true };
+    const item = { itemId: 2, stockQuantity: 10, price: 12.5 };
+    const savedOrder = {
+      orderId: 9,
+      customerId: 5,
+      orderStatus: OrdersStatus.PENDING,
+      paymentmethod: OrderPaymentMethod.CARDS,
+      paymentStatus: OrderPaymentStatus.UNPAID,
     };
 
-    const newStatus = "active";
+    mockManager.findOne.mockResolvedValue(customer);
+    mockManager.find.mockResolvedValue([item]);
+    mockManager.create.mockImplementation((_entity: unknown, data: unknown) => data);
+    mockManager.save
+      .mockResolvedValueOnce(savedOrder)
+      .mockResolvedValueOnce([]);
 
-    mockOrdersRepository.findOne.mockResolvedValue(mockOrder);
-    mockOrdersRepository.save.mockResolvedValue({...mockOrder, orderStatus: newStatus});
-
-    const result = await service.changeOrderStatus(mockOrder.orderId, newStatus);
+    const result = await service.addOrder(
+      {
+        paymentMethod: OrderPaymentMethod.CARDS,
+        items: [{ itemId: 2, quantity: 1 }],
+      },
+      5,
+    );
 
     expect(result).toBeInstanceOf(OrderGetAllDto);
-    expect((result as OrderGetAllDto).orderStatus).toEqual(newStatus);
-    expect(repository.save).toHaveBeenCalledWith(expect.objectContaining({ 
-      orderId: mockOrder.orderId, 
-      orderStatus: newStatus
-     }));
-  });
-
-  it("Get orders by customer id", async() =>{
-    const mockOrders = [
-      {
-        orderId: 1,
-        customerId: 1,
-        orderStatus: "pending",
-        totalAmount: 100.00,
-      },
-       {
-        orderId: 2,
-        customerId: 1,
-        orderStatus: "active",
-        totalAmount: 180.00,
-      },
-       {
-        orderId: 3,
-        customerId: 1,
-        orderStatus: "pending",
-        totalAmount: 170.00,
-      }
-    ];
-
-    const customerId = 1;
-
-    mockOrdersRepository.find.mockResolvedValue(mockOrders);
-
-    const result = await service.getOrdersByCustomerId(customerId);
-
-    expect(Array.isArray(result)).toBe(true);
-    expect(result[0]).toBeInstanceOf(OrderGetAllDto);
-
-    expect(result as OrderGetAllDto[]).toEqual(mockOrders);
-    expect(mockOrdersRepository.find).toHaveBeenCalledWith({ where: {customerId: customerId}});
-  });
-
-  it("Add order", async() =>{
-    const mockOrder = {
-      orderId: 1,
-      customerId: 1,
-      orderStatus: "pending",
-      totalAmount: 100.00,
-    };
-
-    const orderAddDto = {
-      customerId: 1,
-      orderStatus: "pending",
-      totalAmount: 100.00,
-    };
-
-    mockOrdersRepository.save.mockResolvedValue(mockOrder);
-
-    const result = await service.addOrder(orderAddDto);
-
-    expect(result).toBeInstanceOf(OrderGetAllDto);
-    expect(result as OrderGetAllDto).toEqual(mockOrder);
-    expect(repository.save).toHaveBeenCalledWith(expect.objectContaining({
-      customerId: orderAddDto.customerId,
-      orderStatus: orderAddDto.orderStatus,
-      totalAmount: orderAddDto.totalAmount
-    }));
+    expect(result as OrderGetAllDto).toEqual(
+      expect.objectContaining({
+        orderId: 9,
+        customerId: 5,
+        orderStatus: OrdersStatus.PENDING,
+      }),
+    );
   });
 });

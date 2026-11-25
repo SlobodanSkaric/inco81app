@@ -3,11 +3,12 @@ import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Users } from 'src/entitets/entities/Users';
+import { TimeOfWorke } from 'src/entitets/entities/TimeOfWorke';
 import { RedisModule } from '../redis/redis.module';
 import { AdministratorModule } from '../administrator/administrator.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Users]), RedisModule, AdministratorModule],
+  imports: [TypeOrmModule.forFeature([Users, TimeOfWorke]), RedisModule, AdministratorModule],
   controllers: [UserController],
   providers: [UserService],
   exports: [UserService],

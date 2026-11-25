@@ -5,11 +5,13 @@ export class OrderGetAllDto {
     customerId: number;
     orderStatus: string;
     customers?: GetCustomersDto;
+    paymentStatus?: string;
 
-    constructor(orderId: number, customerId: number, orderStatus: string, customers?: GetCustomersDto){
+    constructor(orderId: number, customerId: number, orderStatus: string, customers?: GetCustomersDto, paymentStatus?: string){
         this.orderId = orderId;
         this.customerId = customerId;
         this.orderStatus = orderStatus;
         this.customers = customers;
+        this.paymentStatus = paymentStatus;
     }
 }

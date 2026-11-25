@@ -1,5 +1,14 @@
 import { Type } from "class-transformer";
-import { ArrayNotEmpty, ArrayUnique, IsArray, IsInt, IsNotEmpty, IsPositive, IsString, ValidateNested } from "class-validator";
+import {
+    ArrayNotEmpty,
+    ArrayUnique,
+    IsArray,
+    IsEnum,
+    IsInt,
+    IsPositive,
+    ValidateNested,
+} from "class-validator";
+import { OrderPaymentMethod } from "./order.status.enum";
 
 export class OrderItemDto {
     @IsInt()
@@ -14,8 +23,13 @@ export class OrderItemDto {
 export class OrderAddDto {
     @IsArray()
     @ArrayNotEmpty()
-    @ArrayUnique((item: OrderItemDto) => item.itemId, { message: "Each item can appear only once in an order" })
+    @ArrayUnique((item: OrderItemDto) => item.itemId, {
+        message: "Each item can appear only once in an order",
+    })
     @ValidateNested({ each: true })
     @Type(() => OrderItemDto)
     items: OrderItemDto[];
+
+    @IsEnum(OrderPaymentMethod)
+    paymentMethod: OrderPaymentMethod;
 }

@@ -36,7 +36,7 @@ export class CacheRedisIntrceptor implements NestInterceptor{
             tap(async (responseData: ApiResponse) =>{
                 if(responseData && responseData.status !== "error"){
                     try{
-                        await this.redisService.setCache(redisKey,responseData, {ttl: 60 * 60 * 24});
+                        await this.redisService.setCache(redisKey,responseData, {ttl: 60 * 5});
                     }
                     catch(err){
                         console.error(`Error storing data in Redis: ${err}`);

@@ -3,8 +3,8 @@ import { CustomersService } from './customers.service';
 import { Repository } from 'typeorm';
 import { Customers } from 'src/entitets/entities/Customers';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { mock } from 'node:test';
 import { GetCustomersDto } from './dtos/get.customers.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 const mokCustomersRepository = {
   find: jest.fn(),
@@ -22,7 +22,11 @@ describe('CustomersService', () => {
         {
           provide: getRepositoryToken(Customers),
           useValue: mokCustomersRepository,
-        }
+        },
+        {
+          provide: EventEmitter2,
+          useValue: { emit: jest.fn() },
+        },
       ],
     }).compile();
 

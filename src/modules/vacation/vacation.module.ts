@@ -5,10 +5,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { VacationController } from './vacation.controller';
 import { EmailModule } from '../email/email.module';
 import { VactionNotificationListener } from './events/vactions.notification.listener';
+import { Users } from 'src/entitets/entities/Users';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Vacations]), EmailModule],
+  imports: [TypeOrmModule.forFeature([Vacations, Users]), EmailModule],
   providers: [VacationService, VactionNotificationListener],
   controllers: [VacationController],
+  exports: [VacationService],
 })
 export class VacationModule {}

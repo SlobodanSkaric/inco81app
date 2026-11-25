@@ -1,5 +1,6 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Users } from "./Users";
+import { Orders } from "./Orders";
 
 export enum PaymentStatus {
   PENDING = 'pending',
@@ -20,8 +21,15 @@ export class Payments {
     @Column("int", { name: "user_id" })
     userId: number;
 
+    @ManyToOne(() => Orders, { nullable: true, onDelete: "SET NULL" })
+    @JoinColumn({ name: "order_id", referencedColumnName: "orderId" })
+    order: Orders | null;
+
+    @Column("int", { name: "order_id", nullable: true, unique: true })
+    orderId: number | null;
+
     @Column("decimal", { name: "amount", precision: 10, scale: 2 })
-    amount: number;
+    amount: string;
 
     @Column("varchar", { name: "descriptions", nullable: true, length: 255 })
     descriptions: string;
@@ -29,17 +37,15 @@ export class Payments {
     @Column("date", { name: "payment_date" })
     paymentDate: Date;
 
-
     @Column("enum", { name: "status", enum: PaymentStatus, default: PaymentStatus.PENDING })
     status: PaymentStatus;
 
-    @Column("varchar", {name: "note", nullable: true, length: 255})
-    note: string;
+    @Column("varchar", { name: "note", nullable: true, length: 255 })
+    note: string | null;
 
     @Column({ name: "created_at", type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
     createdAt: Date;
 
     @Column({ name: "updated_at", type: "timestamp", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP" })
     updatedAt: Date;
-
-} 
+}

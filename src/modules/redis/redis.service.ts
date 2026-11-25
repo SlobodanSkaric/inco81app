@@ -12,6 +12,7 @@ export interface  RiskScoreData{
     score: number;
     flaggedAt: Date;
     reason: string;
+    role?: string;
 }
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
@@ -134,6 +135,26 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         await this.redisClient.set(key, JSON.stringify(value), {EX: ttlSeconds});
     }
 
+    async watch(key: string): Promise<void> {
+        await this.redisClient.watch(key);
+    }
+
+    async unwatch(): Promise<void> {
+        await this.redisClient.unwatch();
+    }
+
+    /**
+     * SET inside a MULTI after WATCH. Returns false if another client changed the key
+     * (exec returns null) — caller should retry.
+     */
+    async compareAndSetJson(key: string, value: unknown, ttlSeconds: number): Promise<boolean> {
+        const result = await this.redisClient
+            .multi()
+            .set(key, JSON.stringify(value), { EX: ttlSeconds })
+            .exec();
+        return result !== null;
+    }
+
     async addToSet(key: string, value: any, ttlSeconds: number): Promise<void>{
         await this.redisClient.multi().sAdd(key, value).expire(key, ttlSeconds).exec();
     }
@@ -176,13 +197,20 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         return deleteCount;
     }
 
-    async setRiskScore(data: RiskScoreData): Promise<void> {
-        const key = `risk_score:${data.userId}`;
+    private riskKey(role: string, userId: string): string {
+        if (!role) {
+            throw new Error("role is required for risk score key");
+        }
+        return `risk_score:${role}:${userId}`;
+    }
+
+    async setRiskScore(data: RiskScoreData & { role: string }): Promise<void> {
+        const key = this.riskKey(data.role, data.userId);
         await this.redisClient.lPush(key, JSON.stringify(data));
     }
 
-    async getRiskScore(userId: string): Promise<RiskScoreData | null> {
-        const key = `risk_score:${userId}`;
+    async getRiskScore(userId: string, role: string): Promise<RiskScoreData | null> {
+        const key = this.riskKey(role, userId);
         const values = await this.redisClient.lRange(key, 0, 0);
         if (!values || values.length === 0) {
             return null;

@@ -40,6 +40,6 @@ export class RequestLogs{
 
     @ManyToOne(() => Users, (user) => user.requestLogs, { nullable: true, onDelete: "RESTRICT", onUpdate: "CASCADE" })
     @JoinColumn({ name: "user_id", referencedColumnName: "userId" })
-    userId: Users[];
+    user: Users | null;
 
 }

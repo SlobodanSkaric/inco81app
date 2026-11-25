@@ -7,11 +7,17 @@ import { OrdersModule } from '../orders/orders.module';
 import { Vacations } from 'src/entitets/entities/Vacations';
 import { RedisModule } from '../redis/redis.module';
 import { Users } from '../../entitets/entities/Users';
+import { VacationModule } from '../vacation/vacation.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Users,TimeOfWorke,Vacations]), OrdersModule, RedisModule],
+  imports: [
+    TypeOrmModule.forFeature([Users, TimeOfWorke, Vacations]),
+    OrdersModule,
+    RedisModule,
+    VacationModule,
+  ],
   controllers: [AdministratorController],
   providers: [AdministratorService],
-  exports:[AdministratorService]
+  exports: [AdministratorService],
 })
 export class AdministratorModule {}

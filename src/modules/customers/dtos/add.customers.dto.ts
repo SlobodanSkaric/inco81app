@@ -1,18 +1,19 @@
-import { IsBoolean, IsNotEmpty, IsString } from "class-validator";
+import { IsBoolean, IsEmail, IsNotEmpty, IsString, MinLength } from "class-validator";
 
 export class AddCustomersDto {
     @IsString()
     @IsNotEmpty()
     customerName: string;
 
-    @IsString()
+    @IsEmail()
     @IsNotEmpty()
     contactEmail: string;
 
     @IsString()
     @IsNotEmpty()
+    @MinLength(8)
     password: string;
-    
+
     @IsBoolean()
     @IsNotEmpty()
     isActive: boolean;

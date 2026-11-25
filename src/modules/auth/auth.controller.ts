@@ -11,9 +11,11 @@ import { Throttle } from '@nestjs/throttler';
 import { JwtRefreshGuards } from './jwtRefreshGuards';
 import { clearAuthCookies, setAuthCookies } from './auth.cookies';
 import { Role } from 'src/common/enums/role.enum';
+import { Public } from 'src/common/decorators/public.decorator';
 import { GetUserAgent } from '../../common/decorators/ua.decorator';
 
 @ApiTags('auth')
+@Public()
 @Controller('auth')
 export class AuthController {
     constructor(
@@ -47,7 +49,10 @@ export class AuthController {
     @ApiOperation({ summary: 'Administrator logout', description: 'Clears auth cookies.' })
     @Post("administrator/logout")
     async logut(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<{message: string}>{
-        await this.authService.logout(req.cookies?.refresh_token);
+        await this.authService.logout({
+            refreshToken: req.cookies?.refresh_token,
+            accessToken: req.cookies?.access_token,
+        });
         clearAuthCookies(res);
         return { message: "Logout successful"};
     }
@@ -63,6 +68,10 @@ export class AuthController {
         }
         const token = await this.authService.userLogin(data, ipuaData);
 
+        if(token instanceof ApiResponse){
+            return token;
+        }
+
        setAuthCookies(res, token);
 
 
@@ -73,7 +82,10 @@ export class AuthController {
     @ApiOperation({ summary: 'User logout', description: 'Clears auth cookies.' })
     @Post("user/logout")
     async userLogout(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<{message: string}>{
-        await this.authService.logout(req.cookies?.refresh_token);
+        await this.authService.logout({
+            refreshToken: req.cookies?.refresh_token,
+            accessToken: req.cookies?.access_token,
+        });
         clearAuthCookies(res);
         return { message: "Logout successful" };
     }
@@ -104,7 +116,10 @@ export class AuthController {
     @ApiOperation({ summary: 'Superadministrator logout', description: 'Clears auth cookies.' })
     @Post("superadministrators/logout")
     async logoutSuperAdministrators(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<{message: string}> {
-        await this.authService.logout(req.cookies?.refresh_token);
+        await this.authService.logout({
+            refreshToken: req.cookies?.refresh_token,
+            accessToken: req.cookies?.access_token,
+        });
         clearAuthCookies(res);
         return { message: "Superadministrators Logout successful" };
     }
@@ -126,7 +141,7 @@ export class AuthController {
             return token;
         }
 
-      setAuthCookies(res, token);
+       setAuthCookies(res, token);
 
         return { message: "Customers Login successful", customers: token.customersInfo };
     }
@@ -135,8 +150,8 @@ export class AuthController {
     @Throttle({ default: { limit: 30, ttl: 60000 } })
     @UseGuards(JwtRefreshGuards)
     @Post("refresh")
-    async refresh(@Req() req: Request & { user: { id: number; role: Role; sid: string; jti: string } }, @Res({ passthrough: true }) res: Response) {
-        const tokens = await this.authService.refresh(req.user);
+    async refresh(@Req() req: Request & { user: { id: number; role: Role; sid: string; jti: string } }, @Res({ passthrough: true }) res: Response, @GetIp() ip: string, @GetUserAgent() ua: string) {
+        const tokens = await this.authService.refresh(req.user, {ip, ua});
         setAuthCookies(res, tokens);
         return { message: "Refresh successful" };
     }
@@ -144,7 +159,10 @@ export class AuthController {
     @ApiOperation({ summary: 'Customer logout', description: 'Clears auth cookies.' })
     @Post("customers/logout")
     async logoutCustomers(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<{message: string}>{
-        await this.authService.logout(req.cookies?.refresh_token);
+        await this.authService.logout({
+            refreshToken: req.cookies?.refresh_token,
+            accessToken: req.cookies?.access_token,
+        });
         clearAuthCookies(res);
         return { message: "Customers Logout successful" };
     }

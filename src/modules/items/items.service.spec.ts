@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { Items } from 'src/entitets/entities/Items';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { GetItemsDto } from './dtos/get.itmes.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { DataSource } from 'typeorm';
 
 const mockItemsRepository = {
   find: jest.fn(),
@@ -17,11 +19,20 @@ describe('ItemsService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [ItemsService,
+      providers: [
+        ItemsService,
         {
           provide: getRepositoryToken(Items),
           useValue: mockItemsRepository,
-        }
+        },
+        {
+          provide: EventEmitter2,
+          useValue: { emit: jest.fn() },
+        },
+        {
+          provide: DataSource,
+          useValue: { transaction: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -59,7 +70,11 @@ describe('ItemsService', () => {
      mockItemsRepository.find.mockResolvedValue(mockItems);
 
      const result = await service.findAllItems();
-     expect(result).toEqual(mockItems);
+     expect(result).toEqual(
+       mockItems.map((item) =>
+         new GetItemsDto(item.itemId, item.itemName, item.price, item.stockQuantity),
+       ),
+     );
      expect(repository.find).toHaveBeenCalled();
   });
 
@@ -74,7 +89,9 @@ describe('ItemsService', () => {
     mockItemsRepository.findOne.mockResolvedValue(mockItem);
 
     const result = await service.getItemsById(1);
-    expect(result).toEqual(mockItem);
+    expect(result).toEqual(
+      new GetItemsDto(mockItem.itemId, mockItem.itemName, mockItem.price, mockItem.stockQuantity),
+    );
     expect(repository.findOne).toHaveBeenCalledWith({ where: { itemId: 1 } });
   });
 

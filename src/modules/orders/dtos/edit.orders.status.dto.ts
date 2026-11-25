@@ -1,9 +1,10 @@
-import { IsEnum, IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsEnum, IsInt, IsNotEmpty, IsPositive } from "class-validator";
 import { OrdersStatus } from "src/modules/orders/dtos/order.status.enum";
 
 export class EditOrdersStatusDto {
     @IsNotEmpty()
-    @IsNumber()
+    @IsInt()
+    @IsPositive()
     orderId: number;
 
     @IsNotEmpty()

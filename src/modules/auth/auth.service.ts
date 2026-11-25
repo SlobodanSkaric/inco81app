@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, HttpException, HttpStatus, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { Users } from 'src/entitets/entities/Users';
 import { AuthDto } from './dto/auth.dto';
 import { AuthLoginDto } from './dto/auth.login.dto';
@@ -17,6 +17,7 @@ import { Role } from '../../common/enums/role.enum';
 import { CustomersService } from '../customers/customers.service';
 import { RefreshSessionService } from './refresh.session.service';
 import { Premissions } from 'src/common/enums/premisions.enums';
+import { RedisService } from '../redis/redis.service';
 
 export interface LoginMeta{
     ip: string;
@@ -26,6 +27,7 @@ export interface LoginMeta{
 @Injectable()
 export class AuthService {
     private readonly logger = new Logger(AuthService.name);
+    private static readonly RISK_BLOCK_SCORE = 80;
     private static readonly DUMMY_HASH = bcrypt.hashSync("dummy-password-for-timing", 10);
     constructor(
         private readonly jwtService: JwtService,
@@ -33,7 +35,8 @@ export class AuthService {
         private readonly configService: ConfigService,
         private readonly loginAttemptsService: LoginAttemptsService,
         private readonly customersService: CustomersService,
-        private readonly refreshSessionService: RefreshSessionService
+        private readonly refreshSessionService: RefreshSessionService,
+        private readonly redisService: RedisService,
     ){}
 
     private async validateCredentials(email: string, password: string, role: string, ip: string): Promise<Users | Customers | null> {
@@ -59,6 +62,7 @@ export class AuthService {
         const userNotVisible = role !== Role.CUSTOMER && user.visibility === 0;
 
         if(inactiveCustomer || userNotVisible){
+            await this.loginAttemptsService.registerFailer(scope, email, ip);
             throw new HttpException("Invalid credentials", HttpStatus.UNAUTHORIZED);
         }
 
@@ -124,14 +128,14 @@ export class AuthService {
       
        if(!checkedCustomers) throw new UnauthorizedException("Invalid credentials");
        const {sid, jti} = await this.refreshSessionService.create(checkedCustomers.customerId.toString(), Role.CUSTOMER, ipuaData);
-       const {accessToken, refreshToken} = await this.issueTokens({id: checkedCustomers.customerId, email: checkedCustomers.contactEmail, role: Role.CUSTOMER}, sid, jti, [Premissions.CREATE, Premissions.READ, Premissions.UPDATE, Premissions.DELETE]);
+       const {accessToken, refreshToken} = await this.issueTokens({id: checkedCustomers.customerId, email: checkedCustomers.contactEmail, role: Role.CUSTOMER}, sid, jti, [Premissions.CREATE, Premissions.READ, Premissions.UPDATE]);
 
         const customersInfo = new GetCustomersDto(checkedCustomers?.customerId, checkedCustomers?.customerName, checkedCustomers?.isActive, checkedCustomers?.contactEmail, checkedCustomers?.phoneNumber, checkedCustomers?.address);
      
         return { accessToken, refreshToken, customersInfo };
     }
 
-    async refresh(payload: {id: number, role: Role, sid: string, jti: string}){
+    async refresh(payload: {id: number, role: Role, sid: string, jti: string}, ipuaData: LoginMeta){
         const account = payload.role === Role.CUSTOMER ? await this.customersService.findCustomerInActive(payload.id) as Customers | null : await this.authUserServices.findByIdAndRole(payload.id, payload.role) as Users | null;
 
         if(!account || (account instanceof Users && account.visibility === 0)){
@@ -140,27 +144,45 @@ export class AuthService {
         }
 
 
+        const risk = await this.redisService.getRiskScore(String(payload.id), payload.role);
+        if(risk && risk.score >= AuthService.RISK_BLOCK_SCORE){
+            throw new ForbiddenException(risk.reason || "Account temporarily blocked due to risk score");
+        }
+
         let premisions = [Premissions.READ, Premissions.CREATE, Premissions.UPDATE, Premissions.DELETE];
 
-        if(account.role === Role.USER){
+        if(account.role === Role.USER || account.role === Role.CUSTOMER){
             premisions = [Premissions.READ, Premissions.CREATE, Premissions.UPDATE];
         }
 
-        const jti = await this.refreshSessionService.rotate(payload.sid, payload.jti, payload.id.toString(), payload.role);
+        const jti = await this.refreshSessionService.rotate(payload.sid, payload.jti, payload.id.toString(), payload.role, ipuaData);
         
         const email = account instanceof Customers ? account.contactEmail  : account.email;
         return this.issueTokens({id: payload.id, email, role: payload.role}, payload.sid, jti, premisions);
 
     }
 
-    async logout(refreshTokens: string): Promise<void>{
-        if(!refreshTokens) return;
+    async logout(cookies: { refreshToken?: string; accessToken?: string }): Promise<void>{
+        const sid =
+        (await this.sidFrom(cookies.refreshToken, "SECRET_REFRESH_TOKEN_KEY")) ??
+        (await this.sidFrom(cookies.accessToken, "SECRET_TOKEN_KEY"));
 
-        try{
-            const payload = await this.jwtService.verifyAsync(refreshTokens, { secret: this.configService.get<string>("SECRET_REFRESH_TOKEN_KEY"), ignoreExpiration: true });
-            await this.refreshSessionService.invalidate(payload.sid);
-        }catch(error){
-            this.logger.error(error);
+        if (sid) {
+            await this.refreshSessionService.invalidate(sid);
+        }
+    }
+
+    private async sidFrom(token: string | undefined, secretKey: string): Promise<string | undefined> {
+        if (!token) return;
+        try {
+            const payload = await this.jwtService.verifyAsync(token, {
+                secret: this.configService.get<string>(secretKey),
+                ignoreExpiration: true,
+            });
+            return payload.sid;
+        } catch (error) {
+            this.logger.warn(`JWT verify failed during logout; ignoring unsigned token: ${error}`);
+            return undefined;
         }
     }
 
