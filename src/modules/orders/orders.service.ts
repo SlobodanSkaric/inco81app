@@ -326,6 +326,8 @@ export class OrdersService {
                 txAbort("error", 400, "Only active and pending orders can be deleted");
             }
 
+            
+
             return await this.cancelOrder(transactionalEntityManager, order, { allowRefund: true });
         });
 
@@ -341,13 +343,13 @@ export class OrdersService {
      * business failure so the caller's transaction rolls back — nothing is mutated
      * before validation passes.
      */
-    async cancelOrder(
-        transactionalEntityManager: EntityManager,
-        order: Orders,
-        opts: { allowRefund: boolean },
-    ): Promise<ApiResponse> {
+    async cancelOrder(transactionalEntityManager: EntityManager, order: Orders, opts: { allowRefund: boolean }): Promise<ApiResponse> {
         if (order.paymentStatus === OrderPaymentStatus.PAID && !opts.allowRefund) {
             txAbort("error", 400, "Paid orders cannot be cancelled this way");
+        }
+
+        if (order.orderStatus === OrdersStatus.SHIPPED) {
+            txAbort("error", 400, "Shipped orders cannot be cancelled");
         }
 
         const orderItems = await transactionalEntityManager.find(OrderItems, {
