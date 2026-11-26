@@ -3,6 +3,7 @@ export enum OrdersStatus {
     PENDING = "pending",
     COMPLETED = "completed",
     CANCELLED = "cancelled",
+    SHIPPED = "shipped",
 }
 
 export enum OrderPaymentStatus {
@@ -21,7 +22,8 @@ export enum OrderPaymentMethod {
 /** Allowed transitions for changeOrderStatus. Cancelled is only set via cancelOrder. */
 export const ORDER_STATUS_TRANSITIONS: Record<OrdersStatus, readonly OrdersStatus[]> = {
     [OrdersStatus.PENDING]: [OrdersStatus.ACTIVE],
-    [OrdersStatus.ACTIVE]: [OrdersStatus.COMPLETED],
+    [OrdersStatus.ACTIVE]: [OrdersStatus.SHIPPED],
+    [OrdersStatus.SHIPPED]: [OrdersStatus.COMPLETED],
     [OrdersStatus.COMPLETED]: [],
     [OrdersStatus.CANCELLED]: [],
 };

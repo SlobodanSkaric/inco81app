@@ -10,7 +10,7 @@ export class Orders {
     @Column("int", { name: "customer_id" })
     customerId: number;
 
-    @Column("enum", { name: "order_status", enum: ["active", "pending","completed", "cancelled"], default: "pending" })
+    @Column("enum", { name: "order_status", enum: ["active", "pending","completed", "cancelled", "shipped"], default: "pending" })
     orderStatus: string;
 
     @Column("datetime", { name: "created_at", default: () => "CURRENT_TIMESTAMP" })
