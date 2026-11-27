@@ -230,85 +230,106 @@ export class TimeofworkService {
         return timeOfWork;
     }
 
-    async updateUserTimeOfWork(data: UdateTimeOfWorkUserDto, userId: number): Promise<TimeOfWorke | ApiResponse | null>{
-        const timeOfWork = await this.timeOfWorksRepository.findOne({
-            where: { timeOfWorkeId: data.id },
-            relations: { user: true },
-        });
-
-        if(!timeOfWork){
-            return new ApiResponse("error", 404, "Time of work for this id is not exists");
+    async updateUserTimeOfWork(data: UdateTimeOfWorkUserDto, userAdminId: number): Promise<TimeOfWorke | ApiResponse | null>{
+        if(!data.dateStartTime && !data.dateEndTime){
+            return new ApiResponse("error", 400, "Date start time and date end time are required");
         }
 
-        if(timeOfWork.user?.managerId !== userId){
-            return new ApiResponse("error", 403, "You are not authorized to update this time of work");
-        }
+       let parsedStartTime: Date | undefined;
+       let parsedEndTime: Date | undefined;
 
-        if (!data.dateStartTime && !data.dateEndTime) {
-            return new ApiResponse("error", 400, "At least one of dateStartTime or dateEndTime is required");
-        }
+       try{
+        if(data.dateStartTime) parsedStartTime = dataUtils(data.dateStartTime);
+        if(data.dateEndTime) parsedEndTime = dataUtils(data.dateEndTime);
+       }catch(error){
+        return new ApiResponse("error", 400, "Invalid date format");
+       }
 
-        let checkedIn = timeOfWork.checked_in;
-        let checkedOut = timeOfWork.checked_out;
+       const result = await runInTransaction(this.dataSource, async(manager) =>{
+            const timeOfWork = await manager.getRepository(TimeOfWorke).findOne({
+                where: { timeOfWorkeId: data.id},
+                relations: { user: true },
+            });
 
-        try {
-            if (data.dateStartTime) {
-                checkedIn = dataUtils(data.dateStartTime);
+            if(!timeOfWork){
+                 txAbort("error", 404, "Time of work for this id is not exists");
             }
-            if (data.dateEndTime) {
-                checkedOut = dataUtils(data.dateEndTime);
+            if(timeOfWork.user?.managerId !== userAdminId){
+                 txAbort("error", 403, "You are not authorized to update this time of work");
             }
-        } catch {
-            return new ApiResponse("error", 400, "Invalid date and time format. Use YYYY-MM-DD HH:mm:ss");
-        }
 
-        if (checkedIn && checkedOut && checkedOut.getTime() < checkedIn.getTime()) {
-            return new ApiResponse("error", 400, "checked_out must be after checked_in");
-        }
-
-        if (checkedIn) {
             const ownerUserId = timeOfWork.user?.userId;
-            if (ownerUserId != null) {
-                const overlapQb = this.timeOfWorksRepository
-                    .createQueryBuilder("t")
-                    .where("t.user_id = :userId", { userId: ownerUserId })
-                    .andWhere("t.timeOfWorkeId != :id", { id: data.id })
-                    .andWhere("t.status = :status", { status: 0 })
-                    .andWhere("t.checked_in IS NOT NULL")
-                    .andWhere("t.checked_in < :end", {
-                        end: checkedOut ?? new Date("9999-12-31T23:59:59"),
-                    })
-                    .andWhere(
-                        "(t.checked_out IS NULL OR t.checked_out > :start)",
-                        { start: checkedIn },
-                    );
 
-                const overlap = await overlapQb.getOne();
-                if (overlap) {
-                    return new ApiResponse(
-                        "error",
-                        409,
-                        "Updated shift overlaps another time-of-work entry",
-                    );
+            if(ownerUserId == null){
+                txAbort("error", 404, "User not found");
+            }
+
+            const lockUser = await this.lockUser(manager, ownerUserId);
+
+            if(lockUser == null){
+                txAbort("error", 404, "User not found");
+            }
+
+            if(lockUser.managerId !== userAdminId){
+                txAbort("error", 403, "You are not authorized to update this time of work");
+            }
+
+            const checkedIn = parsedStartTime ?? timeOfWork.checked_in;
+            const checkedOut = parsedEndTime ?? timeOfWork.checked_out;
+
+            if(checkedIn && checkedOut && checkedIn.getTime() > checkedOut.getTime()){
+                txAbort("error", 400, "Start time must be before end time");
+            }
+
+            if(checkedIn){
+                const overlap = await manager.getRepository(TimeOfWorke)
+                .createQueryBuilder("time_of_worke")
+                .where("time_of_worke.user_id = :userId", { userId: ownerUserId })
+                .andWhere("time_of_worke.timeOfWorkeId != :timeOfWorkeId", { timeOfWorkeId: data.id })
+                .andWhere("time_of_worke.status = :status", { status: 0 })
+                .andWhere("time_of_worke.checked_in IS NOT NULL")
+                .andWhere("time_of_worke.checked_in < :end", {end: checkedOut ?? new Date("9999-12-31T23:59:59")})
+                .andWhere("time_of_worke.checked_out IS NULL OR time_of_worke.checked_out > :start", {start: checkedIn})
+                .getOne();
+
+                if(overlap){
+                    txAbort("error", 400, "Time of work is already exists");
                 }
             }
-        }
 
-        const result = await this.timeOfWorksRepository.createQueryBuilder()
-                        .update(TimeOfWorke)
-                        .set({
-                            checked_in: checkedIn,
-                            checked_out: checkedOut,
-                        })
-                        .where("timeOfWorkeId = :id", { id: data.id })
-                        .execute();
+            const upodateTimeOfWork = await manager.getRepository(TimeOfWorke)
+               .createQueryBuilder("time_of_worke")
+               .where("time_of_worke.timeOfWorkeId = :id", { id: data.id })
+               .update(TimeOfWorke)
+               .set({
+                checked_in: checkedIn,
+                checked_out: checkedOut,
+               })
+               .where("time_of_worke.timeOfWorkeId = :timeOfWorkeId", { timeOfWorkeId: data.id })
+               .execute();
 
-        if(result.affected === 0){
-            return new ApiResponse("error", 404, "Time of work for this id is not exists");
-        }
+            if(upodateTimeOfWork.affected === 0){
+                txAbort("error", 500, "Failed to update time of work");
+            }
 
-        this.invalidateTimeOfWorkCache(timeOfWork.user?.userId ?? userId, userId);
+            const update = await manager.getRepository(TimeOfWorke).findOne({
+                where: { timeOfWorkeId: data.id },
+                relations: { user: true },
+            });
 
-        return await this.timeOfWorksRepository.findOne({ where: { timeOfWorkeId: data.id } });
-    }
+            if(!update){
+                return new ApiResponse("error", 404, "Time of work not found");
+            }
+            
+            return { update,  ownerUserId};          
+            
+       });
+
+       if(result instanceof ApiResponse){
+        return result;
+       }
+
+       this.invalidateTimeOfWorkCache(result.ownerUserId, userAdminId);
+       return result.update;
+   }
 }
